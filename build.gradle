@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+group = 'ru.spbstu'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    implementation 'org.telegram:telegrambots:6.9.7.1'
+    implementation 'org.springframework:spring-context:6.1.4'
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+}
+
+test {
+    useJUnitPlatform()
+}
