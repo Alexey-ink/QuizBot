@@ -32,10 +32,6 @@ public class HibernateConfig {
             // Автосоздание/обновление таблиц
             settings.put("hibernate.hbm2ddl.auto", "update");
 
-            // Логирование SQL в консоль
-            settings.put("hibernate.show_sql", "true");
-            settings.put("hibernate.format_sql", "true");
-
             configuration.setProperties(settings);
 
             configuration.addAnnotatedClass(User.class);
