@@ -16,7 +16,10 @@ dependencies {
     implementation('org.springframework:spring-context:7.0.0-M7') {
         exclude group: 'commons-logging', module: 'commons-logging'
     }
+    implementation 'org.hibernate:hibernate-core:7.1.0.Final'
+    implementation 'org.postgresql:postgresql:42.7.7'
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation 'ch.qos.logback:logback-classic:1.5.18'
 }
 
