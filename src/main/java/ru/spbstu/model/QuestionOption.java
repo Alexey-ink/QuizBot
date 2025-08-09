@@ -1,0 +1,25 @@
+package ru.spbstu.model;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "question_options", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"question_id", "option_number"})
+})
+public class QuestionOption {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_id", nullable = false)
+    private Question question;
+
+    @Column(name = "option_number", nullable = false)
+    private int optionNumber;
+
+    @Column(length = 200, nullable = false)
+    private String text;
+
+}
