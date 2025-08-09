@@ -14,7 +14,7 @@ public class User {
     @Column(name = "telegram_id", nullable = false, unique = true)
     private Long telegramId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true, unique = true)
     private String username;
 
     @Enumerated(EnumType.STRING)

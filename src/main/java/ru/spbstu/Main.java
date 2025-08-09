@@ -1,9 +1,8 @@
 package ru.spbstu;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import ru.spbstu.config.HibernateConfig;
 import ru.spbstu.config.AppConfig;
 import ru.spbstu.model.User;
 
@@ -12,14 +11,14 @@ public class Main {
         var context = new AnnotationConfigApplicationContext(AppConfig.class);
         System.out.println("\nThe bot is running...");
 
-        SessionFactory sf = HibernateConfig.getSessionFactory();
-        try (Session session = sf.openSession()) {
-            session.beginTransaction();
-            var users = session.createQuery("from User", User.class).list();
-            System.out.println("Users count: " + users.size());
-            session.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        EntityManagerFactory emf = context.getBean(EntityManagerFactory.class);
+        EntityManager em = emf.createEntityManager();
+
+        em.getTransaction().begin();
+        var users = em.createQuery("from User", User.class).getResultList();
+        System.out.println("Users count: " + users.size());
+        em.getTransaction().commit();
+
+        em.close();
     }
 }

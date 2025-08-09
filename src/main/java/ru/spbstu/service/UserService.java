@@ -14,9 +14,7 @@ public class UserService {
     }
 
     public User registerIfNotExists(Long telegramId, String username) {
-        return userRepository.findAll().stream()
-                .filter(u -> u.getTelegramId().equals(telegramId))
-                .findFirst()
+        return userRepository.findByTelegramId(telegramId)
                 .orElseGet(() -> userRepository.save(new User(telegramId, username)));
     }
 }
