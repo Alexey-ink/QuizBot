@@ -1,10 +1,11 @@
 package ru.spbstu.config;
 
 import com.zaxxer.hikari.HikariDataSource;
-import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -20,17 +21,37 @@ import java.util.Properties;
 
 @Configuration
 @ComponentScan("ru.spbstu")
-@EnableJpaRepositories(basePackages = "ru.spbstu.repository")
 @EnableTransactionManagement
+@EnableJpaRepositories(basePackages = "ru.spbstu.repository")
+@PropertySource("classpath:application.properties")
 public class AppConfig {
-    private final Dotenv dotenv = Dotenv.load();
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUser;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
+
+    @Value("${telegram.bot.token}")
+    private String botToken;
+
+    @Value("${telegram.bot.username}")
+    private String botUsername;
+
+    @Value("${spring.jpa.hibernate.ddl-auto}")
+    private String ddlAuto;
+
+    @Value("${spring.jpa.database-platform}")
+    private String dialect;
 
     @Bean
     public DataSource dataSource() {
         HikariDataSource ds = new HikariDataSource();
-        ds.setJdbcUrl(dotenv.get("DB_URL"));
-        ds.setUsername(dotenv.get("DB_USER"));
-        ds.setPassword(dotenv.get("DB_PASSWORD"));
+        ds.setJdbcUrl(dbUrl);
+        ds.setUsername(dbUser);
+        ds.setPassword(dbPassword);
         ds.setDriverClassName("org.postgresql.Driver");
         return ds;
     }
@@ -43,11 +64,9 @@ public class AppConfig {
         emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 
         Properties props = new Properties();
-        props.put("hibernate.hbm2ddl.auto", "update");
-        props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-        // props.put("hibernate.show_sql", "true");
+        props.put("hibernate.hbm2ddl.auto", ddlAuto);
+        props.put("hibernate.dialect", dialect);
         emf.setJpaProperties(props);
-
         return emf;
     }
 
@@ -60,9 +79,7 @@ public class AppConfig {
 
     @Bean
     public QuizBot quizBot(UserService userService) {
-        String token = dotenv.get("TELEGRAM_BOT_TOKEN");
-        String username = dotenv.get("TELEGRAM_BOT_USERNAME");
-        return new QuizBot(token, username, userService);
+        return new QuizBot(botToken, botUsername, userService);
     }
 
     @Bean
