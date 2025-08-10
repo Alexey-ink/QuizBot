@@ -13,10 +13,13 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
-import ru.spbstu.QuizBot;
+import ru.spbstu.bot.QuizBot;
+import ru.spbstu.bot.UpdateDispatcher;
+import ru.spbstu.handler.CommandHandler;
 import ru.spbstu.service.UserService;
 
 import javax.sql.DataSource;
+import java.util.List;
 import java.util.Properties;
 
 @Configuration
@@ -78,8 +81,13 @@ public class AppConfig {
     }
 
     @Bean
-    public QuizBot quizBot(UserService userService) {
-        return new QuizBot(botToken, botUsername, userService);
+    public UpdateDispatcher updateDispatcher(List<CommandHandler> handlers) {
+        return new UpdateDispatcher(handlers);
+    }
+
+    @Bean
+    public QuizBot quizBot(UpdateDispatcher dispatcher) {
+        return new QuizBot(botToken, botUsername, dispatcher);
     }
 
     @Bean
