@@ -37,12 +37,6 @@ public class AppConfig {
     @Value("${spring.datasource.password}")
     private String dbPassword;
 
-    @Value("${telegram.bot.token}")
-    private String botToken;
-
-    @Value("${telegram.bot.username}")
-    private String botUsername;
-
     @Value("${spring.jpa.hibernate.ddl-auto}")
     private String ddlAuto;
 
@@ -78,16 +72,6 @@ public class AppConfig {
         var tm = new JpaTransactionManager();
         tm.setEntityManagerFactory(emf.getObject());
         return tm;
-    }
-
-    @Bean
-    public UpdateDispatcher updateDispatcher(List<CommandHandler> handlers) {
-        return new UpdateDispatcher(handlers);
-    }
-
-    @Bean
-    public QuizBot quizBot(UpdateDispatcher dispatcher) {
-        return new QuizBot(botToken, botUsername, dispatcher);
     }
 
     @Bean
