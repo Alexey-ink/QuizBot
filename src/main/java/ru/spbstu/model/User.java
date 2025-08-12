@@ -61,4 +61,5 @@ public class User {
     public String getPasswordHash() {
         return passwordHash;
     }
+
 }

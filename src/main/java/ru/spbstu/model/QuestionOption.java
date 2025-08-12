@@ -22,4 +22,19 @@ public class QuestionOption {
     @Column(length = 200, nullable = false)
     private String text;
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setQuestion(Question question) {
+        this.question = question;
+    }
+
+    public void setOptionNumber(int optionNumber) {
+        this.optionNumber = optionNumber;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
 }

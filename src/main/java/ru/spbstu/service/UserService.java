@@ -13,8 +13,13 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User registerIfNotExists(Long telegramId, String username) {
+    public User getOrCreateUser(Long telegramId, String username) {
         return userRepository.findByTelegramId(telegramId)
                 .orElseGet(() -> userRepository.save(new User(telegramId, username)));
+    }
+
+    public User getUser(Long telegramId) {
+        return userRepository.findByTelegramId(telegramId)
+                .orElseThrow(() -> new RuntimeException("User not found with telegramId: " + telegramId));
     }
 }

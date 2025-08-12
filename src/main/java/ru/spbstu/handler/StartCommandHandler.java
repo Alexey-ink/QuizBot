@@ -23,10 +23,12 @@ public class StartCommandHandler implements CommandHandler {
     @Override
     public void handle(Update update, AbsSender sender) {
         var tgUser = update.getMessage().getFrom();
-        userService.registerIfNotExists(tgUser.getId(), tgUser.getUserName());
+        userService.getOrCreateUser(tgUser.getId(), tgUser.getUserName());
 
         String text = "Добро пожаловать, " +
-                (tgUser.getUserName() != null ? "@" + tgUser.getUserName() : "гость") + "!";
+                (tgUser.getUserName() != null ? "@" + tgUser.getUserName() : "гость") + "!\n" +
+                "Этот бот поможет тебе создавать вопросы и проходить викторины!\n\n" +
+                "Используй /help, чтобы увидеть список команд.";
 
         try {
             sender.execute(new SendMessage(
