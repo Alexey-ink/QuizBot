@@ -5,14 +5,15 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "questions")
 public class Question {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(length = 36)
+    private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -37,8 +38,9 @@ public class Question {
             inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags;
 
-    public void setId(Long id) {
-        this.id = id;
+    @PrePersist
+    public void generateId() {
+        this.id = UUID.randomUUID().toString();
     }
 
     public void setUser(User user) {
@@ -65,7 +67,7 @@ public class Question {
         this.tags = tags;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 

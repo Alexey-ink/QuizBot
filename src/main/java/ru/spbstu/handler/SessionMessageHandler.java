@@ -8,18 +8,15 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.session.Session;
 import ru.spbstu.utils.SessionManager;
 import ru.spbstu.session.QuestionSession;
-import ru.spbstu.session.SessionType;
 
 @Component
 public class SessionMessageHandler implements CommandHandler {
     private final SessionManager sessionManager;
     private final AddQuestionCommandHandler addQuestionHandler;
-    private final DeleteQuestionCommandHandler deleteQuestionHandler;
 
-    public SessionMessageHandler(SessionManager sessionManager, AddQuestionCommandHandler addQuestionHandler, DeleteQuestionCommandHandler deleteQuestionHandler) {
+    public SessionMessageHandler(SessionManager sessionManager, AddQuestionCommandHandler addQuestionHandler) {
         this.sessionManager = sessionManager;
         this.addQuestionHandler = addQuestionHandler;
-        this.deleteQuestionHandler = deleteQuestionHandler;
     }
 
     @Override
@@ -31,44 +28,17 @@ public class SessionMessageHandler implements CommandHandler {
     public void handle(Update update, AbsSender sender) {
         var userId = update.getMessage().getFrom().getId();
         Session session = sessionManager.getSession(userId);
-        
         if (session instanceof QuestionSession) {
             addQuestionHandler.handle(update, sender);
-        }
-        else if (session != null && session.getType() == SessionType.DELETE_CONFIRMATION) {
-            handleDeleteConfirmation(update, sender, userId);
         }
         else { // Если нет никаких сессий
             try {
                 sender.execute(new SendMessage(
-                        String.valueOf(update.getMessage().getChatId()),                         "Unknown command.\n" +
-                        "Enter /help command"));
+                        String.valueOf(update.getMessage().getChatId()), "Неизвестная команда.\n" +
+                        "Введите команду /help"));
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private void handleDeleteConfirmation(Update update, AbsSender sender, Long userId) {
-        String text = update.getMessage().getText().toLowerCase().trim();
-        
-        if (text.equals("да") || text.equals("yes") || text.equals("y")) {
-            deleteQuestionHandler.confirmDeletion(userId, true);
-            sendMessage(sender, update.getMessage().getChatId(), "✅ Вопрос удален.");
-        } else if (text.equals("нет") || text.equals("no") || text.equals("n")) {
-            deleteQuestionHandler.confirmDeletion(userId, false);
-            sendMessage(sender, update.getMessage().getChatId(), "❗ Отменено.");
-        } else {
-            sendMessage(sender, update.getMessage().getChatId(), 
-                "Please answer «Yes» or «No» to confirm question deletion.");
-        }
-    }
-
-    private void sendMessage(AbsSender sender, Long chatId, String text) {
-        try {
-            sender.execute(new SendMessage(String.valueOf(chatId), text));
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
         }
     }
 }
