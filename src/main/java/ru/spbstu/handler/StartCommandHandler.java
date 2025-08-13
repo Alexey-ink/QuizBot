@@ -28,7 +28,7 @@ public class StartCommandHandler implements CommandHandler {
         String text = "Добро пожаловать, " +
                 (tgUser.getUserName() != null ? "@" + tgUser.getUserName() : "гость") + "!\n" +
                 "Этот бот поможет тебе создавать вопросы и проходить викторины!\n\n" +
-                "Используй /help, чтобы увидеть список команд.";
+                "Use /help to see the list of commands.";
 
         try {
             sender.execute(new SendMessage(

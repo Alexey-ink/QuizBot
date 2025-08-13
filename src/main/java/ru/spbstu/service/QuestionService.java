@@ -58,4 +58,29 @@ public class QuestionService {
 
         questionRepository.save(question);
     }
+
+    public boolean tagExists(Long telegramId, String tagName) {
+        User user = userService.getUser(telegramId);
+        return tagRepository.findByUserIdAndNameIgnoreCase(user.getId(), tagName).isPresent();
+    }
+
+    public List<Question> getQuestionsByTag(Long telegramId, String tagName) {
+        User user = userService.getUser(telegramId);
+        return questionRepository.findByUserIdAndTagName(user.getId(), tagName);
+    }
+
+    public Question getQuestionById(Long questionId) {
+        return questionRepository.findById(questionId).orElse(null);
+    }
+
+    public boolean isQuestionOwner(Long telegramId, Long questionId) {
+        User user = userService.getUser(telegramId);
+        Question question = getQuestionById(questionId);
+        return question != null && question.getUser().getId().equals(user.getId());
+    }
+
+    @Transactional
+    public void deleteQuestion(Long questionId) {
+        questionRepository.deleteById(questionId);
+    }
 }

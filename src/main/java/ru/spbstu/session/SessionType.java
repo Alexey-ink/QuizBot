@@ -3,5 +3,6 @@ package ru.spbstu.session;
 public enum SessionType {
     QUESTION,
     QUIZ,
-    SURVEY
+    SURVEY,
+    DELETE_CONFIRMATION
 }
