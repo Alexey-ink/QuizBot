@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "question_options", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"question_id", "option_number"})
+        @UniqueConstraint(columnNames = {"question_id", "number"})
 })
 public class QuestionOption {
 
@@ -16,7 +16,7 @@ public class QuestionOption {
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
-    @Column(name = "option_number", nullable = false)
+    @Column(name = "number", nullable = false)
     private int optionNumber;
 
     @Column(length = 200, nullable = false)

@@ -45,14 +45,11 @@ public class SessionMessageHandler implements CommandHandler {
         
         if (session instanceof QuestionSession) {
             addQuestionHandler.handle(update, sender);
-        }
-        else if (session instanceof QuizSession) {
+        } else if (session instanceof QuizSession) {
             randomQuestionHandler.handle(update, sender);
-        }
-        else if (session != null && session.getType() == SessionType.DELETE_CONFIRMATION) {
+        } else if (session != null && session.getType() == SessionType.DELETE_CONFIRMATION) {
             handleDeleteConfirmation(update, sender, userId);
-        }
-        else if (session != null && session.getType() == SessionType.DELETE_TAG_CONFIRMATION) {
+        } else if (session != null && session.getType() == SessionType.DELETE_TAG_CONFIRMATION) {
             handleDeleteTagConfirmation(update, sender, userId);
         }
         else { // Если нет никаких сессий

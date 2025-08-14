@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Настройка уровней логирования -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.apache.http" level="WARN"/>
+    <logger name="com.zaxxer.hikari" level="WARN"/>
+    <logger name="org.springframework.data.jpa" level="WARN"/>
+    <logger name="org.springframework.orm.jpa" level="WARN"/>
+    <logger name="org.springframework.beans.factory" level="WARN"/>
+    
+    <!-- Настройка для вашего приложения -->
+    <logger name="ru.spbstu" level="INFO"/>
+    
+    <!-- Корневой логгер -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

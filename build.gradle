@@ -23,13 +23,19 @@ dependencies {
     implementation 'org.telegram:telegrambots:6.9.7.1'
     implementation 'org.springframework:spring-context:6.1.0'
     implementation 'org.springframework:spring-orm:6.1.0'
-    implementation 'org.springframework.data:spring-data-jpa:3.2.0'
+    implementation 'org.springframework.data:spring-data-jpa:3.5.0'
     implementation 'org.hibernate:hibernate-core:6.4.0.Final'
     implementation 'com.zaxxer:HikariCP:5.1.0'
     implementation 'org.postgresql:postgresql:42.7.7'
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation 'ch.qos.logback:logback-classic:1.4.14'
-    implementation 'com.h2database:h2:2.2.224'
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.antlr:antlr4:4.13.0'
+        force 'org.antlr:antlr4-runtime:4.13.0'
+    }
 }
 
 compileJava.options.encoding = 'UTF-8'
