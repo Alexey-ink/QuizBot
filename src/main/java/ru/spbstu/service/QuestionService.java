@@ -83,4 +83,9 @@ public class QuestionService {
     public void deleteQuestion(Long questionId) {
         questionRepository.deleteById(questionId);
     }
+    
+    @Transactional
+    public void updateQuestion(Question question) {
+        questionRepository.save(question);
+    }
 }

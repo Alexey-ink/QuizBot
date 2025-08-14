@@ -76,4 +76,20 @@ public class Question {
     public User getUser() {
         return user;
     }
+    
+    public Set<QuestionOption> getOptions() {
+        return options;
+    }
+    
+    public Set<Tag> getTags() {
+        return tags;
+    }
+    
+    public int getCorrectOption() {
+        return correctOption;
+    }
+    
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }

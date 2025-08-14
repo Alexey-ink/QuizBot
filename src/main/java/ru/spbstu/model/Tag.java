@@ -49,4 +49,25 @@ public class Tag {
     public void setQuestions(Set<Question> questions) {
         this.questions = questions;
     }
+    
+    // Геттеры
+    public Long getId() {
+        return id;
+    }
+    
+    public User getUser() {
+        return user;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+    
+    public Set<Question> getQuestions() {
+        return questions;
+    }
 }

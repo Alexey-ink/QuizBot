@@ -37,4 +37,20 @@ public class QuestionOption {
     public void setText(String text) {
         this.text = text;
     }
+    
+    public Long getId() {
+        return id;
+    }
+    
+    public Question getQuestion() {
+        return question;
+    }
+    
+    public int getOptionNumber() {
+        return optionNumber;
+    }
+    
+    public String getText() {
+        return text;
+    }
 }
