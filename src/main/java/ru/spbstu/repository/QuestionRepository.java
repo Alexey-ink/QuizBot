@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface QuestionRepository extends JpaRepository<Question, Long> {
+public interface QuestionRepository extends JpaRepository<Question, String> {
     
     @Query("SELECT q FROM Question q JOIN q.tags t WHERE t.user.id = :userId AND t.name = :tagName")
     List<Question> findByUserIdAndTagName(@Param("userId") Long userId, @Param("tagName") String tagName);

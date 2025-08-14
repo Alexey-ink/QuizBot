@@ -20,7 +20,7 @@ public class DeleteQuestionCommandHandler implements CommandHandler {
     private final SessionManager sessionManager;
     
     // Хранилище ожидающих подтверждения удалений
-    private final Map<Long, Long> pendingDeletions = new ConcurrentHashMap<>();
+    private final Map<Long, String> pendingDeletions = new ConcurrentHashMap<>();
 
     public DeleteQuestionCommandHandler(QuestionService questionService, SessionManager sessionManager) {
         this.questionService = questionService;
@@ -44,7 +44,7 @@ public class DeleteQuestionCommandHandler implements CommandHandler {
         }
 
         try {
-            Long questionId = Long.parseLong(parts[1].trim());
+            String questionId = parts[1].trim();
             Long telegramId = update.getMessage().getFrom().getId();
             
             // Проверяем существование вопроса
@@ -84,7 +84,7 @@ public class DeleteQuestionCommandHandler implements CommandHandler {
     }
 
     public void confirmDeletion(Long telegramId, boolean confirmed) {
-        Long questionId = pendingDeletions.get(telegramId);
+        String questionId = pendingDeletions.get(telegramId);
         if (questionId != null) {
             if (confirmed) {
                 questionService.deleteQuestion(questionId);
@@ -96,7 +96,7 @@ public class DeleteQuestionCommandHandler implements CommandHandler {
         }
     }
 
-    public Long getPendingQuestionId(Long telegramId) {
+    public String getPendingQuestionId(Long telegramId) {
         return pendingDeletions.get(telegramId);
     }
 

@@ -70,18 +70,18 @@ public class QuestionService {
         return questionRepository.findByUserIdAndTagName(user.getId(), tagName);
     }
 
-    public Question getQuestionById(Long questionId) {
+    public Question getQuestionById(String questionId) {
         return questionRepository.findById(questionId).orElse(null);
     }
 
-    public boolean isQuestionOwner(Long telegramId, Long questionId) {
+    public boolean isQuestionOwner(Long telegramId, String questionId) {
         User user = userService.getUser(telegramId);
         Question question = getQuestionById(questionId);
         return question != null && question.getUser().getId().equals(user.getId());
     }
 
     @Transactional
-    public void deleteQuestion(Long questionId) {
+    public void deleteQuestion(String questionId) {
         questionRepository.deleteById(questionId);
     }
 
