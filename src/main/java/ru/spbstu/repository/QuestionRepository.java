@@ -17,4 +17,11 @@ public interface QuestionRepository extends JpaRepository<Question, String> {
     
     @Query(value = "SELECT * FROM questions ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
     Optional<Question> findRandomQuestion();
+    
+    @Query(value = "SELECT DISTINCT q.* FROM questions q " +
+                   "JOIN question_tags qt ON q.id = qt.question_id " +
+                   "JOIN tags t ON qt.tag_id = t.id " +
+                   "WHERE LOWER(t.name) = LOWER(:tagName) " +
+                   "ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
+    Optional<Question> findRandomQuestionByTag(@Param("userId") Long userId, @Param("tagName") String tagName);
 }

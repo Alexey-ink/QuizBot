@@ -64,7 +64,7 @@ public class ShowQuestionsByTagCommandHandler implements CommandHandler {
             if (questionText.length() > 50) {
                 questionText = questionText.substring(0, 47) + "...";
             }
-            response.append("• 🆔 ID: Q").append(question.getId()).append(" — ").append(questionText).append("\n");
+            response.append("• 🆔: ").append(question.getId()).append(" — ").append(questionText).append("\n");
         }
 
         sendMessage(sender, update.getMessage().getChatId(), response.toString());

@@ -90,6 +90,12 @@ public class QuestionService {
         return questionRepository.findRandomQuestion().orElse(null);
     }
 
+    @Transactional(readOnly = true)
+    public Question getRandomQuestionByTag(Long telegramId, String tagName) {
+        User user = userService.getUser(telegramId);
+        return questionRepository.findRandomQuestionByTag(user.getId(), tagName).orElse(null);
+    }
+
     @Transactional
     public void updateQuestion(Question question) {
         questionRepository.save(question);
