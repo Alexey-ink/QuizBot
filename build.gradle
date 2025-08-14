@@ -31,11 +31,4 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.4.14'
 }
 
-configurations.all {
-    resolutionStrategy {
-        force 'org.antlr:antlr4:4.13.0'
-        force 'org.antlr:antlr4-runtime:4.13.0'
-    }
-}
-
 compileJava.options.encoding = 'UTF-8'
