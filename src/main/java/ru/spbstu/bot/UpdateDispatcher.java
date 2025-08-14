@@ -5,13 +5,11 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import ru.spbstu.handler.CommandHandler;
-import ru.spbstu.session.QuestionSession;
 import ru.spbstu.session.QuizSession;
 import ru.spbstu.utils.SessionManager;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Component
@@ -27,17 +25,16 @@ public class UpdateDispatcher {
     }
 
     public void dispatch(Update update, AbsSender sender) {
-        // Обработка ответов на опросы (poll answers)
+        // Обработка ответов на опросы
         if (update.hasPollAnswer()) {
             handlePollAnswer(update, sender);
             return;
         }
         
-        // Обработка обычных сообщений
         if (update.hasMessage() && update.getMessage().hasText()) {
             String text = update.getMessage().getText();
             String command = text.split(" ")[0];
-            handlers.getOrDefault(command, handlers.get("default"))
+            handlers.getOrDefault(command, handlers.get("/default"))
                     .handle(update, sender);
         }
     }
@@ -49,7 +46,7 @@ public class UpdateDispatcher {
         // Проверяем, есть ли активная сессия викторины у пользователя
         var session = sessionManager.getSession(userId, QuizSession.class);
         if (session != null) {
-            // Находим обработчик для /random и передаем ему poll answer
+            // Находим обработчик для /random или /random_by_tag и передаем ему poll answer
             handlers.get("/random").handle(update, sender);
         }
     }

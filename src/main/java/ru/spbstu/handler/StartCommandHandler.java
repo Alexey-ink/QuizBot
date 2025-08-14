@@ -21,6 +21,11 @@ public class StartCommandHandler implements CommandHandler {
     }
 
     @Override
+    public String getDescription() {
+        return "Запустить бота и получить приветствие";
+    }
+
+    @Override
     public void handle(Update update, AbsSender sender) {
         var tgUser = update.getMessage().getFrom();
         userService.getOrCreateUser(tgUser.getId(), tgUser.getUserName());

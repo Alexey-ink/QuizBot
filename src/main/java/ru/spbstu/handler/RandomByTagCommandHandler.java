@@ -32,6 +32,11 @@ public class RandomByTagCommandHandler implements CommandHandler {
     }
 
     @Override
+    public String getDescription() {
+        return "Получить случайный вопрос по указанному тегу";
+    }
+
+    @Override
     public void handle(Update update, AbsSender sender) {
         var chatId = update.getMessage().getChatId();
         var userId = update.getMessage().getFrom().getId();

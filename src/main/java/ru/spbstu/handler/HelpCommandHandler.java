@@ -15,6 +15,11 @@ public class HelpCommandHandler implements CommandHandler {
     }
 
     @Override
+    public String getDescription() {
+        return "Показать справку по всем командам";
+    }
+
+    @Override
     public void handle(Update update, AbsSender sender) {
         String helpText = """
             🤖 **Команды Quiz Bot**

@@ -27,6 +27,11 @@ public class AddQuestionCommandHandler implements CommandHandler {
     }
 
     @Override
+    public String getDescription() {
+        return "Добавить новый вопрос с вариантами ответов";
+    }
+
+    @Override
     public void handle(Update update, AbsSender sender) {
         var userId = update.getMessage().getFrom().getId();
         var chatId = update.getMessage().getChatId();

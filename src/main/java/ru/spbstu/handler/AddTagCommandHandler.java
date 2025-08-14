@@ -25,6 +25,11 @@ public class AddTagCommandHandler implements CommandHandler {
     }
 
     @Override
+    public String getDescription() {
+        return "Добавить новый тег для категоризации вопросов";
+    }
+
+    @Override
     public void handle(Update update, AbsSender sender) {
         String text = update.getMessage().getText();
         String[] parts = text.split(" ", 2);

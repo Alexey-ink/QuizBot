@@ -33,6 +33,11 @@ public class DeleteQuestionCommandHandler implements CommandHandler {
     }
 
     @Override
+    public String getDescription() {
+        return "Удалить вопрос по его ID";
+    }
+
+    @Override
     public void handle(Update update, AbsSender sender) {
         String text = update.getMessage().getText();
         String[] parts = text.split(" ", 2);

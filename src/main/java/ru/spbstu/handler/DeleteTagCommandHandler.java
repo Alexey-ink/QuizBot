@@ -38,6 +38,11 @@ public class DeleteTagCommandHandler implements CommandHandler {
     }
 
     @Override
+    public String getDescription() {
+        return "Удалить тег и связанные с ним вопросы";
+    }
+
+    @Override
     public void handle(Update update, AbsSender sender) {
         String text = update.getMessage().getText();
         String[] parts = text.split(" ", 2);

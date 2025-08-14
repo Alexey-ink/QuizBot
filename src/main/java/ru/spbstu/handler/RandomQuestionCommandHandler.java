@@ -32,6 +32,11 @@ public class RandomQuestionCommandHandler implements CommandHandler {
     }
 
     @Override
+    public String getDescription() {
+        return "Получить случайный вопрос для викторины";
+    }
+
+    @Override
     public void handle(Update update, AbsSender sender) {
         var chatId = update.getMessage().getChatId();
         var userId = update.getMessage().getFrom().getId();

@@ -35,7 +35,12 @@ public class SessionMessageHandler implements CommandHandler {
 
     @Override
     public String getCommand() {
-        return "default";
+        return "/default";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Команда бота";
     }
 
     @Override

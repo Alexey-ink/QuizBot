@@ -75,9 +75,13 @@ public class AppConfig {
     }
 
     @Bean
-    public TelegramBotsApi telegramBotsApi(QuizBot bot) throws Exception {
+    public TelegramBotsApi telegramBotsApi(QuizBot bot, ru.spbstu.service.BotCommandService botCommandService) throws Exception {
         TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
         api.registerBot(bot);
+        
+        // Устанавливаем команды бота с подсказками
+        botCommandService.setBotCommands(bot);
+        
         return api;
     }
 }

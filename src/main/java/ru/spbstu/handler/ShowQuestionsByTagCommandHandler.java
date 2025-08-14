@@ -24,6 +24,11 @@ public class ShowQuestionsByTagCommandHandler implements CommandHandler {
     }
 
     @Override
+    public String getDescription() {
+        return "Показать все вопросы по указанному тегу";
+    }
+
+    @Override
     public void handle(Update update, AbsSender sender) {
         String text = update.getMessage().getText();
         String[] parts = text.split(" ", 2);

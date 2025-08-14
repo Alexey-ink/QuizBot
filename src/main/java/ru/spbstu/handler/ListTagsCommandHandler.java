@@ -28,6 +28,11 @@ public class ListTagsCommandHandler implements CommandHandler {
     }
 
     @Override
+    public String getDescription() {
+        return "Показать список всех ваших тегов";
+    }
+
+    @Override
     public void handle(Update update, AbsSender sender) {
         Long telegramId = update.getMessage().getFrom().getId();
         
