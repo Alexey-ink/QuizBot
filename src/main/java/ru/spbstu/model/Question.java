@@ -90,4 +90,8 @@ public class Question {
     public Set<Tag> getTags() {
         return tags;
     }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
 }

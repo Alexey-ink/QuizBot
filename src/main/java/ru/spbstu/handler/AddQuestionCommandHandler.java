@@ -106,7 +106,11 @@ public class AddQuestionCommandHandler implements CommandHandler {
 
     private void send(AbsSender sender, Long chatId, String text) {
         try {
-            sender.execute(new SendMessage(chatId.toString(), text));
+            SendMessage message = new SendMessage();
+            message.setChatId(chatId.toString());
+            message.setText(text);
+            message.enableMarkdown(true);
+            sender.execute(message);
         } catch (Exception e) {
             e.printStackTrace();
         }

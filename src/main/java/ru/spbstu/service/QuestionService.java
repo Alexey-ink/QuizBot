@@ -89,4 +89,9 @@ public class QuestionService {
     public Question getRandomQuestion() {
         return questionRepository.findRandomQuestion().orElse(null);
     }
+
+    @Transactional
+    public void updateQuestion(Question question) {
+        questionRepository.save(question);
+    }
 }

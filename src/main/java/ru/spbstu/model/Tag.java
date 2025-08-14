@@ -53,4 +53,21 @@ public class Tag {
     public String getName() {
         return name;
     }
+
+    // Геттеры
+    public Long getId() {
+        return id;
+    }
+    
+    public User getUser() {
+        return user;
+    }
+    
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+    
+    public Set<Question> getQuestions() {
+        return questions;
+    }
 }

@@ -28,11 +28,15 @@ public class StartCommandHandler implements CommandHandler {
         String text = "Добро пожаловать, " +
                 (tgUser.getUserName() != null ? "@" + tgUser.getUserName() : "гость") + "!\n" +
                 "Этот бот поможет тебе создавать вопросы и проходить викторины!\n\n" +
-                "Use /help to see the list of commands.";
+                "💡 **Начните с создания тегов:** `/add_tag <название>`\n" +
+                "📋 **Все команды:** `/help`";
 
         try {
-            sender.execute(new SendMessage(
-                    String.valueOf(update.getMessage().getChatId()), text));
+            SendMessage message = new SendMessage();
+            message.setChatId(String.valueOf(update.getMessage().getChatId()));
+            message.setText(text);
+            message.enableMarkdown(true);
+            sender.execute(message);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }

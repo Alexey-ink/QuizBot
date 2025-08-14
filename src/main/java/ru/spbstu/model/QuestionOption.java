@@ -42,6 +42,14 @@ public class QuestionOption {
         return optionNumber;
     }
 
+    public Long getId() {
+        return id;
+    }
+    
+    public Question getQuestion() {
+        return question;
+    }
+
     public String getText() {
         return text;
     }
