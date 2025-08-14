@@ -13,13 +13,16 @@ public class SessionManager {
     private final Map<Long, Session> sessions = new ConcurrentHashMap<>();
 
     public <T extends Session> T getOrCreate(Long userId, Class<T> clazz) {
-        return (T) sessions.computeIfAbsent(userId, id -> {
-            try {
-                return clazz.getDeclaredConstructor().newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException("Не удалось создать сессию для " + clazz.getName(), e);
-            }
-        });
+        Session session = sessions.computeIfAbsent(userId, id -> createNewSession(clazz));
+        return clazz.cast(session);
+    }
+
+    private <T extends Session> T createNewSession(Class<T> clazz) {
+        try {
+            return clazz.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Не удалось создать сессию для " + clazz.getName(), e);
+        }
     }
 
     public boolean hasSession(Long userId) {
@@ -28,6 +31,11 @@ public class SessionManager {
 
     public Session getSession(Long userId) {
         return sessions.get(userId);
+    }
+
+    public <T extends Session> T getSession(Long userId, Class<T> clazz) {
+        Session session = sessions.get(userId);
+        return session != null ? clazz.cast(session) : null;
     }
 
     public void clear(Long userId) {

@@ -49,4 +49,8 @@ public class Tag {
     public void setQuestions(Set<Question> questions) {
         this.questions = questions;
     }
+
+    public String getName() {
+        return name;
+    }
 }

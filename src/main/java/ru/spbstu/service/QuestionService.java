@@ -84,4 +84,9 @@ public class QuestionService {
     public void deleteQuestion(Long questionId) {
         questionRepository.deleteById(questionId);
     }
+
+    @Transactional(readOnly = true)
+    public Question getRandomQuestion() {
+        return questionRepository.findRandomQuestion().orElse(null);
+    }
 }

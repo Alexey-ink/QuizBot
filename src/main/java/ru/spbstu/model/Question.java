@@ -29,10 +29,10 @@ public class Question {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<QuestionOption> options;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "question_tag",
             joinColumns = @JoinColumn(name = "question_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id"))
@@ -77,5 +77,17 @@ public class Question {
 
     public User getUser() {
         return user;
+    }
+
+    public int getCorrectOption() {
+        return correctOption;
+    }
+
+    public Set<QuestionOption> getOptions() {
+        return options;
+    }
+
+    public Set<Tag> getTags() {
+        return tags;
     }
 }
