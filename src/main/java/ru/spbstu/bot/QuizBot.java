@@ -4,10 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.spbstu.service.UserService;
 
 @Component
 public class QuizBot extends TelegramLongPollingBot {
@@ -40,13 +37,5 @@ public class QuizBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         dispatcher.dispatch(update, this);
-    }
-
-    private void send(long chatId, String text) {
-        try {
-            execute(new SendMessage(String.valueOf(chatId), text));
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
     }
 }

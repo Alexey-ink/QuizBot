@@ -91,9 +91,8 @@ public class QuestionService {
     }
 
     @Transactional(readOnly = true)
-    public Question getRandomQuestionByTag(Long telegramId, String tagName) {
-        User user = userService.getUser(telegramId);
-        return questionRepository.findRandomQuestionByTag(user.getId(), tagName).orElse(null);
+    public Question getRandomQuestionByTag(String tagName) {
+        return questionRepository.findRandomQuestionByTag(tagName).orElse(null);
     }
 
     @Transactional

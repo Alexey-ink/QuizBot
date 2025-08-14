@@ -14,12 +14,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import ru.spbstu.bot.QuizBot;
-import ru.spbstu.bot.UpdateDispatcher;
-import ru.spbstu.handler.CommandHandler;
-import ru.spbstu.service.UserService;
-
 import javax.sql.DataSource;
-import java.util.List;
 import java.util.Properties;
 
 @Configuration
@@ -78,8 +73,6 @@ public class AppConfig {
     public TelegramBotsApi telegramBotsApi(QuizBot bot, ru.spbstu.service.BotCommandService botCommandService) throws Exception {
         TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
         api.registerBot(bot);
-        
-        // Устанавливаем команды бота с подсказками
         botCommandService.setBotCommands(bot);
         
         return api;

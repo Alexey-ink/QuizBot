@@ -71,8 +71,8 @@ public class RandomByTagCommandHandler implements CommandHandler {
     }
     
     private void startNewQuizByTag(Long userId, Long chatId, String tagName, AbsSender sender) {
-        Question randomQuestion = questionService.getRandomQuestionByTag(userId, tagName);
-        
+        Question randomQuestion = questionService.getRandomQuestionByTag(tagName);
+
         if (randomQuestion == null) {
             send(sender, chatId, "❌ Не найдено вопросов с тегом '" + tagName + "'.\n\n" +
                     "Убедитесь, что:\n" +
@@ -85,6 +85,8 @@ public class RandomByTagCommandHandler implements CommandHandler {
         QuizSession session = sessionManager.getOrCreate(userId, QuizSession.class);
         session.setCurrentQuestion(randomQuestion);
         session.setStep(QuizSession.Step.WAITING_FOR_ANSWER);
+
+        System.out.println("Waiting for question\n");
         
         List<QuestionOption> sortedOptions = randomQuestion.getOptions().stream()
                 .sorted(Comparator.comparingInt(QuestionOption::getOptionNumber))
@@ -136,7 +138,6 @@ public class RandomByTagCommandHandler implements CommandHandler {
             session.incrementScore();
         }
         
-        // Показываем результат
         showQuizResult(sender, userId, question, selectedAnswer, isCorrect, session.getScore());
     }
     
