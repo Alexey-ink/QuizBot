@@ -23,6 +23,10 @@ public class SessionMessageHandler implements CommandHandler {
         this.addQuestionHandler = addQuestionHandler;
         this.deleteQuestionHandler = deleteQuestionHandler;
         this.deleteTagHandler = deleteTagHandler;
+
+    public SessionMessageHandler(SessionManager sessionManager, AddQuestionCommandHandler addQuestionHandler) {
+        this.sessionManager = sessionManager;
+        this.addQuestionHandler = addQuestionHandler;
     }
 
     @Override
@@ -34,7 +38,6 @@ public class SessionMessageHandler implements CommandHandler {
     public void handle(Update update, AbsSender sender) {
         var userId = update.getMessage().getFrom().getId();
         Session session = sessionManager.getSession(userId);
-        
         if (session instanceof QuestionSession) {
             addQuestionHandler.handle(update, sender);
         }
@@ -51,6 +54,11 @@ public class SessionMessageHandler implements CommandHandler {
                 message.setText("Неизвестная команда.\nВведите /help для просмотра команд");
                 message.enableMarkdown(true);
                 sender.execute(message);
+        else { // Если нет никаких сессий
+            try {
+                sender.execute(new SendMessage(
+                        String.valueOf(update.getMessage().getChatId()), "Неизвестная команда.\n" +
+                        "Введите команду /help"));
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
@@ -98,4 +106,5 @@ public class SessionMessageHandler implements CommandHandler {
             e.printStackTrace();
         }
     }
+}
 }

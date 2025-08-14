@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.service.QuestionService;
 import ru.spbstu.session.QuestionSession;
 import ru.spbstu.utils.SessionManager;
@@ -80,12 +81,23 @@ public class AddQuestionCommandHandler implements CommandHandler {
                         .toList());
                 session.setStep(QuestionSession.Step.FINISHED);
                 Long telegramId = update.getMessage().getFrom().getId();
-                questionService.saveQuestion(telegramId,
+                String questionId = questionService.saveQuestion(telegramId,
                         session.getQuestionText(),
                         session.getOptions(),
                         session.getCorrectOption(),
                         session.getTags());
-                send(sender, chatId, "✅ Вопрос сохранен!");
+                SendMessage message = new SendMessage();
+                message.setChatId(chatId.toString());
+                message.setText(
+                        "✅ Вопрос сохранен!\n" +
+                        "🆔 ID: <code>" + questionId + "</code>\n\n"
+                );
+                message.setParseMode("HTML");
+                try {
+                    sender.execute(message);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
                 sessionManager.clear(userId);
             }
             default -> send(sender, chatId, "Процесс уже завершен. Начните заново: /add_question");

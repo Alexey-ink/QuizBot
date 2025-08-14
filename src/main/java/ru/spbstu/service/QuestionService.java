@@ -24,7 +24,7 @@ public class QuestionService {
     }
 
     @Transactional
-    public void saveQuestion(Long telegramId, String text, List<String> answers, int correctOption, List<String> tagNames) {
+    public String saveQuestion(Long telegramId, String text, List<String> answers, int correctOption, List<String> tagNames) {
         User user = userService.getUser(telegramId);
 
         Question question = new Question();
@@ -57,6 +57,7 @@ public class QuestionService {
         question.setTags(tags);
 
         questionRepository.save(question);
+        return question.getId();
     }
 
     public boolean tagExists(Long telegramId, String tagName) {
