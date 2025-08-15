@@ -5,12 +5,15 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.spbstu.handler.question.AddQuestionCommandHandler;
+import ru.spbstu.handler.question.DeleteQuestionCommandHandler;
+import ru.spbstu.handler.question.RandomQuestionCommandHandler;
+import ru.spbstu.handler.tag.DeleteTagCommandHandler;
 import ru.spbstu.session.Session;
 import ru.spbstu.utils.SessionManager;
 import ru.spbstu.session.QuestionSession;
 import ru.spbstu.session.QuizSession;
 import ru.spbstu.session.SessionType;
-import ru.spbstu.session.DeleteTagConfirmationSession;
 
 @Component
 public class SessionMessageHandler implements CommandHandler {

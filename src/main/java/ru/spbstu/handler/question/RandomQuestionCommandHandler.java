@@ -1,4 +1,4 @@
-package ru.spbstu.handler;
+package ru.spbstu.handler.question;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -6,34 +6,34 @@ import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.spbstu.handler.CommandHandler;
 import ru.spbstu.model.Question;
 import ru.spbstu.model.QuestionOption;
 import ru.spbstu.service.QuestionService;
 import ru.spbstu.session.QuizSession;
 import ru.spbstu.utils.SessionManager;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class RandomByTagCommandHandler implements CommandHandler {
+public class RandomQuestionCommandHandler implements CommandHandler {
     private final QuestionService questionService;
     private final SessionManager sessionManager;
 
-    public RandomByTagCommandHandler(QuestionService questionService, SessionManager sessionManager) {
+    public RandomQuestionCommandHandler(QuestionService questionService, SessionManager sessionManager) {
         this.questionService = questionService;
         this.sessionManager = sessionManager;
     }
 
     @Override
     public String getCommand() {
-        return "/random_by_tag";
+        return "/random";
     }
 
     @Override
     public String getDescription() {
-        return "Получить случайный вопрос по указанному тегу";
+        return "Получить случайный вопрос для викторины";
     }
 
     @Override
@@ -42,68 +42,57 @@ public class RandomByTagCommandHandler implements CommandHandler {
         var userId = update.getMessage().getFrom().getId();
         var text = update.getMessage().getText();
         
-        if (text.equals("/random_by_tag")) {
-            send(sender, chatId, "📝 Использование: /random_by_tag <название_тега>\n\n" +
-                    "Пример: /random_by_tag java");
+        // Если это команда /random - начинаем новую викторину
+        if (text.equals("/random")) {
+            startNewQuiz(userId, chatId, sender);
             return;
         }
         
-        if (text.startsWith("/random_by_tag ")) {
-            String tagName = text.substring("/random_by_tag ".length()).trim();
-            if (tagName.isEmpty()) {
-                send(sender, chatId, "❌ Пожалуйста, укажите название тега.\n\n" +
-                        "Пример: /random_by_tag java");
-                return;
-            }
-            startNewQuizByTag(userId, chatId, tagName, sender);
-            return;
-        }
-        
+        // Если это ответ на опрос
         if (update.hasPollAnswer()) {
             handlePollAnswer(update, sender);
             return;
         }
         
+        // Если это обычное сообщение во время викторины
         QuizSession session = sessionManager.getSession(userId, QuizSession.class);
         if (session != null && !session.isAnswered()) {
             handleTextAnswer(update, sender);
         }
     }
     
-    private void startNewQuizByTag(Long userId, Long chatId, String tagName, AbsSender sender) {
-        Question randomQuestion = questionService.getRandomQuestionByTag(tagName);
-
+    private void startNewQuiz(Long userId, Long chatId, AbsSender sender) {
+        Question randomQuestion = questionService.getRandomQuestion();
+        
         if (randomQuestion == null) {
-            send(sender, chatId, "❌ Не найдено вопросов с тегом '" + tagName + "'.\n\n" +
-                    "Убедитесь, что:\n" +
-                    "• Тег существует\n" +
-                    "• У вас есть вопросы с этим тегом\n" +
-                    "• Используйте команду /list_tags для просмотра доступных тегов");
+            send(sender, chatId, "❌ В базе данных нет вопросов. Сначала добавьте несколько вопросов с помощью команды /add_question");
             return;
         }
         
+        // Создаем новую сессию викторины
         QuizSession session = sessionManager.getOrCreate(userId, QuizSession.class);
         session.setCurrentQuestion(randomQuestion);
         session.setStep(QuizSession.Step.WAITING_FOR_ANSWER);
-
-        System.out.println("Waiting for question\n");
         
+        // Получаем варианты ответов и сортируем их по номеру
         List<QuestionOption> sortedOptions = randomQuestion.getOptions().stream()
-                .sorted(Comparator.comparingInt(QuestionOption::getOptionNumber))
-                .toList();
+                .sorted((o1, o2) -> Integer.compare(o1.getOptionNumber(), o2.getOptionNumber()))
+                .collect(Collectors.toList());
         
+        // Создаем список вариантов ответов для опроса
         List<String> options = sortedOptions.stream()
                 .map(QuestionOption::getText)
                 .collect(Collectors.toList());
         
+        // Создаем опрос
         SendPoll poll = new SendPoll();
         poll.setChatId(chatId.toString());
-        poll.setQuestion("🏷️ [" + tagName + "] " + randomQuestion.getText());
+        poll.setQuestion("🎲 " + randomQuestion.getText());
         poll.setOptions(options);
         poll.setCorrectOptionId(randomQuestion.getCorrectOption() - 1); // Telegram использует 0-based индексы
         poll.setType("quiz");
         poll.setExplanation("💡 Правильный ответ будет показан после завершения опроса");
-        poll.setOpenPeriod(30);
+        poll.setOpenPeriod(30); // 30 секунд на ответ
         poll.setIsAnonymous(true);
         
         try {
@@ -138,6 +127,7 @@ public class RandomByTagCommandHandler implements CommandHandler {
             session.incrementScore();
         }
         
+        // Показываем результат
         showQuizResult(sender, userId, question, selectedAnswer, isCorrect, session.getScore());
     }
     
@@ -268,3 +258,4 @@ public class RandomByTagCommandHandler implements CommandHandler {
         }
     }
 }
+
