@@ -36,14 +36,6 @@ public class StartCommandHandler implements CommandHandler {
                 "Этот бот поможет тебе создавать вопросы и проходить викторины!\n\n" +
                 "💡 Начни с команды /help, чтобы узнать все возможности";
 
-        try {
-            SendMessage message = new SendMessage();
-            message.setChatId(String.valueOf(update.getMessage().getChatId()));
-            message.setText(text);
-            message.enableMarkdown(true);
-            sender.execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
+        sendMessage(sender, update.getMessage().getChatId(), text);
     }
 }

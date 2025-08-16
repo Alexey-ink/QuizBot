@@ -50,28 +50,23 @@ public class RandomByTagCommandHandler implements CommandHandler {
     public void handle(Update update, AbsSender sender) {
         var chatId = update.getMessage().getChatId();
         var userId = update.getMessage().getFrom().getId();
-        var text = update.getMessage().getText();
+        String text = update.getMessage().getText();
         
         if (text.equals("/random_by_tag")) {
-            send(sender, chatId, "📝 Использование: /random_by_tag <название_тега>\n\n" +
-                    "Пример: /random_by_tag java");
-            return;
-        }
-        
-        if (text.startsWith("/random_by_tag ")) {
-            String tagName = text.substring("/random_by_tag ".length()).trim();
-            if (tagName.isEmpty()) {
-                send(sender, chatId, "❌ Пожалуйста, укажите название тега.\n\n" +
-                        "Пример: /random_by_tag java");
-                return;
-            }
-            startNewQuizByTag(userId, chatId, tagName, sender);
-            return;
+            send(sender, chatId, "❌ Пожалуйста, укажите название тега.\n\n" +
+                    "Пример: `/random_by_tag java`");
         }
 
-        System.out.println("Перед if update.hasPollAnswer()");
+        String[] parts = text.split(" ");
+
+        if(parts.length > 2) {
+            send(sender, update.getMessage().getChatId(),
+                    "❌ Укажите один тег без пробелов.\nИспользование: `/random_by_tag <тег>`");
+            return;
+        }
+        startNewQuizByTag(userId, chatId, parts[1], sender);
+
         if (update.hasPollAnswer()) {
-            System.out.println("Зашли в if update.hasPollAnswer()");
             handlePollAnswer(update, sender);
         }
     }
@@ -147,7 +142,6 @@ public class RandomByTagCommandHandler implements CommandHandler {
                 scoreByTagService.incrementScore(user, tag);
             }
         }
-        System.out.println("ПЕРЕД SHOWQUIZ в randomByTag");
         showQuizResult(sender, userId, question, selectedAnswer, isCorrect, userService.getUser(userId).getScore());
     }
     

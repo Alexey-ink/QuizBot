@@ -43,41 +43,41 @@ public class AddQuestionCommandHandler implements CommandHandler {
         // Если только что ввели команду — начинаем с первого шага
         if (text.equals("/add_question")) {
             session.setStep(QuestionSession.Step.ASK_QUESTION_TEXT);
-            send(sender, chatId, "📝 Введите текст вопроса (макс. 200 символов):");
+            sendMessage(sender, chatId, "📝 Введите текст вопроса (макс. 200 символов):");
             return;
         }
 
         switch (session.getStep()) {
             case ASK_QUESTION_TEXT -> {
                 if (text.trim().isEmpty() || text.length() > 200) {
-                    send(sender, chatId, "❌ Текст вопроса должен содержать от 1 до 200 символов.");
+                    sendMessage(sender, chatId, "❌ Текст вопроса должен содержать от 1 до 200 символов.");
                     return;
                 }
                 session.setQuestionText(text.trim());
                 session.setStep(QuestionSession.Step.ASK_ANSWER_OPTIONS);
-                send(sender, chatId, "🔢 Введите вариант 1:");
+                sendMessage(sender, chatId, "🔢 Введите вариант 1:");
             }
             case ASK_ANSWER_OPTIONS -> {
                 session.getOptions().add(text.trim());
                 if (session.getOptions().size() < 4) {
-                    send(sender, chatId, "🔢 Введите вариант " + (session.getOptions().size() + 1) + ":");
+                    sendMessage(sender, chatId, "🔢 Введите вариант " + (session.getOptions().size() + 1) + ":");
                 } else {
                     session.setStep(QuestionSession.Step.ASK_CORRECT_OPTION);
-                    send(sender, chatId, "Введите номер правильного варианта (1-4):");
+                    sendMessage(sender, chatId, "Введите номер правильного варианта (1-4):");
                 }
             }
             case ASK_CORRECT_OPTION -> {
                 try {
                     int num = Integer.parseInt(text.trim());
                     if (num < 1 || num > 4) {
-                        send(sender, chatId, "❌ Номер должен быть от 1 до 4.");
+                        sendMessage(sender, chatId, "❌ Номер должен быть от 1 до 4.");
                         return;
                     }
                     session.setCorrectOption(num);
                     session.setStep(QuestionSession.Step.ASK_TAGS);
-                    send(sender, chatId, "Введите теги (через запятую):");
+                    sendMessage(sender, chatId, "Введите теги (через запятую):");
                 } catch (NumberFormatException e) {
-                    send(sender, chatId, "❌ Введите число от 1 до 4.");
+                    sendMessage(sender, chatId, "❌ Введите число от 1 до 4.");
                 }
             }
             case ASK_TAGS -> {
@@ -106,19 +106,8 @@ public class AddQuestionCommandHandler implements CommandHandler {
                 }
                 sessionManager.clear(userId);
             }
-            default -> send(sender, chatId, "Процесс уже завершен. Начните заново: /add_question");
+            default -> sendMessage(sender, chatId, "Процесс уже завершен. Начните заново: /add_question");
         }
     }
 
-    private void send(AbsSender sender, Long chatId, String text) {
-        try {
-            SendMessage message = new SendMessage();
-            message.setChatId(chatId.toString());
-            message.setText(text);
-            message.enableMarkdown(true);
-            sender.execute(message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }

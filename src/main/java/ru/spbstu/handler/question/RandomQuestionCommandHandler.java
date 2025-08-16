@@ -65,7 +65,7 @@ public class RandomQuestionCommandHandler implements CommandHandler {
         Question randomQuestion = questionService.getRandomQuestion();
         
         if (randomQuestion == null) {
-            send(sender, chatId, "❌ В базе данных нет вопросов. Сначала добавьте несколько вопросов с помощью команды /add_question");
+            sendMessage(sender, chatId, "❌ В базе данных нет вопросов. Сначала добавьте несколько вопросов с помощью команды /add_question");
             return;
         }
         
@@ -127,28 +127,25 @@ public class RandomQuestionCommandHandler implements CommandHandler {
                 scoreByTagService.incrementScore(user, tag);
             }
         }
-        System.out.println("ПЕРЕД SHOWQUIZ");
         showQuizResult(sender, userId, question, selectedAnswer, isCorrect, userService.getUser(userId).getScore());
     }
     
     private void showQuizResult(AbsSender sender, Long userId, Question question, int selectedAnswer, boolean isCorrect, int score) {
         StringBuilder message = new StringBuilder();
 
-        System.out.println("ЗАШЛИ В SHOWQUIZ");
         if (isCorrect) {
-            message.append("✅ <b>Правильно!</b> +1 балл\n\n");
+            message.append("✅ **Правильно!** +1 балл\n\n");
         } else {
-            message.append("❌ <b>Неверно!</b>\n\n");
+            message.append("❌ **Неверно!**\n\n");
         }
         
-        // Показываем правильный ответ
         QuestionOption correctOption = question.getOptions().stream()
                 .filter(option -> option.getOptionNumber() == question.getCorrectOption())
                 .findFirst()
                 .orElse(null);
         
-        if (correctOption != null) {
-            message.append("💡 <b>Правильный ответ:</b> ").append(question.getCorrectOption())
+        if (correctOption != null && !isCorrect) {
+            message.append("💡 **Правильный ответ:** ").append(question.getCorrectOption())
                    .append(". ").append(correctOption.getText()).append("\n\n");
         }
         
@@ -157,63 +154,12 @@ public class RandomQuestionCommandHandler implements CommandHandler {
             String tags = question.getTags().stream()
                     .map(tag -> "#" + tag.getName())
                     .collect(Collectors.joining(" "));
-            message.append("🏷️ <b>Теги:</b> ").append(tags).append("\n\n");
+            message.append("🏷️ **Теги:** ").append(tags).append("\n\n");
         }
         
-        // Показываем счет
-        message.append("🏆 <b>Ваш счет:</b> ").append(score).append(" баллов");
-        
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(userId.toString());
-        sendMessage.setText(message.toString());
-        sendMessage.setParseMode("HTML");
-        
-        try {
-            sender.execute(sendMessage);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    private void showCorrectAnswer(AbsSender sender, Long chatId, Question question) {
-        // Получаем правильный вариант ответа
-        QuestionOption correctOption = question.getOptions().stream()
-                .filter(option -> option.getOptionNumber() == question.getCorrectOption())
-                .findFirst()
-                .orElse(null);
-        
-        if (correctOption != null) {
-            StringBuilder message = new StringBuilder();
-            message.append("💡 <b>Правильный ответ:</b> ").append(question.getCorrectOption())
-                   .append(". ").append(correctOption.getText()).append("\n\n");
-            
-            // Добавляем информацию о тегах, если они есть
-            if (!question.getTags().isEmpty()) {
-                String tags = question.getTags().stream()
-                        .map(tag -> "#" + tag.getName())
-                        .collect(Collectors.joining(" "));
-                message.append("🏷️ <b>Теги:</b> ").append(tags);
-            }
-            
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(chatId.toString());
-            sendMessage.setText(message.toString());
-            sendMessage.setParseMode("HTML");
-            
-            try {
-                sender.execute(sendMessage);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+        message.append("🏆 **Ваш счет:** ").append(score).append(" баллов");
+        sendMessage(sender, userId, message.toString());
 
-    private void send(AbsSender sender, Long chatId, String text) {
-        try {
-            sender.execute(new SendMessage(chatId.toString(), text));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }
 

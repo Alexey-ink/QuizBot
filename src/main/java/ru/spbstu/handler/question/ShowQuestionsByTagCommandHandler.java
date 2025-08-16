@@ -79,16 +79,4 @@ public class ShowQuestionsByTagCommandHandler implements CommandHandler {
 
         sendMessage(sender, update.getMessage().getChatId(), response.toString());
     }
-
-    private void sendMessage(AbsSender sender, Long chatId, String text) {
-        try {
-            SendMessage message = new SendMessage();
-            message.setChatId(String.valueOf(chatId));
-            message.setText(text);
-            message.enableMarkdown(true);
-            sender.execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
 }
