@@ -32,14 +32,18 @@ public class ShowQuestionsByTagCommandHandler implements CommandHandler {
     @Override
     public void handle(Update update, AbsSender sender) {
         String text = update.getMessage().getText();
-        String[] parts = text.split(" ", 2);
+        String[] parts = text.split(" ");
         
         if (parts.length < 2) {
             sendMessage(sender, update.getMessage().getChatId(), 
-                "❌ Укажите тег.\nИспользование: /show_questions_by_tag <тег>");
+                "❌ Укажите тег.\nИспользование: `/show_questions_by_tag <тег>`");
             return;
         }
-
+        if (parts.length > 2) {
+            sendMessage(sender, update.getMessage().getChatId(),
+                    "❌ Укажите один тег без пробелов.\nИспользование: `/show_questions_by_tag <тег>`");
+            return;
+        }
         String tagName = parts[1].trim();
         Long telegramId = update.getMessage().getFrom().getId();
 
