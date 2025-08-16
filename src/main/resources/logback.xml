@@ -7,7 +7,7 @@
         </encoder>
     </appender>
 
-    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.hibernate.SQL" level="WARN"/>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="ERROR"/>
     <logger name="org.springframework.orm.jpa" level="ERROR"/>
     <logger name="org.springframework.dao" level="ERROR"/>
@@ -18,6 +18,13 @@
     <logger name="com.zaxxer.hikari" level="WARN"/>
     <logger name="org.springframework.data.jpa" level="WARN"/>
     <logger name="org.springframework.beans.factory" level="WARN"/>
+    <logger name="org.telegram" level="WARN"/>
+    <logger name="org.telegram.telegrambots" level="WARN"/>
+    <logger name="org.telegram.telegrambots.meta" level="WARN"/>
+    <logger name="org.telegram.telegrambots.meta.api" level="WARN"/>
+    <logger name="org.telegram.telegrambots.meta.api.methods" level="WARN"/>
+    <logger name="org.telegram.telegrambots.meta.api.objects" level="WARN"/>
+    <logger name="org.telegram.telegrambots.meta.exceptions" level="WARN"/>
 
     <logger name="ru.spbstu" level="INFO"/>
 
