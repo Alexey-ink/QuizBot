@@ -27,14 +27,18 @@ public class User {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "score", nullable = false)
+    private Integer score;
+
     public User() {
         this.role = UserRole.USER;
     }
 
-    public User(Long telegramId, String username) {
+    public User(Long telegramId, String username, Integer score) {
         this.telegramId = telegramId;
         this.username = username;
         this.role = UserRole.USER;
+        this.score = score;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -62,4 +66,11 @@ public class User {
         return passwordHash;
     }
 
+    public void setScore(Integer score) {
+        this.score = score;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
 }

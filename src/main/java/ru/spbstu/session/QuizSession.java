@@ -8,7 +8,6 @@ public class QuizSession extends BaseSession {
     private Question currentQuestion;
     private Instant questionStartTime;
     private boolean answered = false;
-    private int score = 0;
     private Step step = Step.WAITING_FOR_ANSWER;
     
     public enum Step {
@@ -41,15 +40,7 @@ public class QuizSession extends BaseSession {
     public void setAnswered(boolean answered) {
         this.answered = answered;
     }
-    
-    public int getScore() {
-        return score;
-    }
-    
-    public void incrementScore() {
-        this.score++;
-    }
-    
+
     public Step getStep() {
         return step;
     }

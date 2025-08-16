@@ -10,6 +10,8 @@ import ru.spbstu.handler.CommandHandler;
 import ru.spbstu.model.Question;
 import ru.spbstu.model.QuestionOption;
 import ru.spbstu.service.QuestionService;
+import ru.spbstu.service.ScoreByTagService;
+import ru.spbstu.service.UserService;
 import ru.spbstu.session.QuizSession;
 import ru.spbstu.utils.SessionManager;
 
@@ -21,10 +23,17 @@ import java.util.stream.Collectors;
 public class RandomByTagCommandHandler implements CommandHandler {
     private final QuestionService questionService;
     private final SessionManager sessionManager;
+    private final ScoreByTagService scoreByTagService;
+    private final UserService userService;
 
-    public RandomByTagCommandHandler(QuestionService questionService, SessionManager sessionManager) {
+    public RandomByTagCommandHandler(QuestionService questionService,
+                                     SessionManager sessionManager,
+                                     ScoreByTagService scoreByTagService,
+                                     UserService userService) {
         this.questionService = questionService;
         this.sessionManager = sessionManager;
+        this.scoreByTagService = scoreByTagService;
+        this.userService = userService;
     }
 
     @Override
@@ -59,15 +68,11 @@ public class RandomByTagCommandHandler implements CommandHandler {
             startNewQuizByTag(userId, chatId, tagName, sender);
             return;
         }
-        
+
+        System.out.println("Перед if update.hasPollAnswer()");
         if (update.hasPollAnswer()) {
+            System.out.println("Зашли в if update.hasPollAnswer()");
             handlePollAnswer(update, sender);
-            return;
-        }
-        
-        QuizSession session = sessionManager.getSession(userId, QuizSession.class);
-        if (session != null && !session.isAnswered()) {
-            handleTextAnswer(update, sender);
         }
     }
     
@@ -103,9 +108,8 @@ public class RandomByTagCommandHandler implements CommandHandler {
         poll.setOptions(options);
         poll.setCorrectOptionId(randomQuestion.getCorrectOption() - 1); // Telegram использует 0-based индексы
         poll.setType("quiz");
-        poll.setExplanation("💡 Правильный ответ будет показан после завершения опроса");
         poll.setOpenPeriod(30);
-        poll.setIsAnonymous(true);
+        poll.setIsAnonymous(false);
         
         try {
             sender.execute(poll);
@@ -113,7 +117,7 @@ public class RandomByTagCommandHandler implements CommandHandler {
             e.printStackTrace();
         }
     }
-    
+
     private void handlePollAnswer(Update update, AbsSender sender) {
         var pollAnswer = update.getPollAnswer();
         var userId = pollAnswer.getUser().getId();
@@ -136,56 +140,19 @@ public class RandomByTagCommandHandler implements CommandHandler {
         boolean isCorrect = selectedAnswer == question.getCorrectOption();
         
         if (isCorrect) {
-            session.incrementScore();
+            var user = userService.getUser(userId);
+            user.setScore(user.getScore() + 1);
+            userService.save(user);
+            for (var tag : question.getTags()) {
+                scoreByTagService.incrementScore(user, tag);
+            }
         }
-        
-        showQuizResult(sender, userId, question, selectedAnswer, isCorrect, session.getScore());
+        System.out.println("ПЕРЕД SHOWQUIZ в randomByTag");
+        showQuizResult(sender, userId, question, selectedAnswer, isCorrect, userService.getUser(userId).getScore());
     }
     
-    private void handleTextAnswer(Update update, AbsSender sender) {
-        var chatId = update.getMessage().getChatId();
-        var userId = update.getMessage().getFrom().getId();
-        var text = update.getMessage().getText();
-        
-        QuizSession session = sessionManager.getSession(userId, QuizSession.class);
-        if (session == null || session.isAnswered()) {
-            return;
-        }
-        
-        // Проверяем, не истекло ли время
-        if (session.isTimeExpired()) {
-            session.setAnswered(true);
-            send(sender, chatId, "⏰ Время истекло!");
-            showCorrectAnswer(sender, chatId, session.getCurrentQuestion());
-            return;
-        }
-        
-        // Пытаемся распарсить номер ответа
-        try {
-            int selectedAnswer = Integer.parseInt(text.trim());
-            if (selectedAnswer < 1 || selectedAnswer > 4) {
-                send(sender, chatId, "❌ Введите число от 1 до 4 или используйте опрос.");
-                return;
-            }
-            
-            session.setAnswered(true);
-            
-            Question question = session.getCurrentQuestion();
-            boolean isCorrect = selectedAnswer == question.getCorrectOption();
-            
-            if (isCorrect) {
-                session.incrementScore();
-            }
-            
-            // Показываем результат
-            showQuizResult(sender, chatId, question, selectedAnswer, isCorrect, session.getScore());
-            
-        } catch (NumberFormatException e) {
-            send(sender, chatId, "❌ Введите число от 1 до 4 или используйте опрос.");
-        }
-    }
-    
-    private void showQuizResult(AbsSender sender, Long chatId, Question question, int selectedAnswer, boolean isCorrect, int score) {
+    private void showQuizResult(AbsSender sender, Long chatId, Question question,
+                                int selectedAnswer, boolean isCorrect, int score) {
         StringBuilder message = new StringBuilder();
         
         if (isCorrect) {
@@ -229,7 +196,6 @@ public class RandomByTagCommandHandler implements CommandHandler {
     }
     
     private void showCorrectAnswer(AbsSender sender, Long chatId, Question question) {
-        // Получаем правильный вариант ответа
         QuestionOption correctOption = question.getOptions().stream()
                 .filter(option -> option.getOptionNumber() == question.getCorrectOption())
                 .findFirst()

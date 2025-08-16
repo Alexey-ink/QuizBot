@@ -23,7 +23,7 @@ public class StartCommandHandler implements CommandHandler {
 
     @Override
     public String getDescription() {
-        return "Запустить бота и получить приветствие";
+        return "Запустить бота";
     }
 
     @Override
@@ -34,8 +34,7 @@ public class StartCommandHandler implements CommandHandler {
         String text = "Добро пожаловать, " +
                 (tgUser.getUserName() != null ? "@" + tgUser.getUserName() : "гость") + "!\n" +
                 "Этот бот поможет тебе создавать вопросы и проходить викторины!\n\n" +
-                "💡 **Начните с создания тегов:** `/add_tag <название>`\n" +
-                "📋 **Все команды:** `/help`";
+                "💡 Начни с команды /help, чтобы узнать все возможности";
 
         try {
             SendMessage message = new SendMessage();

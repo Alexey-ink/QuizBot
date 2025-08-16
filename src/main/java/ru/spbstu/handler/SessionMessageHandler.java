@@ -60,7 +60,7 @@ public class SessionMessageHandler implements CommandHandler {
         } else if (session != null && session.getType() == SessionType.DELETE_TAG_CONFIRMATION) {
             handleDeleteTagConfirmation(update, sender, userId);
         }
-        else { // Если нет никаких сессий
+        else {
             try {
                 SendMessage message = new SendMessage();
                 message.setChatId(String.valueOf(update.getMessage().getChatId()));
@@ -113,6 +113,10 @@ public class SessionMessageHandler implements CommandHandler {
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
+    }
+
+    private void handlePollAnswer() {
+
     }
 }
 

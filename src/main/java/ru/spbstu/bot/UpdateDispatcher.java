@@ -25,13 +25,9 @@ public class UpdateDispatcher {
     }
 
     public void dispatch(Update update, AbsSender sender) {
-        // Обработка ответов на опросы
         if (update.hasPollAnswer()) {
             handlePollAnswer(update, sender);
-            return;
-        }
-        
-        if (update.hasMessage() && update.getMessage().hasText()) {
+        } else if (update.hasMessage() && update.getMessage().hasText()) {
             String text = update.getMessage().getText();
             String command = text.split(" ")[0];
             handlers.getOrDefault(command, handlers.get("/default"))

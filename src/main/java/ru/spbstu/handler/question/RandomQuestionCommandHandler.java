@@ -9,10 +9,14 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.handler.CommandHandler;
 import ru.spbstu.model.Question;
 import ru.spbstu.model.QuestionOption;
+import ru.spbstu.model.User;
 import ru.spbstu.service.QuestionService;
+import ru.spbstu.service.UserService;
+import ru.spbstu.service.ScoreByTagService;
 import ru.spbstu.session.QuizSession;
 import ru.spbstu.utils.SessionManager;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,10 +24,14 @@ import java.util.stream.Collectors;
 public class RandomQuestionCommandHandler implements CommandHandler {
     private final QuestionService questionService;
     private final SessionManager sessionManager;
+    private final UserService userService;
+    private final ScoreByTagService scoreByTagService;
 
-    public RandomQuestionCommandHandler(QuestionService questionService, SessionManager sessionManager) {
+    public RandomQuestionCommandHandler(QuestionService questionService, SessionManager sessionManager, UserService userService, ScoreByTagService scoreByTagService) {
         this.questionService = questionService;
         this.sessionManager = sessionManager;
+        this.userService = userService;
+        this.scoreByTagService = scoreByTagService;
     }
 
     @Override
@@ -38,26 +46,18 @@ public class RandomQuestionCommandHandler implements CommandHandler {
 
     @Override
     public void handle(Update update, AbsSender sender) {
+        if (update.hasPollAnswer()) {
+            System.out.println("Зашли в if update.hasPollAnswer()");
+            handlePollAnswer(update, sender);
+            return;
+        }
         var chatId = update.getMessage().getChatId();
         var userId = update.getMessage().getFrom().getId();
         var text = update.getMessage().getText();
         
-        // Если это команда /random - начинаем новую викторину
         if (text.equals("/random")) {
             startNewQuiz(userId, chatId, sender);
             return;
-        }
-        
-        // Если это ответ на опрос
-        if (update.hasPollAnswer()) {
-            handlePollAnswer(update, sender);
-            return;
-        }
-        
-        // Если это обычное сообщение во время викторины
-        QuizSession session = sessionManager.getSession(userId, QuizSession.class);
-        if (session != null && !session.isAnswered()) {
-            handleTextAnswer(update, sender);
         }
     }
     
@@ -74,26 +74,22 @@ public class RandomQuestionCommandHandler implements CommandHandler {
         session.setCurrentQuestion(randomQuestion);
         session.setStep(QuizSession.Step.WAITING_FOR_ANSWER);
         
-        // Получаем варианты ответов и сортируем их по номеру
         List<QuestionOption> sortedOptions = randomQuestion.getOptions().stream()
-                .sorted((o1, o2) -> Integer.compare(o1.getOptionNumber(), o2.getOptionNumber()))
-                .collect(Collectors.toList());
+                .sorted(Comparator.comparingInt(QuestionOption::getOptionNumber))
+                .toList();
         
-        // Создаем список вариантов ответов для опроса
         List<String> options = sortedOptions.stream()
                 .map(QuestionOption::getText)
                 .collect(Collectors.toList());
         
-        // Создаем опрос
         SendPoll poll = new SendPoll();
         poll.setChatId(chatId.toString());
         poll.setQuestion("🎲 " + randomQuestion.getText());
         poll.setOptions(options);
         poll.setCorrectOptionId(randomQuestion.getCorrectOption() - 1); // Telegram использует 0-based индексы
         poll.setType("quiz");
-        poll.setExplanation("💡 Правильный ответ будет показан после завершения опроса");
-        poll.setOpenPeriod(30); // 30 секунд на ответ
-        poll.setIsAnonymous(true);
+        poll.setOpenPeriod(30);
+        poll.setIsAnonymous(false);
         
         try {
             sender.execute(poll);
@@ -124,59 +120,21 @@ public class RandomQuestionCommandHandler implements CommandHandler {
         boolean isCorrect = selectedAnswer == question.getCorrectOption();
         
         if (isCorrect) {
-            session.incrementScore();
+            var user = userService.getUser(userId);
+            user.setScore(user.getScore() + 1);
+            userService.save(user);
+            for (var tag : question.getTags()) {
+                scoreByTagService.incrementScore(user, tag);
+            }
         }
-        
-        // Показываем результат
-        showQuizResult(sender, userId, question, selectedAnswer, isCorrect, session.getScore());
+        System.out.println("ПЕРЕД SHOWQUIZ");
+        showQuizResult(sender, userId, question, selectedAnswer, isCorrect, userService.getUser(userId).getScore());
     }
     
-    private void handleTextAnswer(Update update, AbsSender sender) {
-        var chatId = update.getMessage().getChatId();
-        var userId = update.getMessage().getFrom().getId();
-        var text = update.getMessage().getText();
-        
-        QuizSession session = sessionManager.getSession(userId, QuizSession.class);
-        if (session == null || session.isAnswered()) {
-            return;
-        }
-        
-        // Проверяем, не истекло ли время
-        if (session.isTimeExpired()) {
-            session.setAnswered(true);
-            send(sender, chatId, "⏰ Время истекло!");
-            showCorrectAnswer(sender, chatId, session.getCurrentQuestion());
-            return;
-        }
-        
-        // Пытаемся распарсить номер ответа
-        try {
-            int selectedAnswer = Integer.parseInt(text.trim());
-            if (selectedAnswer < 1 || selectedAnswer > 4) {
-                send(sender, chatId, "❌ Введите число от 1 до 4 или используйте опрос.");
-                return;
-            }
-            
-            session.setAnswered(true);
-            
-            Question question = session.getCurrentQuestion();
-            boolean isCorrect = selectedAnswer == question.getCorrectOption();
-            
-            if (isCorrect) {
-                session.incrementScore();
-            }
-            
-            // Показываем результат
-            showQuizResult(sender, chatId, question, selectedAnswer, isCorrect, session.getScore());
-            
-        } catch (NumberFormatException e) {
-            send(sender, chatId, "❌ Введите число от 1 до 4 или используйте опрос.");
-        }
-    }
-    
-    private void showQuizResult(AbsSender sender, Long chatId, Question question, int selectedAnswer, boolean isCorrect, int score) {
+    private void showQuizResult(AbsSender sender, Long userId, Question question, int selectedAnswer, boolean isCorrect, int score) {
         StringBuilder message = new StringBuilder();
-        
+
+        System.out.println("ЗАШЛИ В SHOWQUIZ");
         if (isCorrect) {
             message.append("✅ <b>Правильно!</b> +1 балл\n\n");
         } else {
@@ -206,7 +164,7 @@ public class RandomQuestionCommandHandler implements CommandHandler {
         message.append("🏆 <b>Ваш счет:</b> ").append(score).append(" баллов");
         
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId.toString());
+        sendMessage.setChatId(userId.toString());
         sendMessage.setText(message.toString());
         sendMessage.setParseMode("HTML");
         
