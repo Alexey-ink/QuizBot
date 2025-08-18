@@ -29,6 +29,7 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.7.7'
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation 'ch.qos.logback:logback-classic:1.4.14'
+    implementation 'org.quartz-scheduler:quartz:2.5.0'
 }
 
 compileJava.options.encoding = 'UTF-8'

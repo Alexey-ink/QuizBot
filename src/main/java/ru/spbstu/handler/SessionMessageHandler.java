@@ -1,13 +1,12 @@
 package ru.spbstu.handler;
 
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.handler.question.AddQuestionCommandHandler;
 import ru.spbstu.handler.question.DeleteQuestionCommandHandler;
 import ru.spbstu.handler.question.RandomQuestionCommandHandler;
+import ru.spbstu.handler.schedule.ScheduleCommandHandler;
 import ru.spbstu.handler.tag.DeleteTagCommandHandler;
 import ru.spbstu.session.Session;
 import ru.spbstu.utils.SessionManager;
@@ -22,18 +21,21 @@ public class SessionMessageHandler implements CommandHandler {
     private final RandomQuestionCommandHandler randomQuestionHandler;
     private final DeleteQuestionCommandHandler deleteQuestionHandler;
     private final DeleteTagCommandHandler deleteTagHandler;
+    private final ScheduleCommandHandler scheduleCommandHandler;
 
     public SessionMessageHandler(SessionManager sessionManager,
                                  AddQuestionCommandHandler addQuestionHandler,
                                  DeleteQuestionCommandHandler deleteQuestionHandler,
                                  DeleteTagCommandHandler deleteTagHandler,
-                                 RandomQuestionCommandHandler randomQuestionHandler) {
+                                 RandomQuestionCommandHandler randomQuestionHandler,
+                                 ScheduleCommandHandler scheduleCommandHandler
+                                 ) {
         this.sessionManager = sessionManager;
         this.addQuestionHandler = addQuestionHandler;
         this.deleteQuestionHandler = deleteQuestionHandler;
         this.randomQuestionHandler = randomQuestionHandler;
         this.deleteTagHandler = deleteTagHandler;
-
+        this.scheduleCommandHandler = scheduleCommandHandler;
     }
 
     @Override
@@ -42,34 +44,27 @@ public class SessionMessageHandler implements CommandHandler {
     }
 
     @Override
-    public String getDescription() {
-        return "Команда бота";
-    }
-
-    @Override
     public void handle(Update update, AbsSender sender) {
         var userId = update.getMessage().getFrom().getId();
         Session session = sessionManager.getSession(userId);
-        
+
+        if(session == null) {
+            sendMessage(sender, userId, "Неизвестная команда.\nВведите /help для просмотра команд");
+            return;
+        }
+
         if (session instanceof QuestionSession) {
             addQuestionHandler.handle(update, sender);
         } else if (session instanceof QuizSession) {
             randomQuestionHandler.handle(update, sender);
-        } else if (session != null && session.getType() == SessionType.DELETE_CONFIRMATION) {
+        } else if (session.getType() == SessionType.DELETE_CONFIRMATION) {
             handleDeleteConfirmation(update, sender, userId);
-        } else if (session != null && session.getType() == SessionType.DELETE_TAG_CONFIRMATION) {
+        } else if (session.getType() == SessionType.DELETE_TAG_CONFIRMATION) {
             handleDeleteTagConfirmation(update, sender, userId);
-        }
-        else {
-            try {
-                SendMessage message = new SendMessage();
-                message.setChatId(String.valueOf(update.getMessage().getChatId()));
-                message.setText("Неизвестная команда.\nВведите /help для просмотра команд");
-                message.enableMarkdown(true);
-                sender.execute(message);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
+        } else if (session.getType() == SessionType.CREATING_SCHEDULE) {
+            scheduleCommandHandler.handle(update, sender);
+        } else {
+            throw new RuntimeException("UNKNOWN STATE (SESSION)");
         }
     }
 

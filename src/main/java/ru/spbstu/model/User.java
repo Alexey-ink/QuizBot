@@ -21,6 +21,9 @@ public class User {
     @Column(nullable = false)
     private UserRole role;
 
+    @Column(name = "time_zone", nullable = true)
+    private String timeZone;
+
     @Column(name = "password_hash", nullable = true)
     private String passwordHash;
 
@@ -66,11 +69,23 @@ public class User {
         return passwordHash;
     }
 
+    public String getTimeZone() {
+        return timeZone;
+    }
+
     public void setScore(Integer score) {
         this.score = score;
     }
 
     public Integer getScore() {
         return score;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
     }
 }
