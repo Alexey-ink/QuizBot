@@ -3,6 +3,7 @@ package ru.spbstu.handler;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.spbstu.handler.general.StartCommandHandler;
 import ru.spbstu.handler.question.AddQuestionCommandHandler;
 import ru.spbstu.handler.question.DeleteQuestionCommandHandler;
 import ru.spbstu.handler.question.RandomQuestionCommandHandler;
@@ -22,20 +23,22 @@ public class SessionMessageHandler implements CommandHandler {
     private final DeleteQuestionCommandHandler deleteQuestionHandler;
     private final DeleteTagCommandHandler deleteTagHandler;
     private final ScheduleCommandHandler scheduleCommandHandler;
+    private final StartCommandHandler startCommandHandler;
 
     public SessionMessageHandler(SessionManager sessionManager,
                                  AddQuestionCommandHandler addQuestionHandler,
                                  DeleteQuestionCommandHandler deleteQuestionHandler,
                                  DeleteTagCommandHandler deleteTagHandler,
                                  RandomQuestionCommandHandler randomQuestionHandler,
-                                 ScheduleCommandHandler scheduleCommandHandler
-                                 ) {
+                                 ScheduleCommandHandler scheduleCommandHandler, StartCommandHandler startCommandHandler
+    ) {
         this.sessionManager = sessionManager;
         this.addQuestionHandler = addQuestionHandler;
         this.deleteQuestionHandler = deleteQuestionHandler;
         this.randomQuestionHandler = randomQuestionHandler;
         this.deleteTagHandler = deleteTagHandler;
         this.scheduleCommandHandler = scheduleCommandHandler;
+        this.startCommandHandler = startCommandHandler;
     }
 
     @Override
@@ -63,8 +66,10 @@ public class SessionMessageHandler implements CommandHandler {
             handleDeleteTagConfirmation(update, sender, userId);
         } else if (session.getType() == SessionType.CREATING_SCHEDULE) {
             scheduleCommandHandler.handle(update, sender);
+        }else if (session.getType() == SessionType.WAITING_TIMEZONE) {
+            startCommandHandler.handle(update, sender);
         } else {
-            throw new RuntimeException("UNKNOWN STATE (SESSION)");
+            throw new RuntimeException("UNKNOWN STATE" + session.getType());
         }
     }
 

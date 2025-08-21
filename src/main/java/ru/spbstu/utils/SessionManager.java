@@ -21,7 +21,7 @@ public class SessionManager {
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            throw new RuntimeException("Не удалось создать сессию для " + clazz.getName(), e);
+            throw new RuntimeException("Failed to create a session for " + clazz.getName(), e);
         }
     }
 

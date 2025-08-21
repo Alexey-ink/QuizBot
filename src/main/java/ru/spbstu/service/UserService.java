@@ -1,5 +1,6 @@
 package ru.spbstu.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import ru.spbstu.model.User;
 import ru.spbstu.repository.UserRepository;
@@ -21,6 +22,14 @@ public class UserService {
     public User getUser(Long telegramId) {
         return userRepository.findByTelegramId(telegramId)
                 .orElseThrow(() -> new RuntimeException("User not found with telegramId: " + telegramId));
+    }
+
+    @Transactional
+    public void updateUserTimezone(Long telegramId, String tz) {
+        User user = userRepository.findByTelegramId(telegramId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setTimeZone(tz);
+        userRepository.save(user);
     }
 
     public void save(User user) {
