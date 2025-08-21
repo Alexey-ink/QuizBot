@@ -1,6 +1,7 @@
 package ru.spbstu.service;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.transaction.annotation.Transactional;
 import org.quartz.*;
 import org.springframework.stereotype.Service;
 import ru.spbstu.model.Schedule;
@@ -31,6 +32,7 @@ public class ScheduleService {
     /**
      * Сохраняет расписание в БД и регистрирует соответствующий Job/Trigger в Quartz.
      */
+    @Transactional
     public void saveAndRegister(Schedule schedule) throws SchedulerException {
         Schedule saved = scheduleRepository.save(schedule);
         registerSchedule(saved);
@@ -39,6 +41,7 @@ public class ScheduleService {
     /**
      * Регистрирует schedule в quartz. Если job уже существует, обновляет trigger.
      */
+    @Transactional
     public void registerSchedule(Schedule s) throws SchedulerException {
         JobDataMap map = new JobDataMap();
         map.put("user_id", s.getUser().getId());
@@ -71,7 +74,6 @@ public class ScheduleService {
                 .build();
 
         if (scheduler.checkExists(jobKey)) {
-            // удалим старую задачу (вместе с триггерами), затем заново создадим
             scheduler.deleteJob(jobKey);
         }
 

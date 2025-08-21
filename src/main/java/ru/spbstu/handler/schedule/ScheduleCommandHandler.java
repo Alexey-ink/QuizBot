@@ -69,7 +69,7 @@ public class ScheduleCommandHandler implements CommandHandler {
                 session.setFirstTime(t);
                 session.setStep(ScheduleCreationSession.Step.ASK_PERIOD_TYPE);
                 sendMessage(sender, chatId, """
-                        Выберите периодичность:
+                        Выберите периодичность:\
                         1. Ежедневно\
                         2. Еженедельно\
                         3. Каждые N часов
@@ -268,9 +268,6 @@ public class ScheduleCommandHandler implements CommandHandler {
             default -> throw new IllegalArgumentException("Unknown period type: " + session.getPeriodType());
         }
     }
-
-
-
 
     @Override
     public String getDescription() {

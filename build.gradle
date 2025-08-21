@@ -30,6 +30,7 @@ dependencies {
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation 'ch.qos.logback:logback-classic:1.4.14'
     implementation 'org.quartz-scheduler:quartz:2.5.0'
+    implementation 'org.springframework:spring-context-support:6.1.0'
 }
 
 compileJava.options.encoding = 'UTF-8'

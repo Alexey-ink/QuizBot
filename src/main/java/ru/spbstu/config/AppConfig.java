@@ -5,7 +5,9 @@ import jakarta.annotation.PostConstruct;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.StdSchedulerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +31,9 @@ import java.util.Properties;
 @EnableJpaRepositories(basePackages = "ru.spbstu.repository")
 @PropertySource("classpath:application.properties")
 public class AppConfig {
+    @Autowired
+    private AutowireCapableBeanFactory beanFactory;
+
     @Value("${spring.datasource.url}")
     private String dbUrl;
 
@@ -79,6 +84,7 @@ public class AppConfig {
     public TelegramBotsApi telegramBotsApi(QuizBot bot, ru.spbstu.service.BotCommandService botCommandService) throws Exception {
         TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
         api.registerBot(bot);
+        
         botCommandService.setBotCommands(bot);
         return api;
     }
@@ -86,6 +92,8 @@ public class AppConfig {
     @Bean
     public Scheduler scheduler() throws Exception {
         Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
+        AutowiringSpringBeanJobFactory jobFactory = new AutowiringSpringBeanJobFactory(beanFactory);
+        scheduler.setJobFactory(jobFactory);
         scheduler.start();
         return scheduler;
     }

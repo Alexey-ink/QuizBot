@@ -4,10 +4,12 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.model.Question;
 import ru.spbstu.repository.QuestionRepository;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.spbstu.service.QuizService;
 
 import java.util.Optional;
 
@@ -17,12 +19,11 @@ import java.util.Optional;
 @Component
 public class SendRandomQuestionJob implements Job {
 
-    private final QuestionRepository questionRepository;
+    private final QuizService quizService;
     private final AbsSender sender;
 
-    // Внедрение зависимостей через конструктор (Spring создаёт бин)
-    public SendRandomQuestionJob(QuestionRepository questionRepository, AbsSender sender) {
-        this.questionRepository = questionRepository;
+    public SendRandomQuestionJob(QuizService quizService, AbsSender sender) {
+        this.quizService = quizService;
         this.sender = sender;
     }
 
@@ -31,18 +32,7 @@ public class SendRandomQuestionJob implements Job {
         // Достаём данные, которые мы положили в JobDataMap в ScheduleService
         Long scheduleId = context.getMergedJobDataMap().getLong("scheduleId");
         Long chatId = context.getMergedJobDataMap().getLong("chatId");
-
-        // Берём случайный вопрос (пример: у тебя в репозитории уже был метод findRandomQuestionByTag)
-        Optional<Question> randomQuestion = questionRepository.findRandomQuestion();
-
-        if (randomQuestion.isPresent()) {
-            Question q = randomQuestion.get();
-            SendMessage msg = new SendMessage(chatId.toString(), "❓ " + q.getText());
-            try {
-                sender.execute(msg);
-            } catch (Exception e) {
-                throw new JobExecutionException("Ошибка при отправке сообщения в чат " + chatId, e);
-            }
-        }
+        Long userId = context.getMergedJobDataMap().getLong("user_id");
+        quizService.startNewQuiz(userId, chatId, sender);
     }
 }
