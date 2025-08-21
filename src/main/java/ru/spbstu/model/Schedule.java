@@ -15,6 +15,9 @@ public class Schedule {
     @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
+    @Column(name = "chat_id", nullable = false)
+    private Long chat_id;
+
     @Column(name = "cron_expression", nullable = false)
     private String cronExpression;
 
@@ -23,6 +26,10 @@ public class Schedule {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public void setChat_id(Long chat_id) {
+        this.chat_id = chat_id;
     }
 
     public void setUser(User user) {
@@ -39,6 +46,10 @@ public class Schedule {
 
     public Long getId() {
         return id;
+    }
+
+    public Long getChat_id() {
+        return chat_id;
     }
 
     public User getUser() {

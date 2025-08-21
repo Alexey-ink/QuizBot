@@ -53,14 +53,14 @@ public class RandomByTagCommandHandler implements CommandHandler {
         String text = update.getMessage().getText();
         
         if (text.equals("/random_by_tag")) {
-            send(sender, chatId, "❌ Пожалуйста, укажите название тега.\n\n" +
+            sendMessage(sender, chatId, "❌ Пожалуйста, укажите название тега.\n\n" +
                     "Пример: `/random_by_tag java`");
         }
 
         String[] parts = text.split(" ");
 
         if(parts.length > 2) {
-            send(sender, update.getMessage().getChatId(),
+            sendMessage(sender, update.getMessage().getChatId(),
                     "❌ Укажите один тег без пробелов.\nИспользование: `/random_by_tag <тег>`");
             return;
         }
@@ -75,7 +75,7 @@ public class RandomByTagCommandHandler implements CommandHandler {
         Question randomQuestion = questionService.getRandomQuestionByTag(tagName);
 
         if (randomQuestion == null) {
-            send(sender, chatId, "❌ Не найдено вопросов с тегом '" + tagName + "'.\n\n" +
+            sendMessage(sender, chatId, "❌ Не найдено вопросов с тегом '" + tagName + "'.\n\n" +
                     "Убедитесь, что:\n" +
                     "• Тег существует\n" +
                     "• У вас есть вопросы с этим тегом\n" +
@@ -218,14 +218,6 @@ public class RandomByTagCommandHandler implements CommandHandler {
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private void send(AbsSender sender, Long chatId, String text) {
-        try {
-            sender.execute(new SendMessage(chatId.toString(), text));
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }

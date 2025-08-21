@@ -1,13 +1,19 @@
 package ru.spbstu.handler.schedule;
 
+import org.quartz.SchedulerException;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import ru.spbstu.handler.CommandHandler;
+import ru.spbstu.model.Schedule;
+import ru.spbstu.model.User;
+import ru.spbstu.repository.UserRepository;
+import ru.spbstu.service.ScheduleService;
 import ru.spbstu.session.ScheduleCreationSession;
 import ru.spbstu.utils.SessionManager;
 
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -15,10 +21,14 @@ import java.util.*;
 @Component
 public class ScheduleCommandHandler implements CommandHandler {
     private final SessionManager sessionManager;
+    private final UserRepository userRepository;
+    private final ScheduleService scheduleService;
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("H:mm");
 
-    public ScheduleCommandHandler(SessionManager sessionManager) {
+    public ScheduleCommandHandler(SessionManager sessionManager, UserRepository userRepository, ScheduleService scheduleService) {
         this.sessionManager = sessionManager;
+        this.userRepository = userRepository;
+        this.scheduleService = scheduleService;
     }
 
     @Override
@@ -58,10 +68,13 @@ public class ScheduleCommandHandler implements CommandHandler {
                 }
                 session.setFirstTime(t);
                 session.setStep(ScheduleCreationSession.Step.ASK_PERIOD_TYPE);
-                sendMessage(sender, chatId, "Выберите периодичность:\n" +
-                        "1. Ежедневно" +
-                        "2. Еженедельно" +
-                        "3. Каждые N часов\n\nВведите число (1, 2 или 3)");
+                sendMessage(sender, chatId, """
+                        Выберите периодичность:
+                        1. Ежедневно\
+                        2. Еженедельно\
+                        3. Каждые N часов
+                        
+                        Введите число (1, 2 или 3)""");
             }
 
             case ASK_PERIOD_TYPE -> {
@@ -76,13 +89,15 @@ public class ScheduleCommandHandler implements CommandHandler {
                     } else if (num == 2) {
                         session.setPeriodType(ScheduleCreationSession.PeriodType.WEEKLY);
                         session.setStep(ScheduleCreationSession.Step.ASK_WEEKDAY);
-                        sendMessage(sender, chatId, "Выберите день (дни) недели для отправки\n" +
-                                "Перечислите через запятую (или пробел) дни недели в следующем формате:" +
-                                "\nПН, ВТ, СР, ЧТ, ПТ, СБ, ВС");
+                        sendMessage(sender, chatId, """
+                                Выберите день (дни) недели для отправки.
+                                Перечислите через запятую (или пробел) дни недели в следующем формате:\
+                                
+                                ПН, ВТ, СР, ЧТ, ПТ, СБ, ВС""");
                     } else {
                         session.setPeriodType(ScheduleCreationSession.PeriodType.HOURLY);
                         session.setStep(ScheduleCreationSession.Step.ASK_INTERVAL_HOURS);
-                        sendMessage(sender, chatId, "Введите положительное целое число интервала в часах (от 0 до 24)");
+                        sendMessage(sender, chatId, "Введите положительное целое число интервала в часах (1..24).");
                     }
                 } catch (NumberFormatException e) {
                     sendMessage(sender, chatId, "❌ Введите число от 1 до 3.");
@@ -92,9 +107,10 @@ public class ScheduleCommandHandler implements CommandHandler {
                 String normalizedInput = text.trim().toUpperCase();
 
                 if (!normalizedInput.matches("^((ПН|ВТ|СР|ЧТ|ПТ|СБ|ВС)([,\\s]|$))+$")) {
-                    sendMessage(sender, chatId, "❌ Неверный формат. Используйте сокращения дней через запятую или пробел:\n" +
-                            "Примеры: `ПН, ВТ, СР` или `ПН ВТ СР`\n" +
-                            "Допустимые дни: ПН, ВТ, СР, ЧТ, ПТ, СБ, ВС");
+                    sendMessage(sender, chatId, """
+                            ❌ Неверный формат. Используйте сокращения дней через запятую или пробел:
+                            Примеры: `ПН, ВТ, СР` или `ПН ВТ СР`
+                            Допустимые дни: ПН, ВТ, СР, ЧТ, ПТ, СБ, ВС""");
                     return;
                 }
                 String[] dayTokens = normalizedInput.split("[,\\s]+");
@@ -126,14 +142,65 @@ public class ScheduleCommandHandler implements CommandHandler {
 
             case ASK_INTERVAL_HOURS -> {
                 try {
-                    int n = Integer.parseInt(text);
-                    if (n <= 0) throw new NumberFormatException();
+                    int n = Integer.parseInt(text.trim());
+                    if (n <= 0 || n > 24) {
+                        sendMessage(sender, chatId, "Введите положительное целое число интервала в часах (1..24).");
+                        return;
+                    }
                     session.setIntervalHours(n);
                     session.setStep(ScheduleCreationSession.Step.CONFIRM);
                     sendConfirmMessage(session, sender, chatId);
                 } catch (NumberFormatException ex) {
                     sendMessage(sender, chatId, "Введите положительное целое число интервала в часах.");
                 }
+            }
+
+            case CONFIRM -> {
+                if (text.equalsIgnoreCase("да") || text.equalsIgnoreCase("ok") || text.equalsIgnoreCase("yes")) {
+                    Optional<User> ou = userRepository.findByTelegramId(userId);
+                    if (ou.isEmpty()) {
+                        sendMessage(sender, chatId, "Пользователь не найден в базе. Выполните /start.");
+                        sessionManager.clearSession(userId);
+                        return;
+                    }
+                    User user = ou.get();
+
+                    String cron;
+                    try {
+                        cron = buildCronExpression(session);
+                    } catch (IllegalArgumentException ex) {
+                        sendMessage(sender, chatId, "Ошибка при генерации cron: " + ex.getMessage());
+                        sessionManager.clearSession(userId);
+                        return;
+                    }
+
+                    // Сформировать и сохранить Schedule
+                    Schedule s = new Schedule();
+                    s.setUser(user);
+                    s.setChat_id(chatId);
+                    s.setCronExpression(cron);
+                    s.setCreatedAt(LocalDateTime.now());
+
+                    try {
+                        scheduleService.saveAndRegister(s);
+                        sendMessage(sender, chatId, "✅ Расписание сохранено и зарегистрировано. Cron: " + cron);
+                    } catch (SchedulerException e) {
+                        e.printStackTrace();
+                        sendMessage(sender, chatId, "Ошибка при регистрации расписания: " + e.getMessage());
+                    }
+
+                    sessionManager.clearSession(userId);
+                } else if (text.equalsIgnoreCase("отмена") || text.equalsIgnoreCase("cancel")) {
+                    sendMessage(sender, chatId, "❌ Сохранение отменено.");
+                    sessionManager.clearSession(userId);
+                } else {
+                    sendMessage(sender, chatId, "Введите «Да» для сохранения или «Отмена» для отмены.");
+                }
+            }
+
+            default -> {
+                sendMessage(sender, chatId, "Неожиданное состояние сессии. Начните заново командой /schedule");
+                sessionManager.clearSession(userId);
             }
         }
     }
@@ -149,8 +216,64 @@ public class ScheduleCommandHandler implements CommandHandler {
         sendMessage(sender, chatId, sb.toString());
     }
 
+    private String buildCronExpression(ScheduleCreationSession session) {
+        if (session == null) throw new IllegalArgumentException("session == null");
+
+        LocalTime first = session.getFirstTime();
+        if (first == null) throw new IllegalArgumentException("First time is not set in session");
+
+        int hour = first.getHour();
+        int minute = first.getMinute();
+
+        switch (session.getPeriodType()) {
+            case DAILY -> {
+                // Каждый день в HH:mm
+                // Quartz cron: "sec min hour day-of-month month day-of-week"
+                return String.format("0 %d %d * * ?", minute, hour);
+            }
+            case WEEKLY -> {
+                Set<DayOfWeek> days = session.getWeekdays();
+                if (days == null || days.isEmpty()) {
+                    throw new IllegalArgumentException("Weekdays are not set for WEEKLY period");
+                }
+                // Преобразуем DayOfWeek -> MON,TUE,...
+                // DayOfWeek.name() даёт MONDAY, TUESDAY,... берём первые 3 символа
+                StringJoiner sj = new StringJoiner(",");
+                for (DayOfWeek dow : days) {
+                    String shortName = dow.name().substring(0, 3); // MON, TUE, WED, ...
+                    sj.add(shortName);
+                }
+                String dowList = sj.toString();
+                // ? в day-of-month, перечисление в day-of-week
+                return String.format("0 %d %d ? * %s", minute, hour, dowList);
+            }
+            case HOURLY -> {
+                Integer interval = session.getIntervalHours();
+                if (interval == null || interval <= 0) {
+                    throw new IllegalArgumentException("IntervalHours must be set and > 0 for HOURLY period");
+                }
+                if (interval == 24) {
+                    // эквивалент ежедневно
+                    return String.format("0 %d %d * * ?", minute, hour);
+                }
+                // Quartz поддерживает "start/interval" для часов: startHour/interval
+                // Это запустит в часы: start, start+interval, start+2*interval, ... (в пределах суток)
+                int startHour = hour % 24;
+                // валидируем interval <= 24
+                if (interval > 24) {
+                    throw new IllegalArgumentException("IntervalHours must be <= 24");
+                }
+                return String.format("0 %d %d/%d * * ?", minute, startHour, interval);
+            }
+            default -> throw new IllegalArgumentException("Unknown period type: " + session.getPeriodType());
+        }
+    }
+
+
+
+
     @Override
     public String getDescription() {
-        return "ЫВофрпаыдавоыа";
+        return "Настройка автоматической отправки вопросов по расписанию";
     }
 }

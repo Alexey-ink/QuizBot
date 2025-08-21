@@ -104,7 +104,7 @@ public class AddQuestionCommandHandler implements CommandHandler {
                 } catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
-                sessionManager.clear(userId);
+                sessionManager.clearSession(userId);
             }
             default -> sendMessage(sender, chatId, "Процесс уже завершен. Начните заново: /add_question");
         }

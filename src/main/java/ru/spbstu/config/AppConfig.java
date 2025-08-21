@@ -1,7 +1,9 @@
 package ru.spbstu.config;
 
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.annotation.PostConstruct;
 import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
 import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +18,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import ru.spbstu.bot.QuizBot;
+import ru.spbstu.model.Schedule;
+
 import javax.sql.DataSource;
 import java.util.Properties;
 
@@ -76,7 +80,6 @@ public class AppConfig {
         TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
         api.registerBot(bot);
         botCommandService.setBotCommands(bot);
-        
         return api;
     }
 

@@ -38,7 +38,7 @@ public class SessionManager {
         return session != null ? clazz.cast(session) : null;
     }
 
-    public void clear(Long userId) {
+    public void clearSession(Long userId) {
         sessions.remove(userId);
     }
 
