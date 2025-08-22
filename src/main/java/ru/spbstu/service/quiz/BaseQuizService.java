@@ -1,8 +1,7 @@
-package ru.spbstu.service;
+package ru.spbstu.service.quiz;
 
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.polls.PollAnswer;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -10,6 +9,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.model.Question;
 import ru.spbstu.model.QuestionOption;
 import ru.spbstu.model.User;
+import ru.spbstu.service.BaseService;
+import ru.spbstu.service.ScoreByTagService;
+import ru.spbstu.service.UserService;
 import ru.spbstu.session.QuizSession;
 import ru.spbstu.utils.SessionManager;
 
@@ -18,40 +20,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class QuizService {
+public abstract class BaseQuizService extends BaseService {
 
-    private final SessionManager sessionManager;
-    private final QuestionService questionService;
+    protected final SessionManager sessionManager;
     private final UserService userService;
     private final ScoreByTagService scoreByTagService;
 
-    public QuizService(SessionManager sessionManager,
-                       QuestionService questionService,
-                       UserService userService,
-                       ScoreByTagService scoreByTagService) {
+    protected BaseQuizService(SessionManager sessionManager, UserService userService, ScoreByTagService scoreByTagService) {
         this.sessionManager = sessionManager;
-        this.questionService = questionService;
         this.userService = userService;
         this.scoreByTagService = scoreByTagService;
     }
 
-    /**
-     * Запускает новую викторину: берёт случайный вопрос, создаёт/обновляет сессию
-     * и отправляет SendPoll в чат.
-     */
-    public void startNewQuiz(Long userId, Long chatId, AbsSender sender) {
-        Question randomQuestion = questionService.getRandomQuestion();
-
-        if (randomQuestion == null) {
-            sendMessage(sender, chatId, "❌ В базе данных нет вопросов. Сначала добавьте несколько вопросов с помощью команды /add_question");
-            return;
-        }
-
-        QuizSession session = sessionManager.getOrCreate(userId, QuizSession.class);
-        session.setCurrentQuestion(randomQuestion);
-        session.setStep(QuizSession.Step.WAITING_FOR_ANSWER);
-
-        List<QuestionOption> sortedOptions = randomQuestion.getOptions().stream()
+    protected void createAndExecuteQuizPoll(Long chatId, Question question, AbsSender sender, String desc) {
+        List<QuestionOption> sortedOptions = question.getOptions().stream()
                 .sorted(Comparator.comparingInt(QuestionOption::getOptionNumber))
                 .toList();
 
@@ -61,15 +43,12 @@ public class QuizService {
 
         SendPoll poll = new SendPoll();
         poll.setChatId(chatId.toString());
-        poll.setQuestion("🎲 " + randomQuestion.getText());
+        poll.setQuestion(desc + "\n" + question.getText());
         poll.setOptions(options);
-        poll.setCorrectOptionId(randomQuestion.getCorrectOption() - 1);
+        poll.setCorrectOptionId(question.getCorrectOption() - 1);
         poll.setType("quiz");
         poll.setOpenPeriod(30);
         poll.setIsAnonymous(false);
-
-        System.out.println("Check our QUIZ session: " + sessionManager.getSession(userId));
-
         try {
             sender.execute(poll);
         } catch (TelegramApiException e) {
@@ -79,10 +58,8 @@ public class QuizService {
 
     /**
      * Обрабатывает incoming PollAnswer (Update.hasPollAnswer()).
-     * Делегируйте вызов из хэндлера: quizService.processPollAnswer(update, sender)
      */
     public void processPollAnswer(Update update, AbsSender sender) {
-        if (!update.hasPollAnswer()) return;
 
         PollAnswer pollAnswer = update.getPollAnswer();
         Long userId = pollAnswer.getUser().getId();
@@ -99,8 +76,6 @@ public class QuizService {
             return;
         }
 
-        session.setAnswered(true);
-
         Question question = session.getCurrentQuestion();
         boolean isCorrect = selectedAnswer == question.getCorrectOption();
 
@@ -113,11 +88,12 @@ public class QuizService {
             }
         }
 
-        User currentUser = userService.getUser(userId); // чтобы получить актуальный счёт
+        User currentUser = userService.getUser(userId);
+        sessionManager.clearSession(userId);
         showQuizResult(sender, userId, question, selectedAnswer, isCorrect, currentUser.getScore());
     }
 
-    private void showQuizResult(AbsSender sender, Long userId, Question question, int selectedAnswer, boolean isCorrect, int score) {
+    protected void showQuizResult(AbsSender sender, Long userId, Question question, int selectedAnswer, boolean isCorrect, int score) {
         StringBuilder message = new StringBuilder();
 
         if (isCorrect) {
@@ -146,18 +122,5 @@ public class QuizService {
         message.append("🏆 *Ваш счет:* ").append(score).append(" баллов");
 
         sendMessage(sender, userId, message.toString());
-    }
-
-    private void sendMessage(AbsSender sender, Long chatId, String text) {
-        SendMessage msg = new SendMessage();
-        msg.setChatId(chatId.toString());
-        msg.setText(text);
-        msg.setParseMode("Markdown"); // используемые звёздочки/курсивы; можно сменить при необходимости
-
-        try {
-            sender.execute(msg);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
     }
 }
