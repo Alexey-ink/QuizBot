@@ -39,9 +39,6 @@ public class HelpCommandHandler implements CommandHandler {
             • `/list_tags` - Список всех тегов
             • `/delete_tag <тег>` - Удалить тег
             
-            ❓ **Другое:**
-            • `/start` - Запустить бота
-            • `/help` - Показать эту справку
             
             """;
 

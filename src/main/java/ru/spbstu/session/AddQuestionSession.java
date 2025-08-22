@@ -1,9 +1,12 @@
 package ru.spbstu.session;
 
+import ru.spbstu.session.core.BaseSession;
+import ru.spbstu.session.core.SessionType;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class QuestionSession extends BaseSession {
+public class AddQuestionSession extends BaseSession {
 
     public enum Step {
         ASK_QUESTION_TEXT,
@@ -13,7 +16,7 @@ public class QuestionSession extends BaseSession {
         FINISHED
     }
 
-    public QuestionSession() {
+    public AddQuestionSession() {
         super(SessionType.QUESTION);
     }
 

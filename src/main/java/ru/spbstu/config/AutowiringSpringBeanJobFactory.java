@@ -18,7 +18,6 @@ public class AutowiringSpringBeanJobFactory extends SpringBeanJobFactory {
         try {
             return beanFactory.createBean(jobClass);
         } catch (Exception ex) {
-            // Фоллбек: старое поведение — создаём через суперкласс и автоподключаем поля
             Object job = super.createJobInstance(bundle);
             beanFactory.autowireBean(job);
             return job;

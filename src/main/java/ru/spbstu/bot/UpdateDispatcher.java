@@ -43,7 +43,6 @@ public class UpdateDispatcher {
         // Проверяем, есть ли активная сессия викторины у пользователя
         var session = sessionManager.getSession(userId, QuizSession.class);
         if (session != null) {
-            // Находим обработчик для /random или /random_by_tag и передаем ему poll answer
             handlers.get("/random").handle(update, sender);
         }
     }

@@ -1,7 +1,7 @@
 package ru.spbstu.utils;
 
 import org.springframework.stereotype.Component;
-import ru.spbstu.session.Session;
+import ru.spbstu.session.core.Session;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

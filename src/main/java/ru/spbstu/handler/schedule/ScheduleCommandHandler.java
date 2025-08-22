@@ -9,7 +9,7 @@ import ru.spbstu.model.Schedule;
 import ru.spbstu.model.User;
 import ru.spbstu.repository.UserRepository;
 import ru.spbstu.service.ScheduleService;
-import ru.spbstu.session.ScheduleCreationSession;
+import ru.spbstu.session.CreateScheduleSession;
 import ru.spbstu.utils.SessionManager;
 
 import java.time.DayOfWeek;
@@ -42,10 +42,10 @@ public class ScheduleCommandHandler implements CommandHandler {
         String text = update.getMessage().getText();
 
         Long chatId = update.getMessage().getChatId();
-        ScheduleCreationSession session = sessionManager.getOrCreate(userId, ScheduleCreationSession.class);
+        CreateScheduleSession session = sessionManager.getOrCreate(userId, CreateScheduleSession.class);
 
         if (text.equals("/schedule")) {
-            session.setStep(ScheduleCreationSession.Step.ASK_TIME);
+            session.setStep(CreateScheduleSession.Step.ASK_TIME);
             String answer = "Когда прислать первый вопрос? Введите время в формате HH:mm (например 09:30).";
             sendMessage(sender, chatId, answer);
             return;
@@ -67,7 +67,7 @@ public class ScheduleCommandHandler implements CommandHandler {
                     return;
                 }
                 session.setFirstTime(t);
-                session.setStep(ScheduleCreationSession.Step.ASK_PERIOD_TYPE);
+                session.setStep(CreateScheduleSession.Step.ASK_PERIOD_TYPE);
                 sendMessage(sender, chatId, """
                         Выберите периодичность:\
                         1. Ежедневно\
@@ -83,20 +83,20 @@ public class ScheduleCommandHandler implements CommandHandler {
                     if (num < 1 || num > 3) {
                         sendMessage(sender, chatId, "❌ Номер должен быть от 1 до 3.");
                     } else if (num == 1) {
-                        session.setPeriodType(ScheduleCreationSession.PeriodType.DAILY);
-                        session.setStep(ScheduleCreationSession.Step.CONFIRM);
+                        session.setPeriodType(CreateScheduleSession.PeriodType.DAILY);
+                        session.setStep(CreateScheduleSession.Step.CONFIRM);
                         sendConfirmMessage(session, sender, chatId);
                     } else if (num == 2) {
-                        session.setPeriodType(ScheduleCreationSession.PeriodType.WEEKLY);
-                        session.setStep(ScheduleCreationSession.Step.ASK_WEEKDAY);
+                        session.setPeriodType(CreateScheduleSession.PeriodType.WEEKLY);
+                        session.setStep(CreateScheduleSession.Step.ASK_WEEKDAY);
                         sendMessage(sender, chatId, """
                                 Выберите день (дни) недели для отправки.
                                 Перечислите через запятую (или пробел) дни недели в следующем формате:\
                                 
                                 ПН, ВТ, СР, ЧТ, ПТ, СБ, ВС""");
                     } else {
-                        session.setPeriodType(ScheduleCreationSession.PeriodType.HOURLY);
-                        session.setStep(ScheduleCreationSession.Step.ASK_INTERVAL_HOURS);
+                        session.setPeriodType(CreateScheduleSession.PeriodType.HOURLY);
+                        session.setStep(CreateScheduleSession.Step.ASK_INTERVAL_HOURS);
                         sendMessage(sender, chatId, "Введите положительное целое число интервала в часах (1..24).");
                     }
                 } catch (NumberFormatException e) {
@@ -136,7 +136,7 @@ public class ScheduleCommandHandler implements CommandHandler {
                 }
 
                 session.setWeekdays(selectedDays);
-                session.setStep(ScheduleCreationSession.Step.CONFIRM);
+                session.setStep(CreateScheduleSession.Step.CONFIRM);
                 sendConfirmMessage(session, sender, chatId);
             }
 
@@ -148,7 +148,7 @@ public class ScheduleCommandHandler implements CommandHandler {
                         return;
                     }
                     session.setIntervalHours(n);
-                    session.setStep(ScheduleCreationSession.Step.CONFIRM);
+                    session.setStep(CreateScheduleSession.Step.CONFIRM);
                     sendConfirmMessage(session, sender, chatId);
                 } catch (NumberFormatException ex) {
                     sendMessage(sender, chatId, "Введите положительное целое число интервала в часах.");
@@ -205,18 +205,18 @@ public class ScheduleCommandHandler implements CommandHandler {
         }
     }
 
-    private void sendConfirmMessage(ScheduleCreationSession session, AbsSender sender, Long chatId) {
+    private void sendConfirmMessage(CreateScheduleSession session, AbsSender sender, Long chatId) {
         StringBuilder sb = new StringBuilder("Подтвердите расписание:\n");
         sb.append("Первый вопрос в ").append(session.getFirstTime().toString()).append("\n");
-        if (session.getPeriodType() == ScheduleCreationSession.PeriodType.DAILY) sb.append("Периодичность: ежедневно\n");
-        else if (session.getPeriodType() == ScheduleCreationSession.PeriodType.WEEKLY) sb.append("Периодичность: еженедельно, ").append(session.getWeekdays()).append("\n");
-        else if (session.getPeriodType() == ScheduleCreationSession.PeriodType.HOURLY) sb.append("Периодичность: каждые ").append(session.getIntervalHours()).append(" часов\n");
+        if (session.getPeriodType() == CreateScheduleSession.PeriodType.DAILY) sb.append("Периодичность: ежедневно\n");
+        else if (session.getPeriodType() == CreateScheduleSession.PeriodType.WEEKLY) sb.append("Периодичность: еженедельно, ").append(session.getWeekdays()).append("\n");
+        else if (session.getPeriodType() == CreateScheduleSession.PeriodType.HOURLY) sb.append("Периодичность: каждые ").append(session.getIntervalHours()).append(" часов\n");
 
         sb.append("\nВведите \"Да\" для сохранения или \"Отмена\" для отмены.");
         sendMessage(sender, chatId, sb.toString());
     }
 
-    private String buildCronExpression(ScheduleCreationSession session) {
+    private String buildCronExpression(CreateScheduleSession session) {
         if (session == null) throw new IllegalArgumentException("session == null");
 
         LocalTime first = session.getFirstTime();

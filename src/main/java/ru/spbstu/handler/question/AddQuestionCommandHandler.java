@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.handler.CommandHandler;
 import ru.spbstu.service.QuestionService;
-import ru.spbstu.session.QuestionSession;
+import ru.spbstu.session.AddQuestionSession;
 import ru.spbstu.utils.SessionManager;
 
 import java.util.Arrays;
@@ -38,11 +38,10 @@ public class AddQuestionCommandHandler implements CommandHandler {
         var chatId = update.getMessage().getChatId();
         var text = update.getMessage().getText();
 
-        QuestionSession session = sessionManager.getOrCreate(userId, QuestionSession.class);
+        AddQuestionSession session = sessionManager.getOrCreate(userId, AddQuestionSession.class);
 
-        // Если только что ввели команду — начинаем с первого шага
         if (text.equals("/add_question")) {
-            session.setStep(QuestionSession.Step.ASK_QUESTION_TEXT);
+            session.setStep(AddQuestionSession.Step.ASK_QUESTION_TEXT);
             sendMessage(sender, chatId, "📝 Введите текст вопроса (макс. 200 символов):");
             return;
         }
@@ -54,7 +53,7 @@ public class AddQuestionCommandHandler implements CommandHandler {
                     return;
                 }
                 session.setQuestionText(text.trim());
-                session.setStep(QuestionSession.Step.ASK_ANSWER_OPTIONS);
+                session.setStep(AddQuestionSession.Step.ASK_ANSWER_OPTIONS);
                 sendMessage(sender, chatId, "🔢 Введите вариант 1:");
             }
             case ASK_ANSWER_OPTIONS -> {
@@ -62,7 +61,7 @@ public class AddQuestionCommandHandler implements CommandHandler {
                 if (session.getOptions().size() < 4) {
                     sendMessage(sender, chatId, "🔢 Введите вариант " + (session.getOptions().size() + 1) + ":");
                 } else {
-                    session.setStep(QuestionSession.Step.ASK_CORRECT_OPTION);
+                    session.setStep(AddQuestionSession.Step.ASK_CORRECT_OPTION);
                     sendMessage(sender, chatId, "Введите номер правильного варианта (1-4):");
                 }
             }
@@ -74,7 +73,7 @@ public class AddQuestionCommandHandler implements CommandHandler {
                         return;
                     }
                     session.setCorrectOption(num);
-                    session.setStep(QuestionSession.Step.ASK_TAGS);
+                    session.setStep(AddQuestionSession.Step.ASK_TAGS);
                     sendMessage(sender, chatId, "Введите теги (через запятую):");
                 } catch (NumberFormatException e) {
                     sendMessage(sender, chatId, "❌ Введите число от 1 до 4.");
@@ -85,7 +84,7 @@ public class AddQuestionCommandHandler implements CommandHandler {
                         .map(String::trim)
                         .filter(s -> !s.isEmpty())
                         .toList());
-                session.setStep(QuestionSession.Step.FINISHED);
+                session.setStep(AddQuestionSession.Step.FINISHED);
                 Long telegramId = update.getMessage().getFrom().getId();
                 String questionId = questionService.saveQuestion(telegramId,
                         session.getQuestionText(),

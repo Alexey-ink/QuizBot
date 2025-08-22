@@ -1,6 +1,8 @@
 package ru.spbstu.session;
 
 import ru.spbstu.model.Question;
+import ru.spbstu.session.core.BaseSession;
+import ru.spbstu.session.core.SessionType;
 
 import java.time.Instant;
 
@@ -49,8 +51,4 @@ public class QuizSession extends BaseSession {
         this.step = step;
     }
     
-    public boolean isTimeExpired() {
-        if (questionStartTime == null) return false;
-        return Instant.now().isAfter(questionStartTime.plusSeconds(30));
-    }
 }

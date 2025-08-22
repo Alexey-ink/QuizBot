@@ -9,11 +9,11 @@ import ru.spbstu.handler.question.DeleteQuestionCommandHandler;
 import ru.spbstu.handler.question.RandomQuestionCommandHandler;
 import ru.spbstu.handler.schedule.ScheduleCommandHandler;
 import ru.spbstu.handler.tag.DeleteTagCommandHandler;
-import ru.spbstu.session.Session;
+import ru.spbstu.session.core.Session;
 import ru.spbstu.utils.SessionManager;
-import ru.spbstu.session.QuestionSession;
+import ru.spbstu.session.AddQuestionSession;
 import ru.spbstu.session.QuizSession;
-import ru.spbstu.session.SessionType;
+import ru.spbstu.session.core.SessionType;
 
 @Component
 public class SessionMessageHandler implements CommandHandler {
@@ -57,7 +57,7 @@ public class SessionMessageHandler implements CommandHandler {
             return;
         }
 
-        if (session instanceof QuestionSession) {
+        if (session instanceof AddQuestionSession) {
             addQuestionHandler.handle(update, sender);
         } else if (session instanceof QuizSession) {
             randomQuestionHandler.handle(update, sender);

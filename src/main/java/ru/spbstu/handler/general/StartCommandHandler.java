@@ -1,21 +1,17 @@
 package ru.spbstu.handler.general;
 
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.handler.CommandHandler;
 import ru.spbstu.service.UserService;
-import ru.spbstu.session.Session;
-import ru.spbstu.session.SessionType;
+import ru.spbstu.session.core.Session;
+import ru.spbstu.session.core.SessionType;
 import ru.spbstu.session.StartSession;
 import ru.spbstu.utils.SessionManager;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimeZone;
 
 @Component
 public class StartCommandHandler implements CommandHandler {
@@ -86,7 +82,6 @@ public class StartCommandHandler implements CommandHandler {
             sendMessage(sender, update.getMessage().getChatId(), text);
 
         } else if (session.getType() == SessionType.WAITING_TIMEZONE) {
-
             String userInputIgnoreCase = userInput.toUpperCase(java.util.Locale.forLanguageTag("ru"));
             if (TIMEZONE_MAP.containsKey(userInputIgnoreCase)) {
                 String zoneId = TIMEZONE_MAP.get(userInputIgnoreCase);

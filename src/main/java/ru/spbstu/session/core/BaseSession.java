@@ -1,4 +1,4 @@
-package ru.spbstu.session;
+package ru.spbstu.session.core;
 
 public abstract class BaseSession implements Session {
     private final SessionType type;

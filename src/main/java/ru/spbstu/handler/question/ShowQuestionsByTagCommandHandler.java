@@ -47,7 +47,6 @@ public class ShowQuestionsByTagCommandHandler implements CommandHandler {
         String tagName = parts[1].trim();
         Long telegramId = update.getMessage().getFrom().getId();
 
-        // Проверяем существование тега
         if (!questionService.tagExists(telegramId, tagName)) {
             sendMessage(sender, update.getMessage().getChatId(),
                 "❌ Тег «" + tagName + "» не существует.\n\n" +
@@ -56,7 +55,6 @@ public class ShowQuestionsByTagCommandHandler implements CommandHandler {
             return;
         }
 
-        // Получаем вопросы по тегу
         List<Question> questions = questionService.getQuestionsByTag(telegramId, tagName);
 
         if (questions.isEmpty()) {
@@ -65,7 +63,6 @@ public class ShowQuestionsByTagCommandHandler implements CommandHandler {
             return;
         }
 
-        // Формируем ответ
         StringBuilder response = new StringBuilder();
         response.append("📋 Список вопросов по тегу «").append(tagName).append("» (всего ").append(questions.size()).append("):\n\n");
 

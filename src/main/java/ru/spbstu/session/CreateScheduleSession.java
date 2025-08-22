@@ -1,10 +1,13 @@
 package ru.spbstu.session;
 
+import ru.spbstu.session.core.BaseSession;
+import ru.spbstu.session.core.SessionType;
+
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.Set;
 
-public class ScheduleCreationSession extends BaseSession {
+public class CreateScheduleSession extends BaseSession {
     public enum Step { ASK_TIME, ASK_PERIOD_TYPE, ASK_WEEKDAY, ASK_INTERVAL_HOURS, CONFIRM }
     public enum PeriodType { DAILY, WEEKLY, HOURLY }
 
@@ -14,7 +17,7 @@ public class ScheduleCreationSession extends BaseSession {
     private Set<DayOfWeek> weekday;
     private Integer intervalHours;
 
-    public ScheduleCreationSession() {
+    public CreateScheduleSession() {
         super(SessionType.CREATING_SCHEDULE);
     }
 

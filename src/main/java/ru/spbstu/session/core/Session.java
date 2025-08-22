@@ -1,6 +1,4 @@
-package ru.spbstu.session;
-
-import java.time.Instant;
+package ru.spbstu.session.core;
 
 public interface Session {
     SessionType getType();
