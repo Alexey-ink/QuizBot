@@ -15,7 +15,6 @@ public class AutowiringSpringBeanJobFactory extends SpringBeanJobFactory {
     @Override
     protected Object createJobInstance(TriggerFiredBundle bundle) throws Exception {
         Class<? extends Job> jobClass = bundle.getJobDetail().getJobClass();
-        // Попытка получить/создать бин через Spring (поддерживает constructor injection)
         try {
             return beanFactory.createBean(jobClass);
         } catch (Exception ex) {

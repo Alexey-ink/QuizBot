@@ -30,7 +30,8 @@ public class SessionMessageHandler implements CommandHandler {
                                  DeleteQuestionCommandHandler deleteQuestionHandler,
                                  DeleteTagCommandHandler deleteTagHandler,
                                  RandomQuestionCommandHandler randomQuestionHandler,
-                                 ScheduleCommandHandler scheduleCommandHandler, StartCommandHandler startCommandHandler
+                                 ScheduleCommandHandler scheduleCommandHandler,
+                                 StartCommandHandler startCommandHandler
     ) {
         this.sessionManager = sessionManager;
         this.addQuestionHandler = addQuestionHandler;

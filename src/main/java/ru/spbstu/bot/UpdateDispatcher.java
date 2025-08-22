@@ -26,6 +26,7 @@ public class UpdateDispatcher {
 
     public void dispatch(Update update, AbsSender sender) {
         if (update.hasPollAnswer()) {
+            System.out.println("Check our QUIZ session: " + sessionManager.getSession(1163706093L));
             handlePollAnswer(update, sender);
         } else if (update.hasMessage() && update.getMessage().hasText()) {
             String text = update.getMessage().getText();

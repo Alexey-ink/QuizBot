@@ -44,7 +44,7 @@ public class ScheduleService {
     @Transactional
     public void registerSchedule(Schedule s) throws SchedulerException {
         JobDataMap map = new JobDataMap();
-        map.put("user_id", s.getUser().getId());
+        map.put("user_id", s.getUser().getTelegramId());
         map.put("scheduleId", s.getId());
         map.put("chatId", s.getChat_id());
 

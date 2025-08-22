@@ -50,11 +50,10 @@ public class QuizService {
         QuizSession session = sessionManager.getOrCreate(userId, QuizSession.class);
         session.setCurrentQuestion(randomQuestion);
         session.setStep(QuizSession.Step.WAITING_FOR_ANSWER);
-        session.setAnswered(false); // сброс флага на всякий случай
 
         List<QuestionOption> sortedOptions = randomQuestion.getOptions().stream()
                 .sorted(Comparator.comparingInt(QuestionOption::getOptionNumber))
-                .collect(Collectors.toList());
+                .toList();
 
         List<String> options = sortedOptions.stream()
                 .map(QuestionOption::getText)
@@ -64,16 +63,16 @@ public class QuizService {
         poll.setChatId(chatId.toString());
         poll.setQuestion("🎲 " + randomQuestion.getText());
         poll.setOptions(options);
-        // если correctOption хранится 1-based — переводим в 0-based
         poll.setCorrectOptionId(randomQuestion.getCorrectOption() - 1);
         poll.setType("quiz");
         poll.setOpenPeriod(30);
         poll.setIsAnonymous(false);
 
+        System.out.println("Check our QUIZ session: " + sessionManager.getSession(userId));
+
         try {
             sender.execute(poll);
         } catch (TelegramApiException e) {
-            // логгируйте по своему усмотрению
             e.printStackTrace();
         }
     }

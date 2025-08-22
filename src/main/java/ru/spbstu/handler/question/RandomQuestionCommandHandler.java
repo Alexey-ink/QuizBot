@@ -126,6 +126,7 @@ public class RandomQuestionCommandHandler implements CommandHandler {
                 scoreByTagService.incrementScore(user, tag);
             }
         }
+        sessionManager.clearSession(userId);
         showQuizResult(sender, userId, question, selectedAnswer, isCorrect, userService.getUser(userId).getScore());
     }
     
