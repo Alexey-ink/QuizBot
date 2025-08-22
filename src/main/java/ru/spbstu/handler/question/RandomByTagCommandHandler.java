@@ -1,24 +1,10 @@
 package ru.spbstu.handler.question;
 
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.handler.CommandHandler;
-import ru.spbstu.model.Question;
-import ru.spbstu.model.QuestionOption;
-import ru.spbstu.service.QuestionService;
-import ru.spbstu.service.ScoreByTagService;
-import ru.spbstu.service.UserService;
 import ru.spbstu.service.quiz.QuizByTagService;
-import ru.spbstu.session.QuizSession;
-import ru.spbstu.utils.SessionManager;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class RandomByTagCommandHandler implements CommandHandler {

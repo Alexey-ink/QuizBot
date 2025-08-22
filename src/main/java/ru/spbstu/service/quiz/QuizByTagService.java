@@ -1,20 +1,13 @@
 package ru.spbstu.service.quiz;
 
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.model.Question;
-import ru.spbstu.model.QuestionOption;
 import ru.spbstu.service.QuestionService;
 import ru.spbstu.service.ScoreByTagService;
 import ru.spbstu.service.UserService;
 import ru.spbstu.session.QuizSession;
 import ru.spbstu.utils.SessionManager;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class QuizByTagService extends BaseQuizService {
@@ -47,6 +40,4 @@ public class QuizByTagService extends BaseQuizService {
         createAndExecuteQuizPoll(chatId, randomQuestion, sender, "\uD83C\uDFF7\uFE0F [" + tagName + "] ");
 
     }
-
-
 }

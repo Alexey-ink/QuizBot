@@ -11,6 +11,7 @@ import ru.spbstu.session.AddQuestionSession;
 import ru.spbstu.utils.SessionManager;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Component
 public class AddQuestionCommandHandler implements CommandHandler {
@@ -91,18 +92,13 @@ public class AddQuestionCommandHandler implements CommandHandler {
                         session.getOptions(),
                         session.getCorrectOption(),
                         session.getTags());
-                SendMessage message = new SendMessage();
-                message.setChatId(chatId.toString());
-                message.setText(
-                        "✅ Вопрос сохранен!\n" +
-                        "🆔 ID: <code>" + questionId + "</code>\n\n"
-                );
-                message.setParseMode("HTML");
-                try {
-                    sender.execute(message);
-                } catch (TelegramApiException e) {
-                    throw new RuntimeException(e);
-                }
+
+                String message = "✅ Вопрос сохранен!\n" +
+                        "\uD83C\uDFF7\uFE0F Теги: " + session.getTags().stream()
+                        .map(tag -> "#" + tag)
+                        .collect(Collectors.joining(" ")) +
+                        "\n🆔: `" + questionId +"`\n\n";
+                sendMessage(sender, userId, message);
                 sessionManager.clearSession(userId);
             }
             default -> sendMessage(sender, chatId, "Процесс уже завершен. Начните заново: /add_question");

@@ -1,10 +1,8 @@
 package ru.spbstu.handler.question;
 
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.handler.CommandHandler;
 import ru.spbstu.model.Question;
 import ru.spbstu.service.QuestionService;
@@ -64,14 +62,14 @@ public class ShowQuestionsByTagCommandHandler implements CommandHandler {
         }
 
         StringBuilder response = new StringBuilder();
-        response.append("📋 Список вопросов по тегу «").append(tagName).append("» (всего ").append(questions.size()).append("):\n\n");
+        response.append("📋 *Список вопросов по тегу «").append(tagName).append("»* (всего ").append(questions.size()).append("):\n\n");
 
         for (Question question : questions) {
             String questionText = question.getText();
             if (questionText.length() > 50) {
                 questionText = questionText.substring(0, 47) + "...";
             }
-            response.append("• 🆔: ").append(question.getId()).append(" — ").append(questionText).append("\n");
+            response.append("• 🆔: `").append(question.getId()).append("` \n  \uD83D\uDCDA «").append(questionText).append("»\n\n");
         }
 
         sendMessage(sender, update.getMessage().getChatId(), response.toString());

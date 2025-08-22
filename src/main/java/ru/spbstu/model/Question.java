@@ -3,16 +3,19 @@ package ru.spbstu.model;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Set;
-import java.util.UUID;
 
 @Entity
 @Table(name = "questions")
 public class Question {
+    private static final SecureRandom random = new SecureRandom();
+    private static long lastTimestamp = 0;
+    private static int counter = 0;
 
     @Id
-    @Column(length = 36)
+    @Column(length = 25)
     private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,7 +43,17 @@ public class Question {
 
     @PrePersist
     public void generateId() {
-        this.id = UUID.randomUUID().toString();
+        long timestamp = System.currentTimeMillis();
+        synchronized (Question.class) {
+            if (timestamp == lastTimestamp) {
+                counter++;
+            } else {
+                counter = 0;
+                lastTimestamp = timestamp;
+            }
+        }
+        int randomPart = random.nextInt(1000);
+        this.id = String.format("%d-%03d-%03d", timestamp, counter, randomPart);
     }
 
     public void setUser(User user) {
