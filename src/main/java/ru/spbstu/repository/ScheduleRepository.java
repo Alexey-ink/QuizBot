@@ -10,4 +10,9 @@ import java.util.List;
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     @EntityGraph(attributePaths = {"user"})
     List<Schedule> findAll();
+
+    @EntityGraph(attributePaths = {"user"})
+    List<Schedule> findAllByUserTelegramId(Long telegramId);
+
+
 }

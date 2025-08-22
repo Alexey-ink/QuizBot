@@ -7,9 +7,11 @@ import ru.spbstu.handler.general.StartCommandHandler;
 import ru.spbstu.handler.question.AddQuestionCommandHandler;
 import ru.spbstu.handler.question.DeleteQuestionCommandHandler;
 import ru.spbstu.handler.question.RandomQuestionCommandHandler;
+import ru.spbstu.handler.schedule.DeleteScheduleCommandHandler;
 import ru.spbstu.handler.schedule.ScheduleCommandHandler;
 import ru.spbstu.handler.tag.DeleteTagCommandHandler;
 import ru.spbstu.session.core.Session;
+import ru.spbstu.session.schedule.DeleteScheduleSession;
 import ru.spbstu.utils.SessionManager;
 import ru.spbstu.session.AddQuestionSession;
 import ru.spbstu.session.QuizSession;
@@ -24,6 +26,7 @@ public class SessionMessageHandler implements CommandHandler {
     private final DeleteTagCommandHandler deleteTagHandler;
     private final ScheduleCommandHandler scheduleCommandHandler;
     private final StartCommandHandler startCommandHandler;
+    private final DeleteScheduleCommandHandler deleteScheduleCommandHandler;
 
     public SessionMessageHandler(SessionManager sessionManager,
                                  AddQuestionCommandHandler addQuestionHandler,
@@ -31,7 +34,8 @@ public class SessionMessageHandler implements CommandHandler {
                                  DeleteTagCommandHandler deleteTagHandler,
                                  RandomQuestionCommandHandler randomQuestionHandler,
                                  ScheduleCommandHandler scheduleCommandHandler,
-                                 StartCommandHandler startCommandHandler
+                                 StartCommandHandler startCommandHandler,
+                                 DeleteScheduleCommandHandler deleteScheduleCommandHandler
     ) {
         this.sessionManager = sessionManager;
         this.addQuestionHandler = addQuestionHandler;
@@ -40,6 +44,7 @@ public class SessionMessageHandler implements CommandHandler {
         this.deleteTagHandler = deleteTagHandler;
         this.scheduleCommandHandler = scheduleCommandHandler;
         this.startCommandHandler = startCommandHandler;
+        this.deleteScheduleCommandHandler = deleteScheduleCommandHandler;
     }
 
     @Override
@@ -69,7 +74,8 @@ public class SessionMessageHandler implements CommandHandler {
             scheduleCommandHandler.handle(update, sender);
         }else if (session.getType() == SessionType.WAITING_TIMEZONE) {
             startCommandHandler.handle(update, sender);
-        } else {
+        } else if (session.getType() == SessionType.DELETING_SCHEDULE) {
+            deleteScheduleCommandHandler.handle(update, sender);
             throw new RuntimeException("UNKNOWN STATE" + session.getType());
         }
     }

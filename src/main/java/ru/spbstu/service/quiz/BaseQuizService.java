@@ -26,7 +26,9 @@ public abstract class BaseQuizService extends BaseService {
     private final UserService userService;
     private final ScoreByTagService scoreByTagService;
 
-    protected BaseQuizService(SessionManager sessionManager, UserService userService, ScoreByTagService scoreByTagService) {
+    protected BaseQuizService(SessionManager sessionManager,
+                              UserService userService,
+                              ScoreByTagService scoreByTagService) {
         this.sessionManager = sessionManager;
         this.userService = userService;
         this.scoreByTagService = scoreByTagService;

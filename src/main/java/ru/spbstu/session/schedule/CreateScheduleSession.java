@@ -1,4 +1,4 @@
-package ru.spbstu.session;
+package ru.spbstu.session.schedule;
 
 import ru.spbstu.session.core.BaseSession;
 import ru.spbstu.session.core.SessionType;

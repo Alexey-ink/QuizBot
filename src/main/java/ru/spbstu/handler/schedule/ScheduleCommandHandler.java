@@ -9,7 +9,7 @@ import ru.spbstu.model.Schedule;
 import ru.spbstu.model.User;
 import ru.spbstu.repository.UserRepository;
 import ru.spbstu.service.ScheduleService;
-import ru.spbstu.session.CreateScheduleSession;
+import ru.spbstu.session.schedule.CreateScheduleSession;
 import ru.spbstu.utils.SessionManager;
 
 import java.time.DayOfWeek;

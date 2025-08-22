@@ -9,6 +9,7 @@ import ru.spbstu.repository.ScheduleRepository;
 import ru.spbstu.jobs.SendRandomQuestionJob;
 
 import java.time.ZoneId;
+import java.util.List;
 import java.util.TimeZone;
 
 @Service
@@ -78,5 +79,22 @@ public class ScheduleService {
         }
 
         scheduler.scheduleJob(job, trigger);
+    }
+
+    public List<Schedule> findAllSchedulesByUserTelegramId(Long userId) {
+        return scheduleRepository.findAllByUserTelegramId(userId);
+    }
+
+
+    /**
+     * Удаляет schedule: сначала удаляем job из quartz (если существует), затем удаляем запись из БД.
+     */
+    @Transactional
+    public void deleteSchedule(Long scheduleId) throws SchedulerException {
+        JobKey jobKey = new JobKey("schedule-job-" + scheduleId, "schedules");
+        if (scheduler.checkExists(jobKey)) {
+            scheduler.deleteJob(jobKey);
+        }
+        scheduleRepository.deleteById(scheduleId);
     }
 }
