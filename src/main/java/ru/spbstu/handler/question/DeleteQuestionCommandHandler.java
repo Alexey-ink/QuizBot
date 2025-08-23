@@ -42,7 +42,7 @@ public class DeleteQuestionCommandHandler implements CommandHandler {
         
         if (parts.length < 2) {
             sendMessage(sender, update.getMessage().getChatId(), 
-                "❌ Укажите ID вопроса.\nИспользование: /delete_question <ID>");
+                "❌ Укажите ID вопроса.\nИспользование: `/delete_question <ID>`");
             return;
         }
 

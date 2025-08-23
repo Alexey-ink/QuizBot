@@ -1,26 +1,28 @@
 package ru.spbstu.handler.question;
 
+import org.postgresql.gss.GSSOutputStream;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.handler.CommandHandler;
 import ru.spbstu.service.QuestionService;
+import ru.spbstu.service.TagService;
 import ru.spbstu.session.AddQuestionSession;
 import ru.spbstu.utils.SessionManager;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 public class AddQuestionCommandHandler implements CommandHandler {
     private final SessionManager sessionManager;
     private final QuestionService questionService;
+    private final TagService tagService;
 
-    public AddQuestionCommandHandler(SessionManager sessionManager, QuestionService questionService) {
+    public AddQuestionCommandHandler(SessionManager sessionManager, QuestionService questionService, TagService tagService) {
         this.sessionManager = sessionManager;
         this.questionService = questionService;
+        this.tagService = tagService;
     }
 
     @Override
@@ -58,6 +60,10 @@ public class AddQuestionCommandHandler implements CommandHandler {
                 sendMessage(sender, chatId, "🔢 Введите вариант 1:");
             }
             case ASK_ANSWER_OPTIONS -> {
+                if (text.trim().isEmpty() || text.length() > 200) {
+                    sendMessage(sender, chatId, "❌ Текст варианта ответа должен содержать от 1 до 200 символов.");
+                    return;
+                }
                 session.getOptions().add(text.trim());
                 if (session.getOptions().size() < 4) {
                     sendMessage(sender, chatId, "🔢 Введите вариант " + (session.getOptions().size() + 1) + ":");
@@ -81,25 +87,31 @@ public class AddQuestionCommandHandler implements CommandHandler {
                 }
             }
             case ASK_TAGS -> {
-                session.setTags(Arrays.stream(text.split(","))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .toList());
-                session.setStep(AddQuestionSession.Step.FINISHED);
-                Long telegramId = update.getMessage().getFrom().getId();
-                String questionId = questionService.saveQuestion(telegramId,
-                        session.getQuestionText(),
-                        session.getOptions(),
-                        session.getCorrectOption(),
-                        session.getTags());
+                try {
+                    List<String> tags = tagService.parseAndValidateTags(text);
+                    tagService.ensureTagsDoNotExist(tags);
 
-                String message = "✅ Вопрос сохранен!\n" +
-                        "\uD83C\uDFF7\uFE0F Теги: " + session.getTags().stream()
-                        .map(tag -> "#" + tag)
-                        .collect(Collectors.joining(" ")) +
-                        "\n🆔: `" + questionId +"`\n\n";
-                sendMessage(sender, userId, message);
-                sessionManager.clearSession(userId);
+                    session.setTags(tags);
+                    session.setStep(AddQuestionSession.Step.FINISHED);
+
+                    Long telegramId = update.getMessage().getFrom().getId();
+                    String questionId = questionService.saveQuestion(telegramId,
+                            session.getQuestionText(),
+                            session.getOptions(),
+                            session.getCorrectOption(),
+                            session.getTags());
+
+                    String message = "✅ Вопрос сохранен!\n" +
+                            "\uD83C\uDFF7\uFE0F Теги: " + session.getTags().stream()
+                            .map(tag -> "#" + tag.replace("_", "\\_"))
+                            .collect(Collectors.joining(", ")) +
+                            "\n🆔: `" + questionId +"`\n\n";
+
+                    sendMessage(sender, userId, message);
+                    sessionManager.clearSession(userId);
+                } catch (IllegalArgumentException e) {
+                    sendPlainMessage(sender, chatId, "❌ " + e.getMessage() + "\nВведите теги (через запятую):");
+                }
             }
             default -> sendMessage(sender, chatId, "Процесс уже завершен. Начните заново: /add_question");
         }

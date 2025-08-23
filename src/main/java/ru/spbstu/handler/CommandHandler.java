@@ -24,5 +24,17 @@ public interface CommandHandler {
             e.printStackTrace();
         }
     }
+
+    default void sendPlainMessage(AbsSender sender, Long chatId, String text) {
+        try {
+            SendMessage message = new SendMessage();
+            message.setChatId(String.valueOf(chatId));
+            message.setText(text);
+            message.enableMarkdown(false);
+            sender.execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
