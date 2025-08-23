@@ -10,5 +10,6 @@ import java.util.Optional;
 @Repository
 public interface TagRepository extends JpaRepository<Tag, Long> {
     Optional<Tag> findByUserIdAndNameIgnoreCase(Long userId, String name);
+    Optional<Tag> findByUserTelegramIdAndNameIgnoreCase(Long userId, String name);
     List<Tag> findAllByUserId(Long userId);
 }

@@ -37,7 +37,11 @@ public class HelpCommandHandler implements CommandHandler {
             • `/list_tags` - Список всех тегов
             • `/delete_tag <тег>` - Удалить тег
             
+            • `/score` - Показать общее количество баллов
+            • `/score_by_tag` - Показать количество балло по тегу (НЕ ГОТОВА ЕЩЕ)
             
+            • `/schedule` - Настройка автоматической отправки вопросов по расписанию
+            • `/unschedule` - Отключить автоматическую отправку вопросов
             """;
 
         sendMessage(sender, update.getMessage().getChatId(), helpText);
