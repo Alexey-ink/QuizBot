@@ -25,11 +25,12 @@ public class QuizByTagService extends BaseQuizService {
         Question randomQuestion = questionService.getRandomQuestionByTag(tagName);
 
         if (randomQuestion == null) {
-            sendMessage(sender, chatId, "❌ Не найдено вопросов с тегом '" + tagName + "'.\n\n" +
+            sendMessage(sender, chatId, "❌ Не найдено вопросов с тегом #" +
+                    questionService.escapeTagForMarkdown(tagName) + ".\n\n" +
                     "Убедитесь, что:\n" +
                     "• Тег существует\n" +
                     "• У вас есть вопросы с этим тегом\n" +
-                    "• Используйте команду /list_tags для просмотра доступных тегов");
+                    "• Используйте команду /list\\_tags для просмотра доступных тегов");
             return;
         }
 
@@ -37,7 +38,8 @@ public class QuizByTagService extends BaseQuizService {
         session.setCurrentQuestion(randomQuestion);
         session.setStep(QuizSession.Step.WAITING_FOR_ANSWER);
 
-        createAndExecuteQuizPoll(chatId, randomQuestion, sender, "\uD83C\uDFF7\uFE0F [" + tagName + "] ");
+        createAndExecuteQuizPoll(chatId, randomQuestion, sender,
+                "\uD83C\uDFF7\uFE0F [#" + questionService.escapeTagForMarkdown(tagName) + "] ");
 
     }
 }

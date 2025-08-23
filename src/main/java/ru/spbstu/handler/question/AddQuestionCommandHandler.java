@@ -1,6 +1,5 @@
 package ru.spbstu.handler.question;
 
-import org.postgresql.gss.GSSOutputStream;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -103,7 +102,7 @@ public class AddQuestionCommandHandler implements CommandHandler {
 
                     String message = "✅ Вопрос сохранен!\n" +
                             "\uD83C\uDFF7\uFE0F Теги: " + session.getTags().stream()
-                            .map(tag -> "#" + tag.replace("_", "\\_"))
+                            .map(tag -> "#" + tagService.escapeTagForMarkdown(tag))
                             .collect(Collectors.joining(", ")) +
                             "\n🆔: `" + questionId +"`\n\n";
 

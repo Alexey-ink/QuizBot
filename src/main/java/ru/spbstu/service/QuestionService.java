@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class QuestionService {
+public class QuestionService extends BaseService {
 
     private final QuestionRepository questionRepository;
     private final TagRepository tagRepository;

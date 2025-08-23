@@ -19,4 +19,8 @@ public abstract class BaseService {
             e.printStackTrace();
         }
     }
+
+    public String escapeTagForMarkdown(String tagName) {
+        return tagName.replace("_", "\\_");
+    }
 }

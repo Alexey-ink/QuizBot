@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
-public class TagService {
+public class TagService extends BaseService {
 
     private final TagRepository tagRepository;
 
@@ -70,5 +70,9 @@ public class TagService {
                     .collect(Collectors.joining(", "));
             throw new IllegalArgumentException("Теги уже существуют в базе: " + found);
         }
+    }
+
+    public List<Tag> findAllByUserId(Long userId) {
+        return tagRepository.findAllByUserId(userId);
     }
 }
