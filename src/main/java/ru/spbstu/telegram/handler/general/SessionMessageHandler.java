@@ -8,6 +8,7 @@ import ru.spbstu.telegram.handler.question.DeleteQuestionCommandHandler;
 import ru.spbstu.telegram.handler.quiz.RandomCommandHandler;
 import ru.spbstu.telegram.handler.schedule.DeleteScheduleCommandHandler;
 import ru.spbstu.telegram.handler.schedule.ScheduleCommandHandler;
+import ru.spbstu.telegram.handler.tag.AddTagCommandHandler;
 import ru.spbstu.telegram.handler.tag.DeleteTagCommandHandler;
 import ru.spbstu.telegram.sender.MessageSender;
 import ru.spbstu.telegram.session.core.Session;
@@ -20,6 +21,7 @@ import ru.spbstu.telegram.session.core.SessionType;
 public class SessionMessageHandler extends CommandHandler {
     private final SessionManager sessionManager;
     private final AddQuestionCommandHandler addQuestionHandler;
+    private final AddTagCommandHandler addTagCommandHandler;
     private final RandomCommandHandler randomQuestionHandler;
     private final DeleteQuestionCommandHandler deleteQuestionHandler;
     private final DeleteTagCommandHandler deleteTagHandler;
@@ -30,6 +32,7 @@ public class SessionMessageHandler extends CommandHandler {
     public SessionMessageHandler(MessageSender messageSender,
                                  SessionManager sessionManager,
                                  AddQuestionCommandHandler addQuestionHandler,
+                                 AddTagCommandHandler addTagCommandHandler,
                                  DeleteQuestionCommandHandler deleteQuestionHandler,
                                  DeleteTagCommandHandler deleteTagHandler,
                                  RandomCommandHandler randomQuestionHandler,
@@ -40,6 +43,7 @@ public class SessionMessageHandler extends CommandHandler {
         super(messageSender);
         this.sessionManager = sessionManager;
         this.addQuestionHandler = addQuestionHandler;
+        this.addTagCommandHandler = addTagCommandHandler;
         this.deleteQuestionHandler = deleteQuestionHandler;
         this.randomQuestionHandler = randomQuestionHandler;
         this.deleteTagHandler = deleteTagHandler;
@@ -65,6 +69,8 @@ public class SessionMessageHandler extends CommandHandler {
 
         if (session instanceof AddQuestionSession) {
             addQuestionHandler.handle(update);
+        } else if (session.getType() == SessionType.ADDING_TAG) {
+            addTagCommandHandler.handle(update);
         } else if (session instanceof QuizSession) {
             randomQuestionHandler.handle(update);
         } else if (session.getType() == SessionType.DELETE_CONFIRMATION) {

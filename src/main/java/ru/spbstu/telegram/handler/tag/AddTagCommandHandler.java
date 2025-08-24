@@ -7,18 +7,23 @@ import ru.spbstu.model.Tag;
 import ru.spbstu.repository.TagRepository;
 import ru.spbstu.service.UserService;
 import ru.spbstu.telegram.sender.MessageSender;
+import ru.spbstu.telegram.session.AddTagSession;
+import ru.spbstu.telegram.utils.SessionManager;
 
 @Component
 public class AddTagCommandHandler extends CommandHandler {
     private final TagRepository tagRepository;
     private final UserService userService;
+    private final SessionManager sessionManager;
 
     public AddTagCommandHandler(MessageSender messageSender,
                                 TagRepository tagRepository,
-                                UserService userService) {
+                                UserService userService,
+                                SessionManager sessionManager) {
         super(messageSender);
         this.tagRepository = tagRepository;
         this.userService = userService;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -34,44 +39,43 @@ public class AddTagCommandHandler extends CommandHandler {
     @Override
     public void handle(Update update) {
         String text = update.getMessage().getText();
-        String[] parts = text.split(" ", 2);
-        
-        if (parts.length < 2) {
-            // Если команда без параметров - запрашиваем название тега
+        Long telegramId = update.getMessage().getFrom().getId();
+        String[] parts = text.split(" ");
+
+        if(text.equals("/add_tag")) {
+            sessionManager.getOrCreate(telegramId, AddTagSession.class);
             messageSender.sendMessage(update.getMessage().getChatId(),
-                "🏷 Введите название тега (англ./рус., без пробелов):");
+                    "🏷 Введите название тега (англ./рус., без пробелов):");
             return;
         }
 
-        String tagName = parts[1].trim();
-        Long telegramId = update.getMessage().getFrom().getId();
-        
-        // Проверяем корректность названия тега
-        if (tagName.contains(" ") || tagName.isEmpty()) {
+        String tagName = parts[0].trim();
+        sessionManager.getOrCreate(telegramId, AddTagSession.class);
+
+        if (parts.length > 1 || tagName.isEmpty()) {
             messageSender.sendMessage(update.getMessage().getChatId(),
                 "❌ Название тега не должно содержать пробелы.");
             return;
         }
-        
+
         try {
             var user = userService.getUser(telegramId);
-            
-            // Проверяем, существует ли уже такой тег у пользователя
+
             if (tagRepository.findByUserIdAndNameIgnoreCase(user.getId(), tagName).isPresent()) {
                 messageSender.sendMessage(update.getMessage().getChatId(),
-                    "❌ Тег «" + tagName + "» уже существует.");
+                    "❌ Тег #" + messageSender.escapeTagForMarkdown(tagName) + " уже существует.");
                 return;
             }
 
             Tag newTag = new Tag();
             newTag.setUser(user);
             newTag.setName(tagName);
-            
+
             tagRepository.save(newTag);
 
             messageSender.sendMessage(update.getMessage().getChatId(),
-                "✅ Тег «" + tagName + "» добавлен!");
-                
+                "✅ Тег #" + messageSender.escapeTagForMarkdown(tagName) + " добавлен!");
+
         } catch (Exception e) {
             messageSender.sendMessage(update.getMessage().getChatId(),
                 "❌ Ошибка при создании тега: " + e.getMessage());

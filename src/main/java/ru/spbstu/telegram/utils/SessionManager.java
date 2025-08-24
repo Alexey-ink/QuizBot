@@ -9,11 +9,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class SessionManager {
 
-    // userId -> session
+    // telegramId -> session
     private final Map<Long, Session> sessions = new ConcurrentHashMap<>();
 
-    public <T extends Session> T getOrCreate(Long userId, Class<T> clazz) {
-        Session session = sessions.computeIfAbsent(userId, id -> createNewSession(clazz));
+    public <T extends Session> T getOrCreate(Long telegramId, Class<T> clazz) {
+        Session session = sessions.computeIfAbsent(telegramId, id -> createNewSession(clazz));
         return clazz.cast(session);
     }
 
