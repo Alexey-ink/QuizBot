@@ -1,26 +1,18 @@
 package ru.spbstu.service.quiz;
 
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.polls.PollAnswer;
-import org.telegram.telegrambots.meta.bots.AbsSender;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.spbstu.model.Question;
 import ru.spbstu.model.QuestionOption;
 import ru.spbstu.model.User;
-import ru.spbstu.service.BaseService;
 import ru.spbstu.service.ScoreByTagService;
 import ru.spbstu.service.UserService;
-import ru.spbstu.session.QuizSession;
-import ru.spbstu.utils.SessionManager;
+import ru.spbstu.telegram.session.QuizSession;
+import ru.spbstu.telegram.utils.SessionManager;
 
-import java.util.Comparator;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public abstract class BaseQuizService extends BaseService {
+public abstract class BaseQuizService {
 
     protected final SessionManager sessionManager;
     private final UserService userService;
@@ -34,68 +26,33 @@ public abstract class BaseQuizService extends BaseService {
         this.scoreByTagService = scoreByTagService;
     }
 
-    protected void createAndExecuteQuizPoll(Long chatId, Question question, AbsSender sender, String desc) {
-        List<QuestionOption> sortedOptions = question.getOptions().stream()
-                .sorted(Comparator.comparingInt(QuestionOption::getOptionNumber))
-                .toList();
-
-        List<String> options = sortedOptions.stream()
-                .map(QuestionOption::getText)
-                .collect(Collectors.toList());
-
-        SendPoll poll = new SendPoll();
-        poll.setChatId(chatId.toString());
-        poll.setQuestion(desc + "\n" + question.getText());
-        poll.setOptions(options);
-        poll.setCorrectOptionId(question.getCorrectOption() - 1);
-        poll.setType("quiz");
-        poll.setOpenPeriod(30);
-        poll.setIsAnonymous(false);
-        try {
-            sender.execute(poll);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
      * Обрабатывает incoming PollAnswer (Update.hasPollAnswer()).
      */
-    public void processPollAnswer(Update update, AbsSender sender) {
+    public String processPollAnswer(Long telegramId, int selectedAnswer) {
 
-        PollAnswer pollAnswer = update.getPollAnswer();
-        Long userId = pollAnswer.getUser().getId();
-        var optionIds = pollAnswer.getOptionIds();
-
-        if (optionIds == null || optionIds.isEmpty()) {
-            return;
-        }
-
-        int selectedAnswer = optionIds.get(0) + 1; // обратно в 1-based
-
-        QuizSession session = sessionManager.getSession(userId, QuizSession.class);
+        QuizSession session = sessionManager.getSession(telegramId, QuizSession.class);
         if (session == null || session.isAnswered()) {
-            return;
+            return null;
         }
 
         Question question = session.getCurrentQuestion();
         boolean isCorrect = selectedAnswer == question.getCorrectOption();
 
+        User user = userService.getUser(telegramId);
+
         if (isCorrect) {
-            User user = userService.getUser(userId);
             user.setScore(user.getScore() + 1);
             userService.save(user);
             for (var tag : question.getTags()) {
                 scoreByTagService.incrementScore(user, tag);
             }
         }
-
-        User currentUser = userService.getUser(userId);
-        sessionManager.clearSession(userId);
-        showQuizResult(sender, userId, question, selectedAnswer, isCorrect, currentUser.getScore());
+        sessionManager.clearSession(telegramId);
+        return getQuizResult(telegramId, question, isCorrect, user.getScore());
     }
 
-    protected void showQuizResult(AbsSender sender, Long userId, Question question, int selectedAnswer, boolean isCorrect, int score) {
+    protected String getQuizResult(Long userId, Question question, boolean isCorrect, int score) {
         StringBuilder message = new StringBuilder();
 
         if (isCorrect) {
@@ -123,6 +80,6 @@ public abstract class BaseQuizService extends BaseService {
 
         message.append("🏆 *Ваш счет:* ").append(score).append(" баллов");
 
-        sendMessage(sender, userId, message.toString());
+        return message.toString();
     }
 }

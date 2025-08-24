@@ -6,7 +6,7 @@ import org.quartz.*;
 import org.springframework.stereotype.Service;
 import ru.spbstu.model.Schedule;
 import ru.spbstu.repository.ScheduleRepository;
-import ru.spbstu.jobs.SendRandomQuestionJob;
+import ru.spbstu.telegram.job.SendRandomQuestionJob;
 
 import java.time.ZoneId;
 import java.util.List;

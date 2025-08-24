@@ -6,12 +6,13 @@ import ru.spbstu.model.*;
 import ru.spbstu.repository.QuestionRepository;
 import ru.spbstu.repository.TagRepository;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Service
-public class QuestionService extends BaseService {
+public class QuestionService {
 
     private final QuestionRepository questionRepository;
     private final TagRepository tagRepository;
@@ -98,5 +99,15 @@ public class QuestionService extends BaseService {
     @Transactional
     public void updateQuestion(Question question) {
         questionRepository.save(question);
+    }
+
+    public List<String> getSortedOptions(Question randomQuestion) {
+        List<QuestionOption> sortedOptions = randomQuestion.getOptions().stream()
+                .sorted(Comparator.comparingInt(QuestionOption::getOptionNumber))
+                .toList();
+
+        return sortedOptions.stream()
+                .map(QuestionOption::getText)
+                .toList();
     }
 }

@@ -17,7 +17,7 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
-import ru.spbstu.bot.QuizBot;
+import ru.spbstu.telegram.bot.QuizBot;
 
 import javax.sql.DataSource;
 import java.util.Properties;

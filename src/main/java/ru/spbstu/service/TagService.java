@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
-public class TagService extends BaseService {
+public class TagService {
 
     private final TagRepository tagRepository;
 

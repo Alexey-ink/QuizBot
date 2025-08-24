@@ -1,13 +1,15 @@
 package ru.spbstu.service.quiz;
 
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.spbstu.dto.QuizDto;
 import ru.spbstu.model.Question;
 import ru.spbstu.service.QuestionService;
 import ru.spbstu.service.ScoreByTagService;
 import ru.spbstu.service.UserService;
-import ru.spbstu.session.QuizSession;
-import ru.spbstu.utils.SessionManager;
+import ru.spbstu.telegram.session.QuizSession;
+import ru.spbstu.telegram.utils.SessionManager;
+
+import java.util.List;
 
 @Service
 public class QuizByTagService extends BaseQuizService {
@@ -21,25 +23,20 @@ public class QuizByTagService extends BaseQuizService {
         this.questionService = questionService;
     }
 
-    public void startNewQuizByTag(Long userId, Long chatId, String tagName, AbsSender sender) {
+    public QuizDto getRandomQuizByTag(Long userId, String tagName) {
         Question randomQuestion = questionService.getRandomQuestionByTag(tagName);
 
-        if (randomQuestion == null) {
-            sendMessage(sender, chatId, "❌ Не найдено вопросов с тегом #" +
-                    questionService.escapeTagForMarkdown(tagName) + ".\n\n" +
-                    "Убедитесь, что:\n" +
-                    "• Тег существует\n" +
-                    "• У вас есть вопросы с этим тегом\n" +
-                    "• Используйте команду /list\\_tags для просмотра доступных тегов");
-            return;
-        }
+        if(randomQuestion == null) return null;
+
+        List<String> options = questionService.getSortedOptions(randomQuestion);
+
+        QuizDto quiz = new QuizDto(randomQuestion.getText(), options,
+                randomQuestion.getCorrectOption() - 1);
 
         QuizSession session = sessionManager.getOrCreate(userId, QuizSession.class);
         session.setCurrentQuestion(randomQuestion);
         session.setStep(QuizSession.Step.WAITING_FOR_ANSWER);
 
-        createAndExecuteQuizPoll(chatId, randomQuestion, sender,
-                "\uD83C\uDFF7\uFE0F [#" + questionService.escapeTagForMarkdown(tagName) + "] ");
-
+        return quiz;
     }
 }

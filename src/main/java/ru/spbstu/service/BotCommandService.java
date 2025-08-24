@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.spbstu.handler.CommandHandler;
+import ru.spbstu.telegram.handler.CommandHandler;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,25 +47,16 @@ public class BotCommandService {
             e.printStackTrace();
         }
     }
-    
-    /**
-     * Определяет, должна ли команда отображаться в меню команд
-     * @param handler обработчик команды
-     * @return true, если команда должна отображаться в меню
-     */
+
     private boolean shouldShowInMenu(CommandHandler handler) {
         String command = handler.getCommand();
         
-        // Не показываем в меню служебные команды и команды без описания
-        return !command.equals("/default") && 
+        return !command.equals("/default") &&
                !command.equals("/start") &&
                !handler.getDescription().equals("Команда бота");
     }
-    
-    /**
-     * Получает список всех доступных команд
-     * @return список команд с описаниями
-     */
+
+
     public List<BotCommand> getAllCommands() {
         return commandHandlers.stream()
                 .map(handler -> new BotCommand(handler.getCommand(), handler.getDescription()))
