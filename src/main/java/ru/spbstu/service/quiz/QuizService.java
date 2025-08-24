@@ -27,7 +27,7 @@ public class QuizService extends BaseQuizService {
     }
 
     public QuizDto getQuiz(Long telegramId) {
-        Long userId = userService.getUserIdByTelegramIdOptional(telegramId);
+        Long userId = userService.getUserIdByTelegramId(telegramId);
         Question randomQuestion = questionService.getRandomQuestion(userId);
 
         if (randomQuestion == null) return null;

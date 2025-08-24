@@ -76,7 +76,7 @@ public class SessionMessageHandler extends CommandHandler {
         } else if (session.getType() == SessionType.DELETE_CONFIRMATION) {
             handleDeleteConfirmation(update, userId);
         } else if (session.getType() == SessionType.DELETE_TAG_CONFIRMATION) {
-            handleDeleteTagConfirmation(update, userId);
+            deleteTagHandler.handleDeleteTagConfirmation(update);
         } else if (session.getType() == SessionType.CREATING_SCHEDULE) {
             scheduleCommandHandler.handle(update);
         }else if (session.getType() == SessionType.WAITING_TIMEZONE) {
@@ -99,21 +99,6 @@ public class SessionMessageHandler extends CommandHandler {
         } else {
             messageSender.sendMessage(update.getMessage().getChatId(),
                 "Пожалуйста, ответьте «Да» или «Нет» для подтверждения удаления вопроса.");
-        }
-    }
-
-    private void handleDeleteTagConfirmation(Update update, Long userId) {
-        String text = update.getMessage().getText().toLowerCase().trim();
-        
-        if (text.equals("да") || text.equals("yes") || text.equals("y")) {
-            deleteTagHandler.confirmDeletion(userId, true);
-            messageSender.sendMessage(update.getMessage().getChatId(), "✅ Тег удален.");
-        } else if (text.equals("нет") || text.equals("no") || text.equals("n")) {
-            deleteTagHandler.confirmDeletion(userId, false);
-            messageSender.sendMessage(update.getMessage().getChatId(), "❗ Отменено.");
-        } else {
-            messageSender.sendMessage(update.getMessage().getChatId(),
-                "Пожалуйста, ответьте «Да» или «Нет» для подтверждения удаления тега.");
         }
     }
 }

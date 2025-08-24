@@ -1,11 +1,15 @@
 package ru.spbstu.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import ru.spbstu.dto.TagDto;
 import ru.spbstu.model.Tag;
+import ru.spbstu.repository.ScoreByTagRepository;
 import ru.spbstu.repository.TagRepository;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -13,13 +17,15 @@ import java.util.stream.Collectors;
 public class TagService {
 
     private final TagRepository tagRepository;
+    private final ScoreByTagRepository scoreByTagRepository;
 
     private static final int MAX_TAGS = 5;
     private static final int MAX_TAG_LENGTH = 30;
     private static final Pattern TAG_PATTERN = Pattern.compile("^[a-zа-я0-9_]+$");
 
-    public TagService(TagRepository tagRepository) {
+    public TagService(TagRepository tagRepository, ScoreByTagRepository scoreByTagRepository) {
         this.tagRepository = tagRepository;
+        this.scoreByTagRepository = scoreByTagRepository;
     }
 
     public List<String> parseAndValidateTags(String raw) {
@@ -56,5 +62,21 @@ public class TagService {
 
     public List<Tag> findAll() {
         return tagRepository.findAll();
+    }
+
+    @Transactional
+    public Optional<TagDto> findByNameIgnoreCase(String tagName) {
+        return tagRepository.findByNameIgnoreCase(tagName)
+                .map(TagDto::toDto);
+    }
+
+    @Transactional
+    public void deleteTagById(Long tagId) {
+        tagRepository.deleteById(tagId);
+    }
+
+    @Transactional
+    public void deleteScoreByTagId(Long tagId) {
+        scoreByTagRepository.deleteByTagId(tagId);
     }
 }

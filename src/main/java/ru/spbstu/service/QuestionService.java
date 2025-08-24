@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.spbstu.model.*;
 import ru.spbstu.repository.QuestionRepository;
+import ru.spbstu.repository.ScoreByTagRepository;
 import ru.spbstu.repository.TagRepository;
 import ru.spbstu.repository.UserQuestionRepository;
 
@@ -20,7 +21,10 @@ public class QuestionService {
     private final UserService userService;
     private final UserQuestionRepository userQuestionRepository;
 
-    public QuestionService(QuestionRepository questionRepository, TagRepository tagRepository, UserService userService, UserQuestionRepository userQuestionRepository) {
+    public QuestionService(QuestionRepository questionRepository,
+                           TagRepository tagRepository,
+                           UserService userService,
+                           UserQuestionRepository userQuestionRepository) {
         this.questionRepository = questionRepository;
         this.tagRepository = tagRepository;
         this.userService = userService;
@@ -113,7 +117,21 @@ public class QuestionService {
     }
 
     public boolean existsAnsweredByTag(Long telegramId, String tagName) {
-        Long userId = userService.getUserIdByTelegramIdOptional(telegramId);
+        Long userId = userService.getUserIdByTelegramId(telegramId);
         return userQuestionRepository.existsAnsweredByTag(userId, tagName);
+    }
+
+    @Transactional
+    public void deleteQuestionsWithSingleTag(Long userId, Long tagId) {
+        questionRepository.deleteQuestionsWithSingleTag(userId, tagId);
+    }
+
+    @Transactional
+    public boolean existsQuestionsByTagId(Long tagId) {
+        return questionRepository.existsByTagId(tagId);
+    }
+
+    public void deleteTagFromQuestionsByTagId(Long userId, Long tagId) {
+        questionRepository.deleteTagFromQuestionsByTagIdAndUserId(tagId, userId);
     }
 }

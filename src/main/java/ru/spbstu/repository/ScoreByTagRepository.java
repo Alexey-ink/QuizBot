@@ -21,5 +21,7 @@ public interface ScoreByTagRepository extends JpaRepository<ScoreByTag, Long> {
     @Modifying
     @Query("UPDATE ScoreByTag s SET s.score = 0 WHERE s.user.id = :userId")
     void resetScoresByUserId(@Param("userId") Long userId);
+
+    void deleteByTagId(Long tagId);
 }
 

@@ -6,4 +6,6 @@ public record QuizDto(
     String question,
     List<String> options,
     int correctOption
-) {}
+) {
+
+}
