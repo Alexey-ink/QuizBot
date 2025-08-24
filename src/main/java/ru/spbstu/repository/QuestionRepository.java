@@ -12,8 +12,8 @@ import java.util.Optional;
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, String> {
     
-    @Query("SELECT q FROM Question q JOIN q.tags t JOIN t.user u WHERE u.id = :userId AND t.name = :tagName")
-    List<Question> findByUserIdAndTagName(@Param("userId") Long userId, @Param("tagName") String tagName);
+    @Query("SELECT q FROM Question q JOIN q.tags t JOIN t.user u WHERE t.name = :tagName")
+    List<Question> findByTagName(@Param("tagName") String tagName);
 
     @Query(value = "SELECT q.* FROM questions q " +
             "LEFT JOIN user_question uq ON q.id = uq.question_id AND uq.user_id = :userId " +

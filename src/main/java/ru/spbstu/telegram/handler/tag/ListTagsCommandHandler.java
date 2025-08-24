@@ -38,8 +38,7 @@ public class ListTagsCommandHandler extends CommandHandler {
         Long telegramId = update.getMessage().getFrom().getId();
         
         try {
-            var user = userService.getUser(telegramId);
-            List<Tag> tags = tagService.findAllByUserId(user.getId());
+            List<Tag> tags = tagService.findAll();
             
             if (tags.isEmpty()) {
                 messageSender.sendMessage(update.getMessage().getChatId(),

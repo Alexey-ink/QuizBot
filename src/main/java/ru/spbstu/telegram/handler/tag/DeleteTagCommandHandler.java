@@ -53,7 +53,7 @@ public class DeleteTagCommandHandler extends CommandHandler {
         
         if (parts.length < 2) {
             messageSender.sendMessage(update.getMessage().getChatId(),
-                "❌ Укажите тег.\nИспользование: /delete_tag <тег>");
+                "❌ Укажите тег.\nИспользование: `/delete_tag <тег>`");
             return;
         }
 
@@ -64,10 +64,10 @@ public class DeleteTagCommandHandler extends CommandHandler {
             var user = userService.getUser(telegramId);
             
             // Проверяем существование тега
-            var tagOptional = tagRepository.findByUserIdAndNameIgnoreCase(user.getId(), tagName);
+            var tagOptional = tagRepository.findByNameIgnoreCase(tagName);
             if (tagOptional.isEmpty()) {
                 messageSender.sendMessage(update.getMessage().getChatId(),
-                    "❌ Тег «" + tagName + "» не существует.");
+                    "❌ Тег #" + messageSender.escapeTagForMarkdown(tagName) + " не существует.");
                 return;
             }
             
@@ -76,12 +76,12 @@ public class DeleteTagCommandHandler extends CommandHandler {
             // Проверяем владельца тега
             if (!tag.getUser().getId().equals(user.getId())) {
                 messageSender.sendMessage(update.getMessage().getChatId(),
-                    "❌ Тег «" + tagName + "» создан другим пользователем.");
+                    "❌ Тег #" + messageSender.escapeTagForMarkdown(tagName) + " создан другим пользователем.");
                 return;
             }
             
             // Запрашиваем подтверждение
-            String confirmationMessage = "❗ Удаление тега «" + tagName + "» также удалит вопросы, у которых нет других тегов. Продолжить? (Да/Нет)";
+            String confirmationMessage = "❗ Удаление тега #" + messageSender.escapeTagForMarkdown(tagName) + " также удалит вопросы, у которых нет других тегов. Продолжить? (Да/Нет)";
             messageSender.sendMessage(update.getMessage().getChatId(), confirmationMessage);
             
             // Сохраняем ожидающее удаление тега
@@ -107,7 +107,7 @@ public class DeleteTagCommandHandler extends CommandHandler {
                         Tag tag = tagOptional.get();
                         
                         // Получаем все вопросы с этим тегом
-                        var questions = questionService.getQuestionsByTag(telegramId, tagName);
+                        var questions = questionService.getQuestionsByTag(tagName);
                         
                         // Удаляем тег из всех вопросов, но не удаляем сами вопросы
                         for (var question : questions) {

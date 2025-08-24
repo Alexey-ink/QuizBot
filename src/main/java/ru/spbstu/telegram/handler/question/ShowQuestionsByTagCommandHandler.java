@@ -48,7 +48,7 @@ public class ShowQuestionsByTagCommandHandler extends CommandHandler {
         Long telegramId = update.getMessage().getFrom().getId();
         String tagNameForMarkdown = messageSender.escapeTagForMarkdown(tagName);
 
-        if (!questionService.tagExists(telegramId, tagName)) {
+        if (!questionService.tagExists(tagName)) {
             messageSender.sendMessage(update.getMessage().getChatId(),
                 "❌ Тег #" + tagNameForMarkdown + " не существует.\n\n" +
                 "🏷️ **Создать тег:** `/add_tag " + tagName + "`\n" +
@@ -56,7 +56,7 @@ public class ShowQuestionsByTagCommandHandler extends CommandHandler {
             return;
         }
 
-        List<Question> questions = questionService.getQuestionsByTag(telegramId, tagName);
+        List<Question> questions = questionService.getQuestionsByTag(tagName);
 
         if (questions.isEmpty()) {
             messageSender.sendMessage(update.getMessage().getChatId(),
@@ -65,7 +65,7 @@ public class ShowQuestionsByTagCommandHandler extends CommandHandler {
         }
 
         StringBuilder response = new StringBuilder();
-        response.append("📋 *Список вопросов по тегу #").append(tagNameForMarkdown).append("* (всего ").append(questions.size()).append("):\n\n");
+        response.append("📋 Список вопросов по тегу #").append(tagNameForMarkdown).append(" (всего ").append(questions.size()).append("):\n\n");
 
         for (Question question : questions) {
             String questionText = question.getText();

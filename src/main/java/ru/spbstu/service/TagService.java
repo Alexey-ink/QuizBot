@@ -54,7 +54,7 @@ public class TagService {
         return tags;
     }
 
-    public List<Tag> findAllByUserId(Long userId) {
-        return tagRepository.findAllByUserId(userId);
+    public List<Tag> findAll() {
+        return tagRepository.findAll();
     }
 }

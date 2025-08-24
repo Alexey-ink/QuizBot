@@ -64,14 +64,12 @@ public class QuestionService {
         return question.getId();
     }
 
-    public boolean tagExists(Long telegramId, String tagName) {
-        User user = userService.getUser(telegramId);
-        return tagRepository.findByUserIdAndNameIgnoreCase(user.getId(), tagName).isPresent();
+    public boolean tagExists(String tagName) {
+        return tagRepository.findByNameIgnoreCase(tagName).isPresent();
     }
 
-    public List<Question> getQuestionsByTag(Long telegramId, String tagName) {
-        User user = userService.getUser(telegramId);
-        return questionRepository.findByUserIdAndTagName(user.getId(), tagName);
+    public List<Question> getQuestionsByTag(String tagName) {
+        return questionRepository.findByTagName(tagName);
     }
 
     public Question getQuestionById(String questionId) {
