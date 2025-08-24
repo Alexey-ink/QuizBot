@@ -92,7 +92,6 @@ public class AddQuestionCommandHandler extends CommandHandler {
             case ASK_TAGS -> {
                 try {
                     List<String> tags = tagService.parseAndValidateTags(text);
-                    tagService.ensureTagsDoNotExist(tags);
 
                     session.setTags(tags);
                     session.setStep(AddQuestionSession.Step.FINISHED);

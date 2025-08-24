@@ -62,8 +62,7 @@ public class AddTagCommandHandler extends CommandHandler {
                     "❌ Тег «" + tagName + "» уже существует.");
                 return;
             }
-            
-            // Создаем новый тег
+
             Tag newTag = new Tag();
             newTag.setUser(user);
             newTag.setName(tagName);

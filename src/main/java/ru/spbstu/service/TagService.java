@@ -55,23 +55,6 @@ public class TagService {
         return tags;
     }
 
-    public void ensureTagsDoNotExist(List<String> normalizedTags) {
-        if (normalizedTags == null || normalizedTags.isEmpty()) return;
-
-        Set<String> lowerNames = normalizedTags.stream()
-                .map(String::toLowerCase)
-                .collect(Collectors.toSet());
-
-        List<Tag> existing = tagRepository.findAllByNameLowerIn(lowerNames);
-
-        if (!existing.isEmpty()) {
-            String found = existing.stream()
-                    .map(Tag::getName)
-                    .collect(Collectors.joining(", "));
-            throw new IllegalArgumentException("Теги уже существуют в базе: " + found);
-        }
-    }
-
     public List<Tag> findAllByUserId(Long userId) {
         return tagRepository.findAllByUserId(userId);
     }
