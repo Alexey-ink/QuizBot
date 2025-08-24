@@ -45,7 +45,7 @@ public class RandomByTagCommandHandler extends CommandHandler {
         String RANDOM_BY_TAG_COMMAND = "/random_by_tag";
 
         Long chatId = update.getMessage().getChatId();
-        Long userId = update.getMessage().getFrom().getId();
+        Long telegramId = update.getMessage().getFrom().getId();
         String text = update.getMessage().getText();
 
         if (text.equals(RANDOM_BY_TAG_COMMAND)) {
@@ -63,14 +63,21 @@ public class RandomByTagCommandHandler extends CommandHandler {
         }
 
         String tagName = parts[1];
-        QuizDto quiz = quizByTagService.getRandomQuizByTag(userId, tagName);
+        QuizDto quiz = quizByTagService.getRandomQuizByTag(telegramId, tagName);
 
         if (quiz == null) {
+            if (quizByTagService.existsAnsweredByTag(telegramId, tagName)) {
+                messageSender.sendPlainMessage(chatId, "❗\uFE0F Вы уже ответили на все вопросы " +
+                        "с тегом #" + messageSender.escapeTagForMarkdown(tagName) + "!\n\n" +
+                        "Если хотите пройти их заново, нужно сбросить счет." +
+                        "Для этого воспользуйтесь командой /reset_score");
+                return;
+            }
             messageSender.sendMessage(chatId, "❌ Не найдено вопросов с тегом #" +
                     messageSender.escapeTagForMarkdown(tagName) + ".\n\n" +
                     "Убедитесь, что:\n" +
                     "• Тег существует\n" +
-                    "• У вас есть вопросы с этим тегом\n" +
+                    "• В базе есть вопросы с этим тегом\n" +
                     "• Используйте команду /list\\_tags для просмотра доступных тегов");
             return;
         }

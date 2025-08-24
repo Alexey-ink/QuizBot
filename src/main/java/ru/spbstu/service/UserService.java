@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import ru.spbstu.model.User;
 import ru.spbstu.repository.UserRepository;
 
+import java.util.Optional;
+
 @Service
 public class UserService {
 
@@ -34,5 +36,10 @@ public class UserService {
 
     public void save(User user) {
         userRepository.save(user);
+    }
+
+    @Transactional
+    public Optional<Long> getUserIdByTelegramIdOptional(Long telegramId) {
+        return userRepository.findIdByTelegramId(telegramId);
     }
 }

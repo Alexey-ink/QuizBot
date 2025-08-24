@@ -36,4 +36,7 @@ public class ScoreByTagService {
         return tagRepository.findByUserTelegramIdAndNameIgnoreCase(telegramId, tagName).isPresent();
     }
 
+    public void resetScore(Long telegramId) {
+
+    }
 }

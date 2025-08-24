@@ -3,6 +3,7 @@ package ru.spbstu.service.quiz;
 import org.springframework.stereotype.Service;
 import ru.spbstu.dto.QuizDto;
 import ru.spbstu.model.Question;
+import ru.spbstu.repository.UserQuestionRepository;
 import ru.spbstu.service.QuestionService;
 import ru.spbstu.service.ScoreByTagService;
 import ru.spbstu.service.UserService;
@@ -16,16 +17,19 @@ public class QuizService extends BaseQuizService {
 
     private final QuestionService questionService;
 
-    public QuizService(QuestionService questionService,
+    public QuizService(UserQuestionRepository userQuestionRepository,
+                       QuestionService questionService,
                        UserService userService,
                        ScoreByTagService scoreByTagService,
                        SessionManager sessionManager) {
-        super(sessionManager, userService, scoreByTagService);
+        super(sessionManager, userService, scoreByTagService, userQuestionRepository);
         this.questionService = questionService;
     }
 
-    public QuizDto getQuiz(Long userId) {
-        Question randomQuestion = questionService.getRandomQuestion();
+    public QuizDto getQuiz(Long telegramId) {
+        Long userId = userService.getUserIdByTelegramIdOptional(telegramId).orElse(null);
+        if(userId == null) throw new RuntimeException("NOT FOUND USER ID");
+        Question randomQuestion = questionService.getRandomQuestion(userId);
 
         if (randomQuestion == null) return null;
 
@@ -34,7 +38,7 @@ public class QuizService extends BaseQuizService {
         QuizDto quiz = new QuizDto(randomQuestion.getText(), options,
                 randomQuestion.getCorrectOption() - 1);
 
-        QuizSession session = sessionManager.getOrCreate(userId, QuizSession.class);
+        QuizSession session = sessionManager.getOrCreate(telegramId, QuizSession.class);
         session.setCurrentQuestion(randomQuestion);
         session.setStep(QuizSession.Step.WAITING_FOR_ANSWER);
         return quiz;

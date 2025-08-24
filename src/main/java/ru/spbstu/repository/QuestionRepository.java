@@ -14,14 +14,21 @@ public interface QuestionRepository extends JpaRepository<Question, String> {
     
     @Query("SELECT q FROM Question q JOIN q.tags t JOIN t.user u WHERE u.id = :userId AND t.name = :tagName")
     List<Question> findByUserIdAndTagName(@Param("userId") Long userId, @Param("tagName") String tagName);
-    
-    @Query(value = "SELECT * FROM questions ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
-    Optional<Question> findRandomQuestion();
-    
+
     @Query(value = "SELECT q.* FROM questions q " +
-                   "JOIN question_tag qt ON q.id = qt.question_id " +
+            "LEFT JOIN user_question uq ON q.id = uq.question_id AND uq.user_id = :userId " +
+            "WHERE uq.id IS NULL " +
+            "ORDER BY RANDOM() LIMIT 1",
+            nativeQuery = true)
+    Optional<Question> findRandomUnansweredQuestion(@Param("userId") Long userId);
+
+
+    @Query(value = "SELECT q.* FROM questions q " +
+                   "LEFT JOIN question_tag qt ON q.id = qt.question_id " +
                    "JOIN tags t ON qt.tag_id = t.id " +
-                   "WHERE t.name = :tagName " +
+                   "LEFT JOIN user_question uq ON q.id = uq.question_id AND uq.user_id = :userId " +
+                   "WHERE t.name = :tagName AND uq.id IS NULL " +
                    "ORDER BY RANDOM() LIMIT 1", nativeQuery = true)
-    Optional<Question> findRandomQuestionByTag(@Param("tagName") String tagName);
+    Optional<Question> findRandomUnansweredQuestionByTag(@Param("userId") Long userId,
+                                                         @Param("tagName") String tagName);
 }

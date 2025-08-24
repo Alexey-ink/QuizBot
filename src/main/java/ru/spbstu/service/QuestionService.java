@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.spbstu.model.*;
 import ru.spbstu.repository.QuestionRepository;
 import ru.spbstu.repository.TagRepository;
+import ru.spbstu.repository.UserQuestionRepository;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -17,11 +18,13 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final TagRepository tagRepository;
     private final UserService userService;
+    private final UserQuestionRepository userQuestionRepository;
 
-    public QuestionService(QuestionRepository questionRepository, TagRepository tagRepository, UserService userService) {
+    public QuestionService(QuestionRepository questionRepository, TagRepository tagRepository, UserService userService, UserQuestionRepository userQuestionRepository) {
         this.questionRepository = questionRepository;
         this.tagRepository = tagRepository;
         this.userService = userService;
+        this.userQuestionRepository = userQuestionRepository;
     }
 
     @Transactional
@@ -87,13 +90,13 @@ public class QuestionService {
     }
 
     @Transactional(readOnly = true)
-    public Question getRandomQuestion() {
-        return questionRepository.findRandomQuestion().orElse(null);
+    public Question getRandomQuestion(Long userId) {
+        return questionRepository.findRandomUnansweredQuestion(userId).orElse(null);
     }
 
     @Transactional(readOnly = true)
-    public Question getRandomQuestionByTag(String tagName) {
-        return questionRepository.findRandomQuestionByTag(tagName).orElse(null);
+    public Question getRandomQuestionByTag(Long userId, String tagName) {
+        return questionRepository.findRandomUnansweredQuestionByTag(userId, tagName).orElse(null);
     }
 
     @Transactional
@@ -109,5 +112,11 @@ public class QuestionService {
         return sortedOptions.stream()
                 .map(QuestionOption::getText)
                 .toList();
+    }
+
+    public boolean existsAnsweredByTag(Long telegramId, String tagName) {
+        Long userId = userService.getUserIdByTelegramIdOptional(telegramId).orElse(null);
+        if (userId == null) throw new RuntimeException("NOT FOUND USER ID");
+        return userQuestionRepository.existsAnsweredByTag(userId, tagName);
     }
 }
