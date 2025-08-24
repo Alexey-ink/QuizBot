@@ -7,15 +7,21 @@ import ru.spbstu.model.Tag;
 import ru.spbstu.model.User;
 import ru.spbstu.repository.ScoreByTagRepository;
 import ru.spbstu.repository.TagRepository;
+import ru.spbstu.repository.UserQuestionRepository;
+import ru.spbstu.repository.UserRepository;
 
 @Service
 public class ScoreByTagService {
     private final ScoreByTagRepository scoreByTagRepository;
+    private final UserRepository userRepository;
     private final TagRepository tagRepository;
+    private final UserQuestionRepository userQuestionRepository;
 
-    public ScoreByTagService(ScoreByTagRepository scoreByTagRepository, TagRepository tagRepository) {
+    public ScoreByTagService(ScoreByTagRepository scoreByTagRepository, UserRepository userRepository, TagRepository tagRepository, UserQuestionRepository userQuestionRepository) {
         this.scoreByTagRepository = scoreByTagRepository;
+        this.userRepository = userRepository;
         this.tagRepository = tagRepository;
+        this.userQuestionRepository = userQuestionRepository;
     }
 
     @Transactional
@@ -36,7 +42,11 @@ public class ScoreByTagService {
         return tagRepository.findByUserTelegramIdAndNameIgnoreCase(telegramId, tagName).isPresent();
     }
 
+    @Transactional
     public void resetScore(Long telegramId) {
-
+        Long userId = userRepository.findIdByTelegramId(telegramId);
+        userRepository.resetScoreByUserId(userId);
+        scoreByTagRepository.resetScoresByUserId(userId);
+        userQuestionRepository.deleteAllByUserId(userId);
     }
 }

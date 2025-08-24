@@ -42,7 +42,7 @@ public class ScoreByTagCommandHandler extends CommandHandler {
 
         if (!scoreByTagService.tagExists(telegramId, tagName)) {
             messageSender.sendMessage(update.getMessage().getChatId(),
-                    "❌ Тег «" + tagName + "» не существует.\n\n" +
+                    "❌ Тег «" + messageSender.escapeTagForMarkdown(tagName) + "» не существует.\n\n" +
                             "🏷️ **Создайте тег:** `/add_tag " + tagName + "`\n" +
                             "📋 **Просмотр тегов:** `/list_tags`");
             return;
@@ -51,7 +51,7 @@ public class ScoreByTagCommandHandler extends CommandHandler {
         Integer score = scoreByTagService.getScoreByUserIdAndTagName(telegramId, tagName);
 
         messageSender.sendMessage(telegramId, "\uD83C\uDFC6 Ваш счет по тегу #" +
-                tagName + ": " + score);
+                messageSender.escapeTagForMarkdown(tagName) + ": " + score);
     }
 
     @Override

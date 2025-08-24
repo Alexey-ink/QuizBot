@@ -39,7 +39,7 @@ public class UserService {
     }
 
     @Transactional
-    public Optional<Long> getUserIdByTelegramIdOptional(Long telegramId) {
+    public Long getUserIdByTelegramIdOptional(Long telegramId) {
         return userRepository.findIdByTelegramId(telegramId);
     }
 }

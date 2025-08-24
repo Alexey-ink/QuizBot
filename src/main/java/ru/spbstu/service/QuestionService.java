@@ -115,8 +115,7 @@ public class QuestionService {
     }
 
     public boolean existsAnsweredByTag(Long telegramId, String tagName) {
-        Long userId = userService.getUserIdByTelegramIdOptional(telegramId).orElse(null);
-        if (userId == null) throw new RuntimeException("NOT FOUND USER ID");
+        Long userId = userService.getUserIdByTelegramIdOptional(telegramId);
         return userQuestionRepository.existsAnsweredByTag(userId, tagName);
     }
 }

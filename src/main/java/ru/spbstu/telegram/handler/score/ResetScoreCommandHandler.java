@@ -1,10 +1,12 @@
 package ru.spbstu.telegram.handler.score;
 
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.spbstu.service.ScoreByTagService;
 import ru.spbstu.telegram.handler.CommandHandler;
 import ru.spbstu.telegram.sender.MessageSender;
 
+@Component
 public class ResetScoreCommandHandler extends CommandHandler {
     private final ScoreByTagService scoreByTagService;
 

@@ -1,6 +1,8 @@
 package ru.spbstu.repository;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.spbstu.model.UserQuestion;
@@ -18,4 +20,9 @@ public interface UserQuestionRepository extends JpaRepository<UserQuestion, Long
             ")", nativeQuery = true)
     boolean existsAnsweredByTag(@Param("userId") Long userId,
                                 @Param("tagName") String tagName);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM UserQuestion uq WHERE uq.user.id = :userId")
+    void deleteAllByUserId(@Param("userId") Long userId);
 }
