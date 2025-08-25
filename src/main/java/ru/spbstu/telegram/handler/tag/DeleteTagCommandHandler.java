@@ -78,7 +78,8 @@ public class DeleteTagCommandHandler extends CommandHandler {
         sessionManager.getOrCreate(telegramId, DeleteTagConfirmationSession.class);
         String confirmationMessage = "❗ Удаление тега #" +
                 messageSender.escapeTagForMarkdown(tagName) +
-                " также удалит ВАШИ вопросы, у которых нет других тегов. Продолжить? (Да/Нет)";
+                " также удалит ВАШИ вопросы, у которых нет других тегов. Если у этого тега есть вопросы, " +
+                "созданные другими пользователями, тег не удалится. Продолжить? (Да/Нет)";
         messageSender.sendMessage(update.getMessage().getChatId(), confirmationMessage);
 
         pendingTagDeletions.put(telegramId, tagDto);

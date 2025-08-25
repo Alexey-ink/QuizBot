@@ -107,4 +107,8 @@ public class Question {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 }

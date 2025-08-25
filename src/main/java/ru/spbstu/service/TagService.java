@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import ru.spbstu.dto.TagDto;
 import ru.spbstu.model.Tag;
+import ru.spbstu.model.User;
 import ru.spbstu.repository.ScoreByTagRepository;
 import ru.spbstu.repository.TagRepository;
 
@@ -18,14 +19,16 @@ public class TagService {
 
     private final TagRepository tagRepository;
     private final ScoreByTagRepository scoreByTagRepository;
+    private final UserService userService;
 
     private static final int MAX_TAGS = 5;
     private static final int MAX_TAG_LENGTH = 30;
     private static final Pattern TAG_PATTERN = Pattern.compile("^[a-zа-я0-9_]+$");
 
-    public TagService(TagRepository tagRepository, ScoreByTagRepository scoreByTagRepository) {
+    public TagService(TagRepository tagRepository, ScoreByTagRepository scoreByTagRepository, UserService userService) {
         this.tagRepository = tagRepository;
         this.scoreByTagRepository = scoreByTagRepository;
+        this.userService = userService;
     }
 
     public List<String> parseAndValidateTags(String raw) {
@@ -78,5 +81,14 @@ public class TagService {
     @Transactional
     public void deleteScoreByTagId(Long tagId) {
         scoreByTagRepository.deleteByTagId(tagId);
+    }
+
+    @Transactional
+    public void createNewTag(Long telegramId, String tagName) {
+        User user = userService.getUser(telegramId);
+        Tag tag = new Tag();
+        tag.setName(tagName);
+        tag.setUser(user);
+        tagRepository.save(tag);
     }
 }

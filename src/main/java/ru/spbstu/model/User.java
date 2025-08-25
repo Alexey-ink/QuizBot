@@ -88,4 +88,8 @@ public class User {
     public void setTimeZone(String timeZone) {
         this.timeZone = timeZone;
     }
+
+    public void setTelegramId(Long telegramId) {
+        this.telegramId = telegramId;
+    }
 }
