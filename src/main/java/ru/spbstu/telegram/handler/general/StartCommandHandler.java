@@ -97,7 +97,7 @@ public class StartCommandHandler extends CommandHandler {
                 messageSender.sendMessage(chatId, "⚠️ Неверный формат. Попробуй ещё раз.\nНапример: МСК+3");
             }
         } else {
-            String answer = "!!!!! Бот сейчас в состоянии: " + session.getType();
+            String answer = "Бот сейчас в состоянии: " + session.getType();
             messageSender.sendMessage(chatId, answer);
         }
     }

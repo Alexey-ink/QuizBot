@@ -71,7 +71,7 @@ public class DeleteTagCommandHandler extends CommandHandler {
         if (!telegramId.equals(tagDto.telegramId())) {
             messageSender.sendMessage(update.getMessage().getChatId(),
                     "❌ Тег #" + messageSender.escapeTagForMarkdown(tagName) +
-                            " создан другим пользователем. Вы не можете его удалить");
+                            " создан другим пользователем. Вы не можете его удалить.");
             return;
         }
 

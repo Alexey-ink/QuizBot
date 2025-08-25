@@ -53,7 +53,7 @@ public class QuestionService {
         Set<Tag> tags = new HashSet<>();
         for (String tagName : tagNames) {
             Tag tag = tagRepository
-                    .findByUserIdAndNameIgnoreCase(user.getId(), tagName)
+                    .findByNameIgnoreCase(tagName)
                     .orElseGet(() -> {
                         Tag newTag = new Tag();
                         newTag.setUser(user);
