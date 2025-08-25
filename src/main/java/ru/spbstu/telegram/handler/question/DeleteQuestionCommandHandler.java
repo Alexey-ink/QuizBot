@@ -2,12 +2,12 @@ package ru.spbstu.telegram.handler.question;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.spbstu.dto.QuestionDto;
 import ru.spbstu.telegram.handler.CommandHandler;
 import ru.spbstu.telegram.sender.MessageSender;
 import ru.spbstu.telegram.utils.SessionManager;
 import ru.spbstu.telegram.session.DeleteConfirmationSession;
 import ru.spbstu.service.QuestionService;
+import ru.spbstu.dto.QuestionDto;
 
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,18 +42,24 @@ public class DeleteQuestionCommandHandler extends CommandHandler {
     @Override
     public void handle(Update update) {
         String text = update.getMessage().getText();
-        String[] parts = text.split(" ", 2);
-        
+        Long telegramId = update.getMessage().getFrom().getId();
+
+        if (sessionManager.hasSession(telegramId)) {
+            handleDeleteConfirmation(text, telegramId);
+            return;
+        }
+
+        String[] parts = text.split(" ");
+
         if (parts.length < 2) {
-            messageSender.sendMessage(update.getMessage().getChatId(),
+            messageSender.sendMessage(telegramId,
                 "❌ Укажите ID вопроса.\nИспользование: `/delete_question <ID>`");
             return;
         }
 
         try {
             String questionId = parts[1].trim();
-            Long telegramId = update.getMessage().getFrom().getId();
-            
+
             // Проверяем существование вопроса
             Optional<QuestionDto> question = questionService.getQuestionDtoById(questionId);
             if (question.isEmpty()) {
@@ -63,12 +69,12 @@ public class DeleteQuestionCommandHandler extends CommandHandler {
             }
             
             if (!questionService.isQuestionOwner(telegramId, questionId)) {
-                messageSender.sendMessage(update.getMessage().getChatId(),
-                    "❌ Вопрос с ID " + questionId + " создан другим пользователем.");
+                messageSender.sendPlainMessage(update.getMessage().getChatId(),
+                    "❌ Вопрос с ID " + questionId + " создан другим пользователем." +
+                            "\nВы не можете его удалить!");
                 return;
             }
             
-            // Запрашиваем подтверждение
             String questionText = question.get().text();
             if (questionText.length() > 50) {
                 questionText = questionText.substring(0, 47) + "...";
@@ -83,7 +89,7 @@ public class DeleteQuestionCommandHandler extends CommandHandler {
             
         } catch (NumberFormatException e) {
             messageSender.sendMessage(update.getMessage().getChatId(),
-                "❌ Неверный формат ID. ID должен быть числом.");
+                "❌ Неверный формат ID.");
         }
     }
 
@@ -97,6 +103,19 @@ public class DeleteQuestionCommandHandler extends CommandHandler {
                 pendingDeletions.remove(telegramId);
             }
             sessionManager.clearSession(telegramId);
+        }
+    }
+
+    private void handleDeleteConfirmation(String text, Long telegramId) {
+        if (text.equals("да") || text.equals("yes") || text.equals("y")) {
+            confirmDeletion(telegramId, true);
+            messageSender.sendMessage(telegramId, "✅ Вопрос удален.");
+        } else if (text.equals("нет") || text.equals("no") || text.equals("n")) {
+            confirmDeletion(telegramId, false);
+            messageSender.sendMessage(telegramId, "❗ Отменено.");
+        } else {
+            messageSender.sendMessage(telegramId,
+                    "Пожалуйста, ответьте «Да» или «Нет» для подтверждения удаления вопроса.");
         }
     }
 }

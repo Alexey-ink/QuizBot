@@ -46,6 +46,11 @@ public class DeleteTagCommandHandler extends CommandHandler {
         String text = update.getMessage().getText();
         Long telegramId = update.getMessage().getFrom().getId();
 
+        if(sessionManager.hasSession(telegramId)) {
+            handleDeleteTagConfirmation(update);
+            return;
+        }
+
         if (text.equals("/delete_tag")) {
             messageSender.sendMessage(telegramId,
                     "❌ Укажите тег.\nИспользование: `/delete_tag <тег>`");

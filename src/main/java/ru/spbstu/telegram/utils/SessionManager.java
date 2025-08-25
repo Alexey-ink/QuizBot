@@ -25,12 +25,12 @@ public class SessionManager {
         }
     }
 
-    public boolean hasSession(Long userId) {
-        return sessions.containsKey(userId);
+    public boolean hasSession(Long telegramId) {
+        return sessions.containsKey(telegramId);
     }
 
-    public Session getSession(Long userId) {
-        return sessions.get(userId);
+    public Session getSession(Long telegramId) {
+        return sessions.get(telegramId);
     }
 
     public <T extends Session> T getSession(Long userId, Class<T> clazz) {
