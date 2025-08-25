@@ -63,8 +63,10 @@ public class TagService {
         return tags;
     }
 
-    public List<Tag> findAll() {
-        return tagRepository.findAll();
+    public List<TagDto> findAll() {
+        return tagRepository.findAll().stream()
+                .map(TagDto::toDto)
+                .collect(Collectors.toList());
     }
 
     @Transactional
