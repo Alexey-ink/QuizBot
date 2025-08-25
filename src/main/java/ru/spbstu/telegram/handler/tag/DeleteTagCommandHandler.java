@@ -53,7 +53,9 @@ public class DeleteTagCommandHandler extends CommandHandler {
 
         if (text.equals("/delete_tag")) {
             messageSender.sendMessage(telegramId,
-                    "❌ Укажите тег.\nИспользование: `/delete_tag <тег>`");
+                    "❌ Укажите тег.\nИспользование: `/delete_tag <тег>`\n\n" +
+                            "Команда удалит тег только в том случае, " +
+                            "если по этому тегу нет вопросов, созданных другими пользователями");
             return;
         }
 

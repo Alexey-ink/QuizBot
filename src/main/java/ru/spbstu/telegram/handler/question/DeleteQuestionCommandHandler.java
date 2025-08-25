@@ -53,9 +53,7 @@ public class DeleteQuestionCommandHandler extends CommandHandler {
 
         if (parts.length < 2) {
             messageSender.sendMessage(telegramId,
-                "❌ Укажите ID вопроса.\nИспользование: `/delete_question <ID>`\n\n" +
-                    "Команда удалит тег только в том случае, " +
-                        "если по этому тегу нет вопросов, созданных другими пользователями");
+                "❌ Укажите ID вопроса.\nИспользование: `/delete_question <ID>`");
             return;
         }
 
