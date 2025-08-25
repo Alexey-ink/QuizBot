@@ -76,15 +76,20 @@ public class QuestionService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<QuestionDto> getQuestionById(String questionId) {
+    public Optional<QuestionDto> getQuestionDtoById(String questionId) {
         return questionRepository.findById(questionId)
                 .map(QuestionDto::toDto);
     }
 
+    private Optional<Question> getQuestionById(String questionId) {
+        return questionRepository.findById(questionId);
+    }
+
     public boolean isQuestionOwner(Long telegramId, String questionId) {
         User user = userService.getUser(telegramId);
-        Question question = getQuestionById(questionId);
-        return question != null && question.getUser().getId().equals(user.getId());
+        Optional<Question> question = getQuestionById(questionId);
+        return question.isPresent() &&
+                question.get().getUser().getId().equals(user.getId());
     }
 
     @Transactional

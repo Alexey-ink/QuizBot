@@ -55,7 +55,7 @@ public class DeleteQuestionCommandHandler extends CommandHandler {
             Long telegramId = update.getMessage().getFrom().getId();
             
             // Проверяем существование вопроса
-            Optional<QuestionDto> question = questionService.getQuestionById(questionId);
+            Optional<QuestionDto> question = questionService.getQuestionDtoById(questionId);
             if (question.isEmpty()) {
                 messageSender.sendMessage(update.getMessage().getChatId(),
                     "❌ Вопрос с ID " + questionId + " не существует.");
