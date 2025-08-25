@@ -40,9 +40,9 @@ public class ScoreByTagCommandHandler extends CommandHandler {
         String tagName = parts[1].trim();
         Long telegramId = update.getMessage().getFrom().getId();
 
-        if (!scoreByTagService.tagExists(telegramId, tagName)) {
+        if (!scoreByTagService.tagExists(tagName)) {
             messageSender.sendMessage(update.getMessage().getChatId(),
-                    "❌ Тег «" + messageSender.escapeTagForMarkdown(tagName) + "» не существует.\n\n" +
+                    "❌ Тег #" + messageSender.escapeTagForMarkdown(tagName) + " не существует.\n\n" +
                             "🏷️ **Создайте тег:** `/add_tag " + tagName + "`\n" +
                             "📋 **Просмотр тегов:** `/list_tags`");
             return;

@@ -3,9 +3,9 @@ package ru.spbstu.telegram.handler.question;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.spbstu.telegram.handler.CommandHandler;
-import ru.spbstu.model.Question;
-import ru.spbstu.service.QuestionService;
 import ru.spbstu.telegram.sender.MessageSender;
+import ru.spbstu.service.QuestionService;
+import ru.spbstu.dto.QuestionDto;
 
 import java.util.List;
 
@@ -56,7 +56,7 @@ public class ShowQuestionsByTagCommandHandler extends CommandHandler {
             return;
         }
 
-        List<Question> questions = questionService.getQuestionsByTag(tagName);
+        List<QuestionDto> questions = questionService.getQuestionsByTag(tagName);
 
         if (questions.isEmpty()) {
             messageSender.sendMessage(update.getMessage().getChatId(),
@@ -67,12 +67,13 @@ public class ShowQuestionsByTagCommandHandler extends CommandHandler {
         StringBuilder response = new StringBuilder();
         response.append("📋 Список вопросов по тегу #").append(tagNameForMarkdown).append(" (всего ").append(questions.size()).append("):\n\n");
 
-        for (Question question : questions) {
-            String questionText = question.getText();
+        for (QuestionDto question : questions) {
+            String questionText = question.text();
             if (questionText.length() > 50) {
                 questionText = questionText.substring(0, 47) + "...";
             }
-            response.append("• 🆔: `").append(question.getId()).append("` \n  \uD83D\uDCDA «").append(questionText).append("»\n\n");
+            response.append("• 🆔: `").append(question.id())
+                    .append("` \n  \uD83D\uDCDA «").append(questionText).append("»\n\n");
         }
 
         messageSender.sendMessage(update.getMessage().getChatId(), response.toString());

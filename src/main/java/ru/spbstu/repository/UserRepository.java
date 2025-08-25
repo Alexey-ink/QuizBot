@@ -20,5 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("UPDATE User u SET u.score = 0 WHERE u.id = :userId")
     void resetScoreByUserId(@Param("userId") Long userId);
 
-
+    @Query("SELECT u.score FROM User u WHERE u.telegramId = :telegramId")
+    Integer findScoreByTelegramId(@Param("telegramId") Long telegramId);
 }

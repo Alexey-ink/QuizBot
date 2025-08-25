@@ -40,4 +40,9 @@ public class UserService {
     public Long getUserIdByTelegramId(Long telegramId) {
         return userRepository.findIdByTelegramId(telegramId);
     }
+
+    @Transactional
+    public Integer getScoreIdByTelegramId(Long telegramId){
+        return userRepository.findScoreByTelegramId(telegramId);
+    }
 }

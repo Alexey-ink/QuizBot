@@ -11,6 +11,7 @@ import ru.spbstu.telegram.session.QuizSession;
 import ru.spbstu.telegram.utils.SessionManager;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class QuizByTagService extends BaseQuizService {
@@ -25,22 +26,31 @@ public class QuizByTagService extends BaseQuizService {
         this.questionService = questionService;
     }
 
-    public QuizDto getRandomQuizByTag(Long telegramId, String tagName) {
+    public Optional<QuizDto> getRandomQuizByTag(Long telegramId, String tagName) {
         Long userId = userService.getUserIdByTelegramId(telegramId);
-        Question randomQuestion = questionService.getRandomQuestionByTag(userId, tagName);
 
-        if(randomQuestion == null) return null;
+        Optional<Question> randomQuestion = questionService.getRandomQuestionByTag(userId, tagName);
 
-        List<String> options = questionService.getSortedOptions(randomQuestion);
+        if (randomQuestion.isEmpty()) {
+            return Optional.empty();
+        }
 
-        QuizDto quiz = new QuizDto(randomQuestion.getText(), options,
-                randomQuestion.getCorrectOption() - 1);
+        QuizDto quiz = createQuizDto(randomQuestion.get());
 
         QuizSession session = sessionManager.getOrCreate(telegramId, QuizSession.class);
-        session.setCurrentQuestion(randomQuestion);
+        session.setCurrentQuestion(randomQuestion.get());
         session.setStep(QuizSession.Step.WAITING_FOR_ANSWER);
 
-        return quiz;
+        return Optional.of(quiz);
+    }
+
+    private QuizDto createQuizDto(Question question) {
+        List<String> options = questionService.getSortedOptions(question);
+        return new QuizDto(
+                question.getText(),
+                options,
+                question.getCorrectOption() - 1
+        );
     }
 
     public boolean existsAnsweredByTag(Long userId, String tagName) {

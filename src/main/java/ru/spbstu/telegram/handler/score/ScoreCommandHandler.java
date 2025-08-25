@@ -24,8 +24,9 @@ public class ScoreCommandHandler extends CommandHandler {
 
     @Override
     public void handle(Update update) {
-        Long userId = update.getMessage().getFrom().getId();
-        messageSender.sendMessage(userId, "🏆 *Ваш счет:* " + userService.getUser(userId).getScore() + " баллов");
+        Long telegramId = update.getMessage().getFrom().getId();
+        messageSender.sendMessage(telegramId, "🏆 *Ваш счет:* " +
+                userService.getScoreIdByTelegramId(telegramId) + " баллов");
     }
 
     @Override

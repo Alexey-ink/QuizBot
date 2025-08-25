@@ -2,16 +2,14 @@ package ru.spbstu.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.spbstu.dto.QuestionDto;
 import ru.spbstu.model.*;
 import ru.spbstu.repository.QuestionRepository;
-import ru.spbstu.repository.ScoreByTagRepository;
 import ru.spbstu.repository.TagRepository;
 import ru.spbstu.repository.UserQuestionRepository;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class QuestionService {
@@ -72,12 +70,15 @@ public class QuestionService {
         return tagRepository.findByNameIgnoreCase(tagName).isPresent();
     }
 
-    public List<Question> getQuestionsByTag(String tagName) {
-        return questionRepository.findByTagName(tagName);
+    public List<QuestionDto> getQuestionsByTag(String tagName) {
+        return questionRepository.findByTagName(tagName)
+                .stream().map(QuestionDto::toDto)
+                .collect(Collectors.toList());
     }
 
-    public Question getQuestionById(String questionId) {
-        return questionRepository.findById(questionId).orElse(null);
+    public Optional<QuestionDto> getQuestionById(String questionId) {
+        return questionRepository.findById(questionId)
+                .map(QuestionDto::toDto);
     }
 
     public boolean isQuestionOwner(Long telegramId, String questionId) {
@@ -97,8 +98,8 @@ public class QuestionService {
     }
 
     @Transactional(readOnly = true)
-    public Question getRandomQuestionByTag(Long userId, String tagName) {
-        return questionRepository.findRandomUnansweredQuestionByTag(userId, tagName).orElse(null);
+    public Optional<Question> getRandomQuestionByTag(Long userId, String tagName) {
+        return questionRepository.findRandomUnansweredQuestionByTag(userId, tagName);
     }
 
     @Transactional

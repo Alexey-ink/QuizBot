@@ -2,13 +2,14 @@ package ru.spbstu.telegram.handler.question;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.spbstu.dto.QuestionDto;
 import ru.spbstu.telegram.handler.CommandHandler;
-import ru.spbstu.model.Question;
-import ru.spbstu.service.QuestionService;
 import ru.spbstu.telegram.sender.MessageSender;
 import ru.spbstu.telegram.utils.SessionManager;
 import ru.spbstu.telegram.session.DeleteConfirmationSession;
+import ru.spbstu.service.QuestionService;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
@@ -54,14 +55,13 @@ public class DeleteQuestionCommandHandler extends CommandHandler {
             Long telegramId = update.getMessage().getFrom().getId();
             
             // Проверяем существование вопроса
-            Question question = questionService.getQuestionById(questionId);
-            if (question == null) {
+            Optional<QuestionDto> question = questionService.getQuestionById(questionId);
+            if (question.isEmpty()) {
                 messageSender.sendMessage(update.getMessage().getChatId(),
                     "❌ Вопрос с ID " + questionId + " не существует.");
                 return;
             }
             
-            // Проверяем владельца вопроса
             if (!questionService.isQuestionOwner(telegramId, questionId)) {
                 messageSender.sendMessage(update.getMessage().getChatId(),
                     "❌ Вопрос с ID " + questionId + " создан другим пользователем.");
@@ -69,7 +69,7 @@ public class DeleteQuestionCommandHandler extends CommandHandler {
             }
             
             // Запрашиваем подтверждение
-            String questionText = question.getText();
+            String questionText = question.get().text();
             if (questionText.length() > 50) {
                 questionText = questionText.substring(0, 47) + "...";
             }
@@ -77,10 +77,8 @@ public class DeleteQuestionCommandHandler extends CommandHandler {
             String confirmationMessage = "❗ Удалить вопрос: «" + questionText + "»? (Да/Нет)";
             messageSender.sendMessage(update.getMessage().getChatId(), confirmationMessage);
             
-            // Сохраняем ожидающее удаление
             pendingDeletions.put(telegramId, questionId);
             
-            // Создаем сессию для ожидания ответа
             sessionManager.setSession(telegramId, new DeleteConfirmationSession());
             
         } catch (NumberFormatException e) {

@@ -38,8 +38,8 @@ public class ScoreByTagService {
                 .orElse(0);
     }
 
-    public boolean tagExists(Long telegramId, String tagName) {
-        return tagRepository.findByUserTelegramIdAndNameIgnoreCase(telegramId, tagName).isPresent();
+    public boolean tagExists(String tagName) {
+        return tagRepository.findByNameIgnoreCase(tagName).isPresent();
     }
 
     @Transactional

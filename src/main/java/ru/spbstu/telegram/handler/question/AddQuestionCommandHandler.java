@@ -3,11 +3,11 @@ package ru.spbstu.telegram.handler.question;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.spbstu.telegram.handler.CommandHandler;
-import ru.spbstu.service.QuestionService;
-import ru.spbstu.service.TagService;
 import ru.spbstu.telegram.sender.MessageSender;
 import ru.spbstu.telegram.session.AddQuestionSession;
 import ru.spbstu.telegram.utils.SessionManager;
+import ru.spbstu.service.QuestionService;
+import ru.spbstu.service.TagService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -118,5 +118,4 @@ public class AddQuestionCommandHandler extends CommandHandler {
             default -> messageSender.sendMessage(chatId, "Процесс уже завершен. Начните заново: /add_question");
         }
     }
-
 }

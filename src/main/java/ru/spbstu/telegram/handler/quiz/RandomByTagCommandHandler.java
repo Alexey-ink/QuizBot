@@ -2,12 +2,12 @@ package ru.spbstu.telegram.handler.quiz;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.polls.PollAnswer;
 import ru.spbstu.telegram.handler.CommandHandler;
 import ru.spbstu.telegram.sender.MessageSender;
 import ru.spbstu.service.quiz.QuizByTagService;
 import ru.spbstu.dto.QuizDto;
-import java.util.List;
+
+import java.util.Optional;
 
 @Component
 public class RandomByTagCommandHandler extends CommandHandler {
@@ -31,16 +31,6 @@ public class RandomByTagCommandHandler extends CommandHandler {
 
     @Override
     public void handle(Update update) {
-        if (update.hasPollAnswer()) {
-            PollAnswer pollAnswer = update.getPollAnswer();
-            List<Integer> optionIds = pollAnswer.getOptionIds();
-            Long telegramId = update.getPollAnswer().getUser().getId();
-            int selectedAnswer = optionIds.getFirst() + 1;
-
-            messageSender.sendMessage(telegramId,
-                    quizByTagService.processPollAnswer(telegramId, selectedAnswer)
-            );
-        }
 
         String RANDOM_BY_TAG_COMMAND = "/random_by_tag";
 
@@ -63,9 +53,9 @@ public class RandomByTagCommandHandler extends CommandHandler {
         }
 
         String tagName = parts[1];
-        QuizDto quiz = quizByTagService.getRandomQuizByTag(telegramId, tagName);
+        Optional<QuizDto> quiz = quizByTagService.getRandomQuizByTag(telegramId, tagName);
 
-        if (quiz == null) {
+        if (quiz.isEmpty()) {
             if (quizByTagService.existsAnsweredByTag(telegramId, tagName)) {
                 messageSender.sendPlainMessage(chatId, "❗\uFE0F Вы уже ответили на все вопросы " +
                         "с тегом #" + messageSender.escapeTagForMarkdown(tagName) + "!\n\n" +
@@ -82,8 +72,8 @@ public class RandomByTagCommandHandler extends CommandHandler {
             return;
         }
 
-        messageSender.sendPoll(chatId, quiz.question(), quiz.options(),
-                quiz.correctOption(), "\uD83C\uDFF7\uFE0F [#"
+        messageSender.sendPoll(chatId, quiz.get().question(), quiz.get().options(),
+                quiz.get().correctOption(), "\uD83C\uDFF7\uFE0F [#"
                         + messageSender.escapeTagForMarkdown(tagName) + "] ");
     }
 }
