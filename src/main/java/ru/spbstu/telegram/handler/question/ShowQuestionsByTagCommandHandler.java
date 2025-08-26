@@ -45,7 +45,6 @@ public class ShowQuestionsByTagCommandHandler extends CommandHandler {
             return;
         }
         String tagName = parts[1].trim();
-        Long telegramId = update.getMessage().getFrom().getId();
         String tagNameForMarkdown = messageSender.escapeTagForMarkdown(tagName);
 
         if (!questionService.tagExists(tagName)) {

@@ -70,6 +70,7 @@ public class QuestionService {
         return tagRepository.findByNameIgnoreCase(tagName).isPresent();
     }
 
+    @Transactional
     public List<QuestionDto> getQuestionsByTag(String tagName) {
         return questionRepository.findByTagName(tagName)
                 .stream().map(QuestionDto::toDto)
