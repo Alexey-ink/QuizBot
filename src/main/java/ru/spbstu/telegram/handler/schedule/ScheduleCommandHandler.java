@@ -4,13 +4,13 @@ import org.quartz.SchedulerException;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.spbstu.telegram.handler.CommandHandler;
-import ru.spbstu.model.Schedule;
-import ru.spbstu.model.User;
-import ru.spbstu.repository.UserRepository;
-import ru.spbstu.service.ScheduleService;
 import ru.spbstu.telegram.sender.MessageSender;
 import ru.spbstu.telegram.session.schedule.CreateScheduleSession;
 import ru.spbstu.telegram.utils.SessionManager;
+import ru.spbstu.repository.UserRepository;
+import ru.spbstu.service.ScheduleService;
+import ru.spbstu.model.User;
+import ru.spbstu.model.Schedule;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -44,8 +44,12 @@ public class ScheduleCommandHandler extends CommandHandler {
         StringBuilder sb = new StringBuilder("Подтвердите расписание:\n");
         sb.append("Первый вопрос в ").append(session.getFirstTime().toString()).append("\n");
         if (session.getPeriodType() == CreateScheduleSession.PeriodType.DAILY) sb.append("Периодичность: ежедневно\n");
-        else if (session.getPeriodType() == CreateScheduleSession.PeriodType.WEEKLY) sb.append("Периодичность: еженедельно, ").append(session.getWeekdays()).append("\n");
-        else if (session.getPeriodType() == CreateScheduleSession.PeriodType.HOURLY) sb.append("Периодичность: каждые ").append(session.getIntervalHours()).append(" часов\n");
+        else if (session.getPeriodType() == CreateScheduleSession.PeriodType.WEEKLY) {
+            sb.append("Периодичность: еженедельно, ").append(session.getWeekdays()).append("\n");
+        }
+        else if (session.getPeriodType() == CreateScheduleSession.PeriodType.HOURLY) {
+            sb.append("Периодичность: каждые ").append(session.getIntervalHours()).append(" часов\n");
+        }
 
         sb.append("\nВведите \"Да\" для сохранения или \"Отмена\" для отмены.");
         messageSender.sendMessage(chatId, sb.toString());
@@ -53,170 +57,205 @@ public class ScheduleCommandHandler extends CommandHandler {
 
     @Override
     public void handle(Update update) {
-        Long userId = update.getMessage().getFrom().getId();
+        Long telegramId = update.getMessage().getFrom().getId();
         String text = update.getMessage().getText();
 
+        logger.info("Обработка команды /schedule от пользователя {}: {}", telegramId, text);
+
         Long chatId = update.getMessage().getChatId();
-        CreateScheduleSession session = sessionManager.getOrCreate(userId, CreateScheduleSession.class);
 
-        if (text.equals("/schedule")) {
-            session.setStep(CreateScheduleSession.Step.ASK_TIME);
-            String answer = "Когда прислать первый вопрос? Введите время в формате HH:mm (например 09:30).";
-            messageSender.sendMessage(chatId, answer);
-            return;
-        }
+        try {
+            CreateScheduleSession session = sessionManager.getOrCreate(telegramId, CreateScheduleSession.class);
 
-        switch (session.getStep()) {
-            case ASK_TIME -> {
-                if (!text.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")) {
-                    messageSender.sendMessage(chatId, "Неверный формат времени. " +
-                            "Пожалуйста, введите время в формате HH:mm (например 09:30)");
-                    return;
-                }
-
-                LocalTime t;
-                try {
-                    t = LocalTime.parse(text, TIME_FMT);
-                } catch (Exception ex) {
-                    messageSender.sendMessage(chatId, "СТРАННО, не получилось распознать время. Попробуйте, например, 9:30 или 09:30.");
-                    return;
-                }
-                session.setFirstTime(t);
-                session.setStep(CreateScheduleSession.Step.ASK_PERIOD_TYPE);
-                messageSender.sendMessage(chatId, """
-                        Выберите периодичность:\
-                        1. Ежедневно\
-                        2. Еженедельно\
-                        3. Каждые N часов
-                        
-                        Введите число (1, 2 или 3)""");
+            if (text.equals("/schedule")) {
+                session.setStep(CreateScheduleSession.Step.ASK_TIME);
+                String answer = "Когда прислать первый вопрос? Введите время в формате HH:mm (например 09:30).";
+                messageSender.sendMessage(chatId, answer);
+                logger.debug("Начало создания расписания пользователем {}", telegramId);
+                return;
             }
 
-            case ASK_PERIOD_TYPE -> {
-                try {
-                    int num = Integer.parseInt(text.trim());
-                    if (num < 1 || num > 3) {
-                        messageSender.sendMessage(chatId, "❌ Номер должен быть от 1 до 3.");
-                    } else if (num == 1) {
-                        session.setPeriodType(CreateScheduleSession.PeriodType.DAILY);
-                        session.setStep(CreateScheduleSession.Step.CONFIRM);
-                        sendConfirmMessage(session, chatId);
-                    } else if (num == 2) {
-                        session.setPeriodType(CreateScheduleSession.PeriodType.WEEKLY);
-                        session.setStep(CreateScheduleSession.Step.ASK_WEEKDAY);
-                        messageSender.sendMessage(chatId, """
-                                Выберите день (дни) недели для отправки.
-                                Перечислите через запятую (или пробел) дни недели в следующем формате:\
-                                
-                                ПН, ВТ, СР, ЧТ, ПТ, СБ, ВС""");
-                    } else {
-                        session.setPeriodType(CreateScheduleSession.PeriodType.HOURLY);
-                        session.setStep(CreateScheduleSession.Step.ASK_INTERVAL_HOURS);
-                        messageSender.sendMessage(chatId, "Введите положительное целое число интервала в часах (1..24).");
+            switch (session.getStep()) {
+                case ASK_TIME -> {
+                    logger.debug("Обработка времени для расписания пользователем {}: {}", telegramId, text);
+                    if (!text.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")) {
+                        messageSender.sendMessage(chatId, "Неверный формат времени. " +
+                                "Пожалуйста, введите время в формате HH:mm (например 09:30)");
+                        return;
                     }
-                } catch (NumberFormatException e) {
-                    messageSender.sendMessage(chatId, "❌ Введите число от 1 до 3.");
-                }
-            }
-            case ASK_WEEKDAY -> {
-                String normalizedInput = text.trim().toUpperCase();
 
-                if (!normalizedInput.matches("^((ПН|ВТ|СР|ЧТ|ПТ|СБ|ВС)([,\\s]|$))+$")) {
+                    LocalTime t;
+                    try {
+                        t = LocalTime.parse(text, TIME_FMT);
+                    } catch (Exception ex) {
+                        messageSender.sendMessage(chatId, "СТРАННО, не получилось распознать время. " +
+                                "Попробуйте, например, 9:30 или 09:30.");
+                        return;
+                    }
+                    session.setFirstTime(t);
+                    session.setStep(CreateScheduleSession.Step.ASK_PERIOD_TYPE);
+                    logger.debug("Время {} установлено для пользователя {}", t, telegramId);
                     messageSender.sendMessage(chatId, """
-                            ❌ Неверный формат. Используйте сокращения дней через запятую или пробел:
-                            Примеры: `ПН, ВТ, СР` или `ПН ВТ СР`
-                            Допустимые дни: ПН, ВТ, СР, ЧТ, ПТ, СБ, ВС""");
-                    return;
-                }
-                String[] dayTokens = normalizedInput.split("[,\\s]+");
-                Map<String, DayOfWeek> dayMapping = Map.of(
-                        "ПН", DayOfWeek.MONDAY,
-                        "ВТ", DayOfWeek.TUESDAY,
-                        "СР", DayOfWeek.WEDNESDAY,
-                        "ЧТ", DayOfWeek.THURSDAY,
-                        "ПТ", DayOfWeek.FRIDAY,
-                        "СБ", DayOfWeek.SATURDAY,
-                        "ВС", DayOfWeek.SUNDAY
-                );
-
-                Set<DayOfWeek> selectedDays = new LinkedHashSet<>();
-                for (String token : dayTokens) {
-                    DayOfWeek dow = dayMapping.get(token);
-                    if (dow != null) selectedDays.add(dow);
+                            Выберите периодичность:\
+                            1. Ежедневно\
+                            2. Еженедельно\
+                            3. Каждые N часов
+                            
+                            Введите число (1, 2 или 3)""");
                 }
 
-                if (selectedDays.isEmpty()) {
-                    messageSender.sendMessage(chatId, "❌ Не найдено корректных дней. Попробуйте снова.");
-                    return;
+                case ASK_PERIOD_TYPE -> {
+                    logger.debug("Обработка типа периодичности пользователем {}: {}", telegramId, text);
+                    try {
+                        int num = Integer.parseInt(text.trim());
+                        if (num < 1 || num > 3) {
+                            messageSender.sendMessage(chatId, "❌ Номер должен быть от 1 до 3.");
+                        } else if (num == 1) {
+                            session.setPeriodType(CreateScheduleSession.PeriodType.DAILY);
+                            session.setStep(CreateScheduleSession.Step.CONFIRM);
+                            logger.debug("Выбрана ежедневная периодичность пользователем {}", telegramId);
+                            sendConfirmMessage(session, chatId);
+                        } else if (num == 2) {
+                            session.setPeriodType(CreateScheduleSession.PeriodType.WEEKLY);
+                            session.setStep(CreateScheduleSession.Step.ASK_WEEKDAY);
+                            logger.debug("Выбрана еженедельная периодичность пользователем {}", telegramId);
+                            messageSender.sendMessage(chatId, """
+                                    Выберите день (дни) недели для отправки.
+                                    Перечислите через запятую (или пробел) дни недели в следующем формате:\
+                                    
+                                    ПН, ВТ, СР, ЧТ, ПТ, СБ, ВС""");
+                        } else {
+                            session.setPeriodType(CreateScheduleSession.PeriodType.HOURLY);
+                            session.setStep(CreateScheduleSession.Step.ASK_INTERVAL_HOURS);
+                            logger.debug("Выбрана почасовая периодичность пользователем {}", telegramId);
+                            messageSender.sendMessage(chatId, "Введите положительное целое число интервала в часах (1..24).");
+                        }
+                    } catch (NumberFormatException e) {
+                        logger.warn("Неверный формат номера периодичности от пользователя {}: {}", telegramId, text);
+                        messageSender.sendMessage(chatId, "❌ Введите число от 1 до 3.");
+                    }
                 }
+                case ASK_WEEKDAY -> {
+                    logger.debug("Обработка дней недели пользователем {}: {}", telegramId, text);
+                    String normalizedInput = text.trim().toUpperCase();
 
-                session.setWeekdays(selectedDays);
-                session.setStep(CreateScheduleSession.Step.CONFIRM);
-                sendConfirmMessage(session, chatId);
-            }
-
-            case ASK_INTERVAL_HOURS -> {
-                try {
-                    int n = Integer.parseInt(text.trim());
-                    if (n <= 0 || n > 24) {
-                        messageSender.sendMessage(chatId, "Введите положительное целое число интервала в часах (1..24).");
+                    if (!normalizedInput.matches("^((ПН|ВТ|СР|ЧТ|ПТ|СБ|ВС)([,\\s]|$))+$")) {
+                        logger.warn("Неверный формат дней недели от пользователя {}: {}", telegramId, text);
+                        messageSender.sendMessage(chatId, """
+                                ❌ Неверный формат. Используйте сокращения дней через запятую или пробел:
+                                Примеры: `ПН, ВТ, СР` или `ПН ВТ СР`
+                                Допустимые дни: ПН, ВТ, СР, ЧТ, ПТ, СБ, ВС""");
                         return;
                     }
-                    session.setIntervalHours(n);
+                    String[] dayTokens = normalizedInput.split("[,\\s]+");
+                    Map<String, DayOfWeek> dayMapping = Map.of(
+                            "ПН", DayOfWeek.MONDAY,
+                            "ВТ", DayOfWeek.TUESDAY,
+                            "СР", DayOfWeek.WEDNESDAY,
+                            "ЧТ", DayOfWeek.THURSDAY,
+                            "ПТ", DayOfWeek.FRIDAY,
+                            "СБ", DayOfWeek.SATURDAY,
+                            "ВС", DayOfWeek.SUNDAY
+                    );
+
+                    Set<DayOfWeek> selectedDays = new LinkedHashSet<>();
+                    for (String token : dayTokens) {
+                        DayOfWeek dow = dayMapping.get(token);
+                        if (dow != null) selectedDays.add(dow);
+                    }
+
+                    if (selectedDays.isEmpty()) {
+                        messageSender.sendMessage(chatId, "❌ Не найдено корректных дней. Попробуйте снова.");
+                        return;
+                    }
+
+                    session.setWeekdays(selectedDays);
                     session.setStep(CreateScheduleSession.Step.CONFIRM);
+                    logger.debug("Установлены дни недели для пользователя {}: {}", telegramId, selectedDays);
                     sendConfirmMessage(session, chatId);
-                } catch (NumberFormatException ex) {
-                    messageSender.sendMessage(chatId, "Введите положительное целое число интервала в часах.");
+                }
+
+                case ASK_INTERVAL_HOURS -> {
+                    logger.debug("Обработка интервала часов пользователем {}: {}", telegramId, text);
+                    try {
+                        int n = Integer.parseInt(text.trim());
+                        if (n <= 0 || n > 24) {
+                            messageSender.sendMessage(chatId, "Введите положительное целое число интервала в часах (1..24).");
+                            return;
+                        }
+                        session.setIntervalHours(n);
+                        session.setStep(CreateScheduleSession.Step.CONFIRM);
+                        logger.debug("Установлен интервал часов для пользователя {}: {}", telegramId, n);
+                        sendConfirmMessage(session, chatId);
+                    } catch (NumberFormatException ex) {
+                        messageSender.sendMessage(chatId, "Введите положительное целое число интервала в часах.");
+                    }
+                }
+
+                case CONFIRM -> {
+                    logger.debug("Обработка подтверждения пользователем {}: {}", telegramId, text);
+                    if (text.equalsIgnoreCase("да") || text.equalsIgnoreCase("ok")
+                            || text.equalsIgnoreCase("yes")) {
+                        Optional<User> ou = userRepository.findByTelegramId(telegramId);
+                        if (ou.isEmpty()) {
+                            logger.warn("Пользователь {} не найден в базе при создании расписания", telegramId);
+                            messageSender.sendMessage(chatId, "Пользователь не найден в базе. Выполните /start.");
+                            sessionManager.clearSession(telegramId);
+                            return;
+                        }
+                        User user = ou.get();
+
+                        String cron;
+                        try {
+                            cron = buildCronExpression(session);
+                            logger.debug("Сгенерирован cron expression для пользователя {}: {}", telegramId, cron);
+                        } catch (IllegalArgumentException ex) {
+                            logger.error("Ошибка генерации cron для пользователя {}: {}", telegramId, ex.getMessage());
+                            messageSender.sendMessage(chatId, "Ошибка при генерации cron: " + ex.getMessage());
+                            sessionManager.clearSession(telegramId);
+                            return;
+                        }
+
+                        // Сформировать и сохранить Schedule
+                        Schedule s = new Schedule();
+                        s.setUser(user);
+                        s.setChat_id(chatId);
+                        s.setCronExpression(cron);
+                        s.setCreatedAt(LocalDateTime.now());
+
+                        try {
+                            scheduleService.saveAndRegister(s);
+                            messageSender.sendMessage(chatId,
+                                    "✅ Расписание сохранено и зарегистрировано. Cron: " + cron);
+                            logger.info("Расписание создано пользователем {}: {}", telegramId, cron);
+                        } catch (SchedulerException e) {
+                            logger.error("Ошибка регистрации расписания пользователем {}: {}", telegramId, e.getMessage(), e);
+                            e.printStackTrace();
+                            messageSender.sendMessage(chatId,
+                                    "Ошибка при регистрации расписания: " + e.getMessage());
+                        }
+
+                        sessionManager.clearSession(telegramId);
+                    } else if (text.equalsIgnoreCase("отмена") || text.equalsIgnoreCase("cancel")) {
+                        messageSender.sendMessage(chatId, "❌ Сохранение отменено.");
+                        logger.info("Создание расписания отменено пользователем {}", telegramId);
+                        sessionManager.clearSession(telegramId);
+                    } else {
+                        logger.warn("Неверный ответ подтверждения от пользователя {}: {}", telegramId, text);
+                        messageSender.sendMessage(chatId, "Введите «Да» для сохранения или «Отмена» для отмены.");
+                    }
+                }
+
+                default -> {
+                    logger.warn("Неожиданное состояние сессии пользователя {}: {}", telegramId, session.getStep());
+                    messageSender.sendMessage(chatId,
+                            "Неожиданное состояние сессии. Начните заново командой /schedule");
+                    sessionManager.clearSession(telegramId);
                 }
             }
-
-            case CONFIRM -> {
-                if (text.equalsIgnoreCase("да") || text.equalsIgnoreCase("ok") || text.equalsIgnoreCase("yes")) {
-                    Optional<User> ou = userRepository.findByTelegramId(userId);
-                    if (ou.isEmpty()) {
-                        messageSender.sendMessage(chatId, "Пользователь не найден в базе. Выполните /start.");
-                        sessionManager.clearSession(userId);
-                        return;
-                    }
-                    User user = ou.get();
-
-                    String cron;
-                    try {
-                        cron = buildCronExpression(session);
-                    } catch (IllegalArgumentException ex) {
-                        messageSender.sendMessage(chatId, "Ошибка при генерации cron: " + ex.getMessage());
-                        sessionManager.clearSession(userId);
-                        return;
-                    }
-
-                    // Сформировать и сохранить Schedule
-                    Schedule s = new Schedule();
-                    s.setUser(user);
-                    s.setChat_id(chatId);
-                    s.setCronExpression(cron);
-                    s.setCreatedAt(LocalDateTime.now());
-
-                    try {
-                        scheduleService.saveAndRegister(s);
-                        messageSender.sendMessage(chatId, "✅ Расписание сохранено и зарегистрировано. Cron: " + cron);
-                    } catch (SchedulerException e) {
-                        e.printStackTrace();
-                        messageSender.sendMessage(chatId, "Ошибка при регистрации расписания: " + e.getMessage());
-                    }
-
-                    sessionManager.clearSession(userId);
-                } else if (text.equalsIgnoreCase("отмена") || text.equalsIgnoreCase("cancel")) {
-                    messageSender.sendMessage(chatId, "❌ Сохранение отменено.");
-                    sessionManager.clearSession(userId);
-                } else {
-                    messageSender.sendMessage(chatId, "Введите «Да» для сохранения или «Отмена» для отмены.");
-                }
-            }
-
-            default -> {
-                messageSender.sendMessage(chatId, "Неожиданное состояние сессии. Начните заново командой /schedule");
-                sessionManager.clearSession(userId);
-            }
+        } catch (Exception e) {
+            logger.error("Ошибка при обработке команды /schedule пользователем {}: {}", telegramId, e.getMessage(), e);
+            messageSender.sendMessage(chatId, "❌ Произошла ошибка при настройке расписания");
         }
     }
 

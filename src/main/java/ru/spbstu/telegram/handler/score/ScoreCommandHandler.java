@@ -3,8 +3,8 @@ package ru.spbstu.telegram.handler.score;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.spbstu.telegram.handler.CommandHandler;
-import ru.spbstu.service.UserService;
 import ru.spbstu.telegram.sender.MessageSender;
+import ru.spbstu.service.UserService;
 
 @Component
 public class ScoreCommandHandler extends CommandHandler {
@@ -25,8 +25,18 @@ public class ScoreCommandHandler extends CommandHandler {
     @Override
     public void handle(Update update) {
         Long telegramId = update.getMessage().getFrom().getId();
-        messageSender.sendMessage(telegramId, "🏆 *Ваш счет:* " +
-                userService.getScoreIdByTelegramId(telegramId) + " баллов");
+        logger.info("Обработка команды /score от пользователя {}", telegramId);
+
+        try {
+            Integer score = userService.getScoreIdByTelegramId(telegramId);
+            messageSender.sendMessage(telegramId, "🏆 *Ваш счет:* " +
+                    score + " баллов");
+            logger.debug("Общий счет пользователя {}: {} отправлен в чат", telegramId, score);
+        } catch (Exception e) {
+            logger.error("Ошибка при получении общего счета пользователя {}: {}",
+                    telegramId, e.getMessage(), e);
+            messageSender.sendMessage(telegramId, "❌ Произошла ошибка при получении счета");
+        }
     }
 
     @Override

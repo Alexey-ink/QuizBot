@@ -40,13 +40,15 @@ public class AddQuestionCommandHandler extends CommandHandler {
 
     @Override
     public void handle(Update update) {
-        var userId = update.getMessage().getFrom().getId();
+        var telegramId = update.getMessage().getFrom().getId();
         var chatId = update.getMessage().getChatId();
         var text = update.getMessage().getText();
 
-        AddQuestionSession session = sessionManager.getOrCreate(userId, AddQuestionSession.class);
+        logger.info("Обработка команды добавления вопроса от пользователя {}: {}", telegramId, text);
+        AddQuestionSession session = sessionManager.getOrCreate(telegramId, AddQuestionSession.class);
 
         if (text.equals("/add_question")) {
+            logger.debug("Начало процесса добавления вопроса для пользователя {}", telegramId);
             session.setStep(AddQuestionSession.Step.ASK_QUESTION_TEXT);
             messageSender.sendMessage(chatId, "📝 Введите текст вопроса (макс. 200 символов):");
             return;
@@ -60,6 +62,7 @@ public class AddQuestionCommandHandler extends CommandHandler {
                 }
                 session.setQuestionText(text.trim());
                 session.setStep(AddQuestionSession.Step.ASK_ANSWER_OPTIONS);
+                logger.debug("Пользователь {} ввел текст вопроса: {}", telegramId, text);
                 messageSender.sendMessage(chatId, "🔢 Введите вариант 1:");
             }
             case ASK_ANSWER_OPTIONS -> {
@@ -96,12 +99,14 @@ public class AddQuestionCommandHandler extends CommandHandler {
                     session.setTags(tags);
                     session.setStep(AddQuestionSession.Step.FINISHED);
 
-                    Long telegramId = update.getMessage().getFrom().getId();
                     String questionId = questionService.saveQuestion(telegramId,
                             session.getQuestionText(),
                             session.getOptions(),
                             session.getCorrectOption(),
                             session.getTags());
+
+                    logger.info("Вопрос успешно сохранен пользователем {}, ID вопроса: {}",
+                            telegramId, questionId);
 
                     String message = "✅ Вопрос сохранен!\n" +
                             "\uD83C\uDFF7\uFE0F Теги: " + session.getTags().stream()
@@ -109,8 +114,8 @@ public class AddQuestionCommandHandler extends CommandHandler {
                             .collect(Collectors.joining(", ")) +
                             "\n🆔: `" + questionId +"`\n\n";
 
-                    messageSender.sendMessage(userId, message);
-                    sessionManager.clearSession(userId);
+                    messageSender.sendMessage(telegramId, message);
+                    sessionManager.clearSession(telegramId);
                 } catch (IllegalArgumentException e) {
                     messageSender.sendPlainMessage(chatId, "❌ " + e.getMessage() + "\nВведите теги (через запятую):");
                 }

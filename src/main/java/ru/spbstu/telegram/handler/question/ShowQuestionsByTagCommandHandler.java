@@ -32,49 +32,64 @@ public class ShowQuestionsByTagCommandHandler extends CommandHandler {
     @Override
     public void handle(Update update) {
         String text = update.getMessage().getText();
-        String[] parts = text.split(" ");
-        
-        if (parts.length < 2) {
-            messageSender.sendMessage(update.getMessage().getChatId(),
-                "❌ Укажите тег.\nИспользование: `/show_questions_by_tag <тег>`");
-            return;
-        }
-        if (parts.length > 2) {
-            messageSender.sendMessage(update.getMessage().getChatId(),
-                    "❌ Укажите один тег без пробелов.\nИспользование: `/show_questions_by_tag <тег>`");
-            return;
-        }
-        String tagName = parts[1].trim();
-        String tagNameForMarkdown = messageSender.escapeTagForMarkdown(tagName);
+        Long telegramId = update.getMessage().getFrom().getId();
+        try {
+            String[] parts = text.split(" ");
 
-        if (!questionService.tagExists(tagName)) {
-            messageSender.sendMessage(update.getMessage().getChatId(),
-                "❌ Тег #" + tagNameForMarkdown + " не существует.\n\n" +
-                "🏷️ **Создать тег:** `/add_tag " + tagName + "`\n" +
-                "📋 **Просмотр тегов:** `/list_tags`");
-            return;
-        }
+            logger.info("Обработка команды show_questions_by_tag от пользователя {}: {}",
+                    telegramId, text);
 
-        List<QuestionDto> questions = questionService.getQuestionsByTag(tagName);
-
-        if (questions.isEmpty()) {
-            messageSender.sendMessage(update.getMessage().getChatId(),
-                "ℹ️ По тегу #" + tagNameForMarkdown + " пока нет вопросов.");
-            return;
-        }
-
-        StringBuilder response = new StringBuilder();
-        response.append("📋 Список вопросов по тегу #").append(tagNameForMarkdown).append(" (всего ").append(questions.size()).append("):\n\n");
-
-        for (QuestionDto question : questions) {
-            String questionText = question.text();
-            if (questionText.length() > 50) {
-                questionText = questionText.substring(0, 47) + "...";
+            if (parts.length < 2) {
+                messageSender.sendMessage(telegramId,
+                        "❌ Укажите тег.\nИспользование: `/show_questions_by_tag <тег>`");
+                return;
             }
-            response.append("• 🆔: `").append(question.id())
-                    .append("` \n  \uD83D\uDCDA «").append(questionText).append("»\n\n");
-        }
+            if (parts.length > 2) {
+                messageSender.sendMessage(telegramId,
+                        "❌ Укажите один тег без пробелов.\nИспользование: `/show_questions_by_tag <тег>`");
+                return;
+            }
+            String tagName = parts[1].trim();
+            String tagNameForMarkdown = messageSender.escapeTagForMarkdown(tagName);
 
-        messageSender.sendMessage(update.getMessage().getChatId(), response.toString());
+            if (!questionService.tagExists(tagName)) {
+                logger.warn("Тег '{}' не существует (пользователь {})", tagName, telegramId);
+                messageSender.sendMessage(telegramId,
+                        "❌ Тег #" + tagNameForMarkdown + " не существует.\n\n" +
+                                "🏷️ **Создать тег:** `/add_tag " + tagName + "`\n" +
+                                "📋 **Просмотр тегов:** `/list_tags`");
+                return;
+            }
+
+            List<QuestionDto> questions = questionService.getQuestionsByTag(tagName);
+
+            if (questions.isEmpty()) {
+                messageSender.sendMessage(telegramId,
+                        "ℹ️ По тегу #" + tagNameForMarkdown + " пока нет вопросов.");
+                return;
+            }
+
+            logger.debug("Найдено {} вопросов по тегу '{}' для пользователя {}",
+                    questions.size(), tagName, telegramId);
+            StringBuilder response = new StringBuilder();
+            response.append("📋 Список вопросов по тегу #").append(tagNameForMarkdown).append(" (всего ").append(questions.size()).append("):\n\n");
+
+            for (QuestionDto question : questions) {
+                String questionText = question.text();
+                if (questionText.length() > 50) {
+                    questionText = questionText.substring(0, 47) + "...";
+                }
+                response.append("• 🆔: `").append(question.id())
+                        .append("` \n  \uD83D\uDCDA «").append(questionText).append("»\n\n");
+            }
+
+            messageSender.sendMessage(telegramId, response.toString());
+            logger.info("Список вопросов по тегу '{}' отправлен пользователю {}", tagName, telegramId);
+        } catch (Exception e) {
+            logger.error("Ошибка при обработке show_questions_by_tag пользователем {}: {}",
+                    telegramId, e.getMessage(), e);
+            messageSender.sendMessage(telegramId,
+                    "❌ Произошла ошибка при получении списка вопросов");
+        }
     }
 }

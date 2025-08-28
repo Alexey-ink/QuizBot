@@ -56,49 +56,61 @@ public class StartCommandHandler extends CommandHandler {
         var tgUser = update.getMessage().getFrom();
         Long chatId = update.getMessage().getChatId();
         String userInput = update.getMessage().getText();
+        Long telegramId = tgUser.getId();
 
-        userService.getOrCreateUser(tgUser.getId(), tgUser.getUserName());
+        logger.info("Обработка команды /start от пользователя {}: {}",
+                telegramId, userInput);
 
-        Session session = sessionManager.getSession(tgUser.getId());
+        try {
+            userService.getOrCreateUser(tgUser.getId(), tgUser.getUserName());
 
-        if(session == null) {
-            sessionManager.getOrCreate(tgUser.getId(), StartSession.class);
+            Session session = sessionManager.getSession(tgUser.getId());
 
-            String text = "Добро пожаловать, " +
-                    (tgUser.getUserName() != null ? "@" + tgUser.getUserName() : "гость") + "!\n" +
-                    "Этот бот поможет тебе создавать вопросы и проходить викторины!\n\n" +
-                    "💡 Начни с команды /help, чтобы узнать все возможности\n" +
-                    "\uD83C\uDF0D Перед началом выбери свой часовой пояс: " +
-                    "- МСК-1 (Калининград)\n" +
-                    "- МСК   (Москва)\n" +
-                    "- МСК+1 (Самара)\n" +
-                    "- МСК+2 (Екатеринбург)\n" +
-                    "- МСК+3 (Омск)\n" +
-                    "- МСК+4 (Красноярск)\n" +
-                    "- МСК+5 (Иркутск)\n +" +
-                    "- МСК+6 (Якутск)\n" +
-                    "- МСК+7 (Владивосток)\n" +
-                    "- МСК+8 (Магадан)\n" +
-                    "- МСК+9 (Камчатка)\n\n" +
-                    "👉 Просто введи нужный вариант (например: МСК+4)";
+            if (session == null) {
+                sessionManager.getOrCreate(tgUser.getId(), StartSession.class);
+                logger.debug("Создание сессии {} для пользователя {}", session.getType(), telegramId);
 
-            messageSender.sendMessage(update.getMessage().getChatId(), text);
+                String text = "Добро пожаловать, " +
+                        (tgUser.getUserName() != null ? "@" + tgUser.getUserName() : "гость") + "!\n" +
+                        "Этот бот поможет тебе создавать вопросы и проходить викторины!\n\n" +
+                        "💡 Начни с команды /help, чтобы узнать все возможности\n" +
+                        "\uD83C\uDF0D Перед началом выбери свой часовой пояс: " +
+                        "- МСК-1 (Калининград)\n" +
+                        "- МСК   (Москва)\n" +
+                        "- МСК+1 (Самара)\n" +
+                        "- МСК+2 (Екатеринбург)\n" +
+                        "- МСК+3 (Омск)\n" +
+                        "- МСК+4 (Красноярск)\n" +
+                        "- МСК+5 (Иркутск)\n +" +
+                        "- МСК+6 (Якутск)\n" +
+                        "- МСК+7 (Владивосток)\n" +
+                        "- МСК+8 (Магадан)\n" +
+                        "- МСК+9 (Камчатка)\n\n" +
+                        "👉 Просто введи нужный вариант (например: МСК+4)";
 
-        } else if (session.getType() == SessionType.WAITING_TIMEZONE) {
-            String userInputIgnoreCase = userInput.toUpperCase(java.util.Locale.forLanguageTag("ru"));
-            if (TIMEZONE_MAP.containsKey(userInputIgnoreCase)) {
-                String zoneId = TIMEZONE_MAP.get(userInputIgnoreCase);
-                userService.updateUserTimezone(tgUser.getId(), zoneId);
+                messageSender.sendMessage(update.getMessage().getChatId(), text);
 
-                messageSender.sendMessage(chatId, "✅ Таймзона сохранена: " + userInputIgnoreCase
-                        + " (" + zoneId + ")");
-                sessionManager.clearSession(tgUser.getId());
+            } else if (session.getType() == SessionType.WAITING_TIMEZONE) {
+                logger.debug("Обработка выбора часового пояса для пользователя {}", telegramId);
+                String userInputIgnoreCase = userInput.toUpperCase(java.util.Locale.forLanguageTag("ru"));
+                if (TIMEZONE_MAP.containsKey(userInputIgnoreCase)) {
+                    String zoneId = TIMEZONE_MAP.get(userInputIgnoreCase);
+                    userService.updateUserTimezone(tgUser.getId(), zoneId);
+
+                    messageSender.sendMessage(chatId, "✅ Таймзона сохранена: " + userInputIgnoreCase
+                            + " (" + zoneId + ")");
+                    sessionManager.clearSession(tgUser.getId());
+                } else {
+                    messageSender.sendMessage(chatId, "⚠️ Неверный формат. Попробуй ещё раз.\nНапример: МСК+3");
+                }
             } else {
-                messageSender.sendMessage(chatId, "⚠️ Неверный формат. Попробуй ещё раз.\nНапример: МСК+3");
+                logger.error("Неожиданное состояние сессии для пользователя {}: {}",
+                        telegramId, session.getType());
             }
-        } else {
-            String answer = "Бот сейчас в состоянии: " + session.getType();
-            messageSender.sendMessage(chatId, answer);
+        } catch (Exception e) {
+            logger.error("Ошибка при обработке команды /start для пользователя {}: {}",
+                    telegramId, e.getMessage(), e);
+            messageSender.sendMessage(chatId, "❌ Произошла ошибка при запуске бота");
         }
     }
 }

@@ -24,6 +24,10 @@ public class HelpCommandHandler extends CommandHandler {
 
     @Override
     public void handle(Update update) {
+        Long telegramId = update.getMessage().getFrom().getId();
+
+        logger.info("Обработка команды /help от пользователя {}", telegramId);
+
         String helpText = """
             🤖 **Команды Quiz Bot**
             
@@ -50,6 +54,6 @@ public class HelpCommandHandler extends CommandHandler {
             • `/unschedule` - Отключить автоматическую отправку вопросов
             """;
 
-        messageSender.sendMessage(update.getMessage().getChatId(), helpText);
+        messageSender.sendMessage(telegramId, helpText);
     }
 }

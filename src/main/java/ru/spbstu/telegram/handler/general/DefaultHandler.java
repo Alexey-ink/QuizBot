@@ -12,8 +12,8 @@ import ru.spbstu.telegram.handler.tag.AddTagCommandHandler;
 import ru.spbstu.telegram.handler.tag.DeleteTagCommandHandler;
 import ru.spbstu.telegram.sender.MessageSender;
 import ru.spbstu.telegram.session.core.Session;
-import ru.spbstu.telegram.utils.SessionManager;
 import ru.spbstu.telegram.session.core.SessionType;
+import ru.spbstu.telegram.utils.SessionManager;
 
 import java.util.Map;
 
@@ -54,11 +54,15 @@ public class DefaultHandler extends CommandHandler {
 
     @Override
     public void handle(Update update) {
-        var userId = update.getMessage().getFrom().getId();
-        Session session = sessionManager.getSession(userId);
+        Long telegramId = update.getMessage().getFrom().getId();
+        logger.debug("Сработал обработчик по умолчанию DefaultHandler у пользователя {}",
+                telegramId);
+
+        Session session = sessionManager.getSession(telegramId);
 
         if (session == null) {
-            messageSender.sendMessage(userId,
+            logger.debug("Сессия для пользователя {} не найдена", telegramId);
+            messageSender.sendMessage(telegramId,
                     "Неизвестная команда.\nВведите /help для просмотра команд");
             return;
         }
@@ -67,6 +71,7 @@ public class DefaultHandler extends CommandHandler {
         if (handler != null) {
             handler.handle(update);
         } else {
+            logger.error("Неизвестный тип сессии: {} для пользователя {}", session.getType(), telegramId);
             throw new IllegalStateException("Unknown session type: " + session.getType());
         }
     }

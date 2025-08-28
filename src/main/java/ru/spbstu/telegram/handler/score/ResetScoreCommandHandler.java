@@ -2,9 +2,9 @@ package ru.spbstu.telegram.handler.score;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.spbstu.service.ScoreByTagService;
 import ru.spbstu.telegram.handler.CommandHandler;
 import ru.spbstu.telegram.sender.MessageSender;
+import ru.spbstu.service.ScoreByTagService;
 
 @Component
 public class ResetScoreCommandHandler extends CommandHandler {
@@ -28,7 +28,14 @@ public class ResetScoreCommandHandler extends CommandHandler {
     @Override
     public void handle(Update update) {
         Long telegramId = update.getMessage().getFrom().getId();
-        scoreByTagService.resetScore(telegramId);
-        messageSender.sendMessage(telegramId, "🏆 Ваш счет успешно сброшен!");
+        logger.info("Обработка команды /reset_score от пользователя {}", telegramId);
+        try {
+            scoreByTagService.resetScore(telegramId);
+            messageSender.sendMessage(telegramId, "🏆 Ваш счет успешно сброшен!");
+        } catch (Exception e) {
+            logger.error("Ошибка при сбросе счета пользователя {}: {}",
+                    telegramId, e.getMessage(), e);
+            messageSender.sendMessage(telegramId, "❌ Произошла ошибка при сбросе счета");
+        }
     }
 }
