@@ -176,29 +176,6 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 - View your scores and statistics
 - Track performance by tag categories
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the logs for debugging information
-- Review the configuration files
-
-## 🔄 Version History
-
-- **1.0-SNAPSHOT** - Initial release with core quiz functionality
-
 ---
 
 **Note**: This bot is designed with Russian timezone support but can be easily extended for other regions by modifying the timezone configuration in the `StartCommandHandler`.
