@@ -50,7 +50,6 @@ public class DeleteTagCommandHandler extends CommandHandler {
 
         try {
             if (sessionManager.hasSession(telegramId)) {
-                logger.debug("Обработка подтверждения удаления тега пользователем {}", telegramId);
                 handleDeleteTagConfirmation(update);
                 return;
             }
@@ -142,7 +141,7 @@ public class DeleteTagCommandHandler extends CommandHandler {
 
             if (questionService.existsQuestionsByTagId(tagDto.id())) {
                 logger.debug("Удаление тега '{}' из вопросов пользователем {}", tagDto.name(), telegramId);
-                questionService.deleteTagFromQuestionsByTagId(tagDto.id(), tagDto.userId());
+                questionService.deleteTagFromQuestionsByTagId(tagDto.userId(), tagDto.id());
             } else {
                 logger.debug("Полное удаление тега '{}' пользователем {}", tagDto.name(), telegramId);
                 tagService.deleteScoreByTagId(tagDto.id());
