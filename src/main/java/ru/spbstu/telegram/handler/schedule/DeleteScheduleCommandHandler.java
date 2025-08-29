@@ -2,12 +2,12 @@ package ru.spbstu.telegram.handler.schedule;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.spbstu.dto.ScheduleDto;
 import ru.spbstu.telegram.handler.CommandHandler;
 import ru.spbstu.telegram.sender.MessageSender;
 import ru.spbstu.telegram.session.schedule.DeleteScheduleSession;
 import ru.spbstu.telegram.utils.SessionManager;
 import ru.spbstu.service.ScheduleService;
-import ru.spbstu.model.Schedule;
 
 import java.util.List;
 import java.util.Map;
@@ -18,7 +18,7 @@ public class DeleteScheduleCommandHandler extends CommandHandler {
 
     private final ScheduleService scheduleService;
     private final SessionManager sessionManager;
-    private final Map<Long, List<Schedule>> pendingDeletes = new ConcurrentHashMap<>();
+    private final Map<Long, List<ScheduleDto>> pendingDeletes = new ConcurrentHashMap<>();
 
     public DeleteScheduleCommandHandler(MessageSender messageSender,
                                         ScheduleService scheduleService,
@@ -50,7 +50,7 @@ public class DeleteScheduleCommandHandler extends CommandHandler {
 
             if (pendingDeletes.containsKey(telegramId)) {
                 logger.debug("Обработка выбора расписания для удаления пользователем {}", telegramId);
-                List<Schedule> list = pendingDeletes.get(telegramId);
+                List<ScheduleDto> list = pendingDeletes.get(telegramId);
                 if ("/cancel".equalsIgnoreCase(message)) {
                     pendingDeletes.remove(telegramId);
                     sessionManager.clearSession(telegramId);
@@ -73,11 +73,11 @@ public class DeleteScheduleCommandHandler extends CommandHandler {
                     return;
                 }
 
-                Schedule chosen = list.get(choice - 1);
+                ScheduleDto chosen = list.get(choice - 1);
                 try {
-                    scheduleService.deleteSchedule(chosen.getId());
+                    scheduleService.deleteSchedule(chosen.id());
                     sessionManager.clearSession(telegramId);
-                    messageSender.sendMessage(chatId, "Расписание с id=" + chosen.getId() + " удалено.");
+                    messageSender.sendMessage(chatId, "Расписание с id=" + chosen.id() + " удалено.");
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     messageSender.sendMessage(chatId, "Не удалось удалить расписание: " + ex.getMessage());
@@ -87,7 +87,7 @@ public class DeleteScheduleCommandHandler extends CommandHandler {
                 return;
             }
 
-            List<Schedule> schedules = scheduleService.findAllSchedulesByUserTelegramId(telegramId);
+            List<ScheduleDto> schedules = scheduleService.findAllSchedulesByUserTelegramId(telegramId);
             if (schedules == null || schedules.isEmpty()) {
                 logger.info("У пользователя {} нет расписаний для удаления", telegramId);
                 messageSender.sendMessage(chatId, "У вас нет сохранённых расписаний.");
@@ -99,12 +99,12 @@ public class DeleteScheduleCommandHandler extends CommandHandler {
             StringBuilder sb = new StringBuilder();
             sb.append("Ваши расписания:\n\n");
             for (int i = 0; i < schedules.size(); i++) {
-                Schedule s = schedules.get(i);
+                ScheduleDto s = schedules.get(i);
                 sb.append(i + 1).append(") ");
-                sb.append("id=").append(s.getId());
+                sb.append("id=").append(s.id());
                 try {
-                    if (s.getCronExpression() != null) {
-                        sb.append(", cron=").append(s.getCronExpression());
+                    if (s.cronExpression() != null) {
+                        sb.append(", cron=").append(s.cronExpression());
                     }
                 } catch (Exception ignored) {
                 }

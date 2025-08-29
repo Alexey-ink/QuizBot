@@ -4,21 +4,26 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.transaction.annotation.Transactional;
 import org.quartz.*;
 import org.springframework.stereotype.Service;
+import ru.spbstu.dto.ScheduleDto;
 import ru.spbstu.model.Schedule;
 import ru.spbstu.repository.ScheduleRepository;
 import ru.spbstu.telegram.job.SendRandomQuestionJob;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 @Service
 public class ScheduleService {
 
+    private final UserService userService;
     private final ScheduleRepository scheduleRepository;
     private final Scheduler scheduler;
 
-    public ScheduleService(ScheduleRepository scheduleRepository, Scheduler scheduler) {
+    public ScheduleService(UserService userService, ScheduleRepository scheduleRepository, Scheduler scheduler) {
+        this.userService = userService;
         this.scheduleRepository = scheduleRepository;
         this.scheduler = scheduler;
     }
@@ -34,7 +39,12 @@ public class ScheduleService {
      * Сохраняет расписание в БД и регистрирует соответствующий Job/Trigger в Quartz.
      */
     @Transactional
-    public void saveAndRegister(Schedule schedule) throws SchedulerException {
+    public void saveAndRegisterSchedule(Long telegramId, String cron) throws SchedulerException {
+        Schedule schedule = new Schedule();
+        schedule.setUser(userService.getUser(telegramId));
+        schedule.setChat_id(telegramId);
+        schedule.setCronExpression(cron);
+        schedule.setCreatedAt(LocalDateTime.now());
         Schedule saved = scheduleRepository.save(schedule);
         registerSchedule(saved);
     }
@@ -81,8 +91,11 @@ public class ScheduleService {
         scheduler.scheduleJob(job, trigger);
     }
 
-    public List<Schedule> findAllSchedulesByUserTelegramId(Long userId) {
-        return scheduleRepository.findAllByUserTelegramId(userId);
+    public List<ScheduleDto> findAllSchedulesByUserTelegramId(Long userId) {
+        return scheduleRepository.findAllByUserTelegramId(userId)
+                .stream()
+                .map(ScheduleDto::toDto)
+                .collect(Collectors.toList());
     }
 
 

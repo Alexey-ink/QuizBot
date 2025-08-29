@@ -7,13 +7,9 @@ import ru.spbstu.telegram.handler.CommandHandler;
 import ru.spbstu.telegram.sender.MessageSender;
 import ru.spbstu.telegram.session.schedule.CreateScheduleSession;
 import ru.spbstu.telegram.utils.SessionManager;
-import ru.spbstu.repository.UserRepository;
 import ru.spbstu.service.ScheduleService;
-import ru.spbstu.model.User;
-import ru.spbstu.model.Schedule;
 
 import java.time.DayOfWeek;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -21,17 +17,14 @@ import java.util.*;
 @Component
 public class ScheduleCommandHandler extends CommandHandler {
     private final SessionManager sessionManager;
-    private final UserRepository userRepository;
     private final ScheduleService scheduleService;
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("H:mm");
 
     public ScheduleCommandHandler(MessageSender messageSender,
                                   SessionManager sessionManager,
-                                  UserRepository userRepository,
                                   ScheduleService scheduleService) {
         super(messageSender);
         this.sessionManager = sessionManager;
-        this.userRepository = userRepository;
         this.scheduleService = scheduleService;
     }
 
@@ -95,13 +88,12 @@ public class ScheduleCommandHandler extends CommandHandler {
                     session.setFirstTime(t);
                     session.setStep(CreateScheduleSession.Step.ASK_PERIOD_TYPE);
                     logger.debug("Время {} установлено для пользователя {}", t, telegramId);
-                    messageSender.sendMessage(chatId, """
-                            Выберите периодичность:\
-                            1. Ежедневно\
-                            2. Еженедельно\
-                            3. Каждые N часов
-                            
-                            Введите число (1, 2 или 3)""");
+                    messageSender.sendMessage(chatId,
+                            "Выберите периодичность:\n" +
+                            "1. Ежедневно\n" +
+                            "2. Еженедельно\n" +
+                            "3. Каждые N часов\n" +
+                            "Введите число (1, 2 или 3)");
                 }
 
                 case ASK_PERIOD_TYPE -> {
@@ -196,14 +188,6 @@ public class ScheduleCommandHandler extends CommandHandler {
                     logger.debug("Обработка подтверждения пользователем {}: {}", telegramId, text);
                     if (text.equalsIgnoreCase("да") || text.equalsIgnoreCase("ok")
                             || text.equalsIgnoreCase("yes")) {
-                        Optional<User> ou = userRepository.findByTelegramId(telegramId);
-                        if (ou.isEmpty()) {
-                            logger.warn("Пользователь {} не найден в базе при создании расписания", telegramId);
-                            messageSender.sendMessage(chatId, "Пользователь не найден в базе. Выполните /start.");
-                            sessionManager.clearSession(telegramId);
-                            return;
-                        }
-                        User user = ou.get();
 
                         String cron;
                         try {
@@ -216,17 +200,11 @@ public class ScheduleCommandHandler extends CommandHandler {
                             return;
                         }
 
-                        // Сформировать и сохранить Schedule
-                        Schedule s = new Schedule();
-                        s.setUser(user);
-                        s.setChat_id(chatId);
-                        s.setCronExpression(cron);
-                        s.setCreatedAt(LocalDateTime.now());
-
                         try {
-                            scheduleService.saveAndRegister(s);
-                            messageSender.sendMessage(chatId,
-                                    "✅ Расписание сохранено и зарегистрировано. Cron: " + cron);
+                            scheduleService.saveAndRegisterSchedule(telegramId, cron);
+                            messageSender.sendPlainMessage(chatId,
+                                    "✅ Расписание сохранено и зарегистрировано.\n" +
+                                            "Cron: " + cron);
                             logger.info("Расписание создано пользователем {}: {}", telegramId, cron);
                         } catch (SchedulerException e) {
                             logger.error("Ошибка регистрации расписания пользователем {}: {}", telegramId, e.getMessage(), e);
@@ -287,7 +265,6 @@ public class ScheduleCommandHandler extends CommandHandler {
                     sj.add(shortName);
                 }
                 String dowList = sj.toString();
-                // ? в day-of-month, перечисление в day-of-week
                 return String.format("0 %d %d ? * %s", minute, hour, dowList);
             }
             case HOURLY -> {
@@ -300,9 +277,7 @@ public class ScheduleCommandHandler extends CommandHandler {
                     return String.format("0 %d %d * * ?", minute, hour);
                 }
                 // Quartz поддерживает "start/interval" для часов: startHour/interval
-                // Это запустит в часы: start, start+interval, start+2*interval, ... (в пределах суток)
                 int startHour = hour % 24;
-                // валидируем interval <= 24
                 if (interval > 24) {
                     throw new IllegalArgumentException("IntervalHours must be <= 24");
                 }
