@@ -47,7 +47,8 @@ public class AddQuestionCommandHandler extends CommandHandler {
         logger.info("Обработка команды добавления вопроса от пользователя {}: {}", telegramId, text);
         AddQuestionSession session = sessionManager.getOrCreate(telegramId, AddQuestionSession.class);
 
-        if (text.equals("/add_question")) {
+        if (text.equals("/add_question") &&
+                session.getStep().equals(AddQuestionSession.Step.ASK_QUESTION_TEXT)) {
             logger.debug("Начало процесса добавления вопроса для пользователя {}", telegramId);
             session.setStep(AddQuestionSession.Step.ASK_QUESTION_TEXT);
             messageSender.sendMessage(chatId, "📝 Введите текст вопроса (макс. 200 символов):");

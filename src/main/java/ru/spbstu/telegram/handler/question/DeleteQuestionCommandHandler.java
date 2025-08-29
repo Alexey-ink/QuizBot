@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.spbstu.telegram.handler.CommandHandler;
 import ru.spbstu.telegram.sender.MessageSender;
+import ru.spbstu.telegram.session.core.SessionType;
 import ru.spbstu.telegram.utils.SessionManager;
 import ru.spbstu.telegram.session.DeleteConfirmationSession;
 import ru.spbstu.service.QuestionService;
@@ -47,7 +48,8 @@ public class DeleteQuestionCommandHandler extends CommandHandler {
         logger.info("Обработка команды удаления вопроса от пользователя {}: {}", telegramId, text);
 
         try {
-            if (sessionManager.hasSession(telegramId)) {
+            if (sessionManager.getSession(telegramId)
+                    .getType().equals(SessionType.DELETE_CONFIRMATION)) {
                 handleDeleteConfirmation(text, telegramId);
                 return;
             }

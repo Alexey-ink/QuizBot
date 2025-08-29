@@ -29,8 +29,13 @@ public class UpdateDispatcher {
         } else if (update.hasMessage() && update.getMessage().hasText()) {
             String text = update.getMessage().getText();
             String command = text.split(" ")[0];
-            handlers.getOrDefault(command, handlers.get("/default"))
-                    .handle(update);
+
+            Long userId = update.getMessage().getFrom().getId();
+            if (sessionManager.hasSession(userId)) {
+                handlers.get("/default").handle(update);
+            } else {
+                handlers.get(command).handle(update);
+            }
         }
     }
 

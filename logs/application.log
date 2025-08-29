@@ -1,0 +1,159 @@
+2025-08-29 14:12:48 WARN  [main] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-08-29 14:12:54 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 14:12:54 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Начало процесса добавления вопроса для пользователя 1163706093
+2025-08-29 14:12:58 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 14:12:58 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: smth q
+2025-08-29 14:12:58 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Пользователь 1163706093 ввел текст вопроса: smth q
+2025-08-29 14:13:02 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 14:13:02 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: first
+2025-08-29 14:13:04 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 14:13:04 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: second
+2025-08-29 14:13:12 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 14:13:12 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: third
+2025-08-29 14:13:16 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 14:13:16 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: forth
+2025-08-29 14:13:18 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 14:13:18 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: 1
+2025-08-29 14:13:42 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 14:13:42 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: qwe, тег4, asd
+2025-08-29 14:13:42 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Вопрос успешно сохранен пользователем 1163706093, ID вопроса: 1756466022641-000-414
+2025-08-29 15:30:33 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 15:30:33 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Начало процесса добавления вопроса для пользователя 1163706093
+2025-08-29 15:30:38 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 15:30:38 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: да?
+2025-08-29 15:30:38 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Пользователь 1163706093 ввел текст вопроса: да?
+2025-08-29 15:30:40 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 15:30:40 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: ага
+2025-08-29 15:30:42 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 15:30:42 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: хихи
+2025-08-29 15:30:44 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 15:30:44 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: го
+2025-08-29 15:30:46 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 15:30:46 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: ка
+2025-08-29 15:30:48 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 15:30:48 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: 1
+2025-08-29 15:30:50 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 15:30:50 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: да
+2025-08-29 15:30:50 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Вопрос успешно сохранен пользователем 1163706093, ID вопроса: 1756470650902-000-586
+2025-08-29 17:26:51 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:26:51 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Начало процесса добавления вопроса для пользователя 1163706093
+2025-08-29 17:26:54 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:26:54 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: вопросик
+2025-08-29 17:26:54 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Пользователь 1163706093 ввел текст вопроса: вопросик
+2025-08-29 17:26:56 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:26:56 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: да
+2025-08-29 17:26:56 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:26:56 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: нет
+2025-08-29 17:26:59 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:26:59 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: хэ
+2025-08-29 17:27:02 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:27:02 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: хы
+2025-08-29 17:27:08 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:27:08 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Начало процесса добавления вопроса для пользователя 1163706093
+2025-08-29 17:27:12 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:27:12 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: ок
+2025-08-29 17:27:12 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Пользователь 1163706093 ввел текст вопроса: ок
+2025-08-29 17:27:14 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:27:14 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: ды
+2025-08-29 17:27:15 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:27:15 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: де
+2025-08-29 17:29:15 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:29:15 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: 1
+2025-08-29 17:29:25 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:29:25 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: ро
+2025-08-29 17:29:26 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Вопрос успешно сохранен пользователем 1163706093, ID вопроса: 1756477765988-000-059
+2025-08-29 17:41:22 WARN  [main] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-08-29 17:41:27 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:41:27 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Начало процесса добавления вопроса для пользователя 1163706093
+2025-08-29 17:41:28 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:41:28 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: фвыавпар
+2025-08-29 17:41:28 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Пользователь 1163706093 ввел текст вопроса: фвыавпар
+2025-08-29 17:41:31 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:41:34 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:41:34 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: asdfsgdhf
+2025-08-29 17:41:38 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.h.question.DeleteQuestionCommandHandler - Обработка команды удаления вопроса от пользователя 1163706093: /delete_question
+2025-08-29 17:41:38 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.h.question.DeleteQuestionCommandHandler - Неверный ответ подтверждения от пользователя 1163706093: /delete_question
+2025-08-29 17:41:59 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:41:59 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: lf
+2025-08-29 17:42:02 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:42:02 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: да
+2025-08-29 17:42:05 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:42:05 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: 3
+2025-08-29 17:42:07 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:42:07 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: йуцк
+2025-08-29 17:42:07 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Вопрос успешно сохранен пользователем 1163706093, ID вопроса: 1756478527667-000-541
+2025-08-29 17:45:06 WARN  [main] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-08-29 17:45:12 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:45:12 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Начало процесса добавления вопроса для пользователя 1163706093
+2025-08-29 17:45:13 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:45:13 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Начало процесса добавления вопроса для пользователя 1163706093
+2025-08-29 17:45:16 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:45:16 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Начало процесса добавления вопроса для пользователя 1163706093
+2025-08-29 17:45:19 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:45:19 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: asdad
+2025-08-29 17:45:19 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Пользователь 1163706093 ввел текст вопроса: asdad
+2025-08-29 17:45:21 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:45:23 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:45:25 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:45:25 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: asdsad
+2025-08-29 17:45:27 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:45:27 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: qwert
+2025-08-29 17:45:29 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:45:31 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:45:33 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:45:33 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: 3
+2025-08-29 17:45:51 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:45:57 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:45:57 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: asdsa
+2025-08-29 17:45:57 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Вопрос успешно сохранен пользователем 1163706093, ID вопроса: 1756478757912-000-022
+2025-08-29 17:46:01 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:46:01 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Начало процесса добавления вопроса для пользователя 1163706093
+2025-08-29 17:46:02 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:46:02 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: wqertyui
+2025-08-29 17:46:02 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Пользователь 1163706093 ввел текст вопроса: wqertyui
+2025-08-29 17:46:03 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:46:03 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: asdfgh
+2025-08-29 17:46:06 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.h.question.ShowQuestionsByTagCommandHandler - Обработка команды show_questions_by_tag от пользователя 1163706093: /show_questions_by_tag
+2025-08-29 17:56:04 WARN  [main] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-08-29 17:56:17 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:56:17 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сессия для пользователя 1163706093 не найдена
+2025-08-29 17:58:17 WARN  [main] org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-08-29 17:58:30 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /add_question
+2025-08-29 17:58:30 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Начало процесса добавления вопроса для пользователя 1163706093
+2025-08-29 17:58:32 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:58:32 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: asdas
+2025-08-29 17:58:32 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Пользователь 1163706093 ввел текст вопроса: asdas
+2025-08-29 17:58:34 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:58:34 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /delete_question
+2025-08-29 17:58:37 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:58:37 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /show_questions_by_tag
+2025-08-29 17:58:39 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:58:39 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: asdsfdgfh
+2025-08-29 17:58:51 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:58:51 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: adsmcnxv
+2025-08-29 17:59:03 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:59:03 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: 2
+2025-08-29 17:59:07 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:59:07 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: /schedule
+2025-08-29 17:59:11 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:59:11 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Обработка команды добавления вопроса от пользователя 1163706093: asd
+2025-08-29 17:59:12 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.handler.question.AddQuestionCommandHandler - Вопрос успешно сохранен пользователем 1163706093, ID вопроса: 1756479551999-000-595
+2025-08-29 17:59:28 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.telegram.handler.tag.DeleteTagCommandHandler - Обработка команды /delete_tag от пользователя 1163706093: /delete_tag
+2025-08-29 17:59:28 WARN  [@tlgrm_quiz_bot Telegram Executor] r.s.telegram.handler.tag.DeleteTagCommandHandler - Не указан тег для удаления пользователем 1163706093
+2025-08-29 17:59:40 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.telegram.handler.tag.DeleteTagCommandHandler - Обработка команды /delete_tag от пользователя 1163706093: /delete_tag asd
+2025-08-29 17:59:41 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.telegram.handler.tag.DeleteTagCommandHandler - Запрос подтверждения удаления тега 'asd' от пользователя 1163706093
+2025-08-29 17:59:50 DEBUG [@tlgrm_quiz_bot Telegram Executor] ru.spbstu.telegram.handler.general.DefaultHandler - Сработал обработчик по умолчанию DefaultHandler у пользователя 1163706093
+2025-08-29 17:59:50 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.telegram.handler.tag.DeleteTagCommandHandler - Обработка команды /delete_tag от пользователя 1163706093: Да
+2025-08-29 17:59:50 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.telegram.handler.tag.DeleteTagCommandHandler - Обработка подтверждения удаления тега пользователем 1163706093
+2025-08-29 17:59:50 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.telegram.handler.tag.DeleteTagCommandHandler - Обработка подтверждения удаления тега пользователем 1163706093: да
+2025-08-29 17:59:50 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.telegram.handler.tag.DeleteTagCommandHandler - Удаление тега 'asd' из вопросов пользователем 1163706093
+2025-08-29 17:59:51 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.telegram.handler.tag.DeleteTagCommandHandler - Тег 'asd' полностью обработан при удалении пользователем 1163706093
+2025-08-29 18:00:10 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.h.question.ShowQuestionsByTagCommandHandler - Обработка команды show_questions_by_tag от пользователя 1163706093: /show_questions_by_tag
+2025-08-29 18:00:15 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.h.question.ShowQuestionsByTagCommandHandler - Обработка команды show_questions_by_tag от пользователя 1163706093: /show_questions_by_tag asd
+2025-08-29 18:00:15 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.h.question.ShowQuestionsByTagCommandHandler - Найдено 1 вопросов по тегу 'asd' для пользователя 1163706093
+2025-08-29 18:00:15 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.h.question.ShowQuestionsByTagCommandHandler - Список вопросов по тегу 'asd' отправлен пользователю 1163706093
+2025-08-29 18:01:27 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.h.question.ShowQuestionsByTagCommandHandler - Обработка команды show_questions_by_tag от пользователя 1163706093: /show_questions_by_tag asd
+2025-08-29 18:01:27 DEBUG [@tlgrm_quiz_bot Telegram Executor] r.s.t.h.question.ShowQuestionsByTagCommandHandler - Найдено 1 вопросов по тегу 'asd' для пользователя 1163706093
+2025-08-29 18:01:27 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.t.h.question.ShowQuestionsByTagCommandHandler - Список вопросов по тегу 'asd' отправлен пользователю 1163706093
+2025-08-29 18:01:39 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.telegram.handler.tag.ListTagsCommandHandler - Обработка команды /list_tags от пользователя 1163706093
+2025-08-29 18:01:39 INFO  [@tlgrm_quiz_bot Telegram Executor] r.s.telegram.handler.tag.ListTagsCommandHandler - Список из 12 тегов отправлен пользователю 1163706093
