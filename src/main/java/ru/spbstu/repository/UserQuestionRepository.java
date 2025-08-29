@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.spbstu.model.UserQuestion;
+
+import java.util.Collection;
 import java.util.Optional;
 
 public interface UserQuestionRepository extends JpaRepository<UserQuestion, Long> {
@@ -25,4 +27,6 @@ public interface UserQuestionRepository extends JpaRepository<UserQuestion, Long
     @Transactional
     @Query("DELETE FROM UserQuestion uq WHERE uq.user.id = :userId")
     void deleteAllByUserId(@Param("userId") Long userId);
+
+    void deleteAllByQuestionIdIn(Collection<String> questionIds);
 }

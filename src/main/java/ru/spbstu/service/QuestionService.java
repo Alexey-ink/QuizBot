@@ -77,6 +77,7 @@ public class QuestionService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public Optional<QuestionDto> getQuestionDtoById(String questionId) {
         return questionRepository.findById(questionId)
                 .map(QuestionDto::toDto);
@@ -130,7 +131,13 @@ public class QuestionService {
 
     @Transactional
     public void deleteQuestionsWithSingleTag(Long userId, Long tagId) {
-        questionRepository.deleteQuestionsWithSingleTag(userId, tagId);
+        List<Question> questions = questionRepository.findQuestionsWithSingleTag(userId, tagId);
+        List<String> questionIds = questions.stream()
+                .map(Question::getId)
+                .collect(Collectors.toList());
+
+        userQuestionRepository.deleteAllByQuestionIdIn(questionIds);
+        questionRepository.deleteAll(questions);
     }
 
     @Transactional

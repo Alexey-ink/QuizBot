@@ -48,8 +48,7 @@ public class DeleteQuestionCommandHandler extends CommandHandler {
         logger.info("Обработка команды удаления вопроса от пользователя {}: {}", telegramId, text);
 
         try {
-            if (sessionManager.getSession(telegramId)
-                    .getType().equals(SessionType.DELETE_CONFIRMATION)) {
+            if (sessionManager.hasSession(telegramId)) {
                 handleDeleteConfirmation(text, telegramId);
                 return;
             }

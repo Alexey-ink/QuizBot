@@ -34,7 +34,7 @@ public class UpdateDispatcher {
             if (sessionManager.hasSession(userId)) {
                 handlers.get("/default").handle(update);
             } else {
-                handlers.get(command).handle(update);
+                handlers.getOrDefault(command, handlers.get("/default")).handle(update);
             }
         }
     }

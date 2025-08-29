@@ -34,13 +34,11 @@ public interface QuestionRepository extends JpaRepository<Question, String> {
     Optional<Question> findRandomUnansweredQuestionByTag(@Param("userId") Long userId,
                                                          @Param("tagName") String tagName);
 
-    @Modifying
-    @Transactional
-    @Query("DELETE FROM Question q WHERE q.user.id = :userId " +
+    @Query("SELECT q FROM Question q WHERE q.user.id = :userId " +
             "AND SIZE(q.tags) = 1 " +
             "AND EXISTS (SELECT t FROM q.tags t WHERE t.id = :tagId)")
-    void deleteQuestionsWithSingleTag(@Param("userId") Long userId,
-                                      @Param("tagId") Long tagId);
+    List<Question> findQuestionsWithSingleTag(@Param("userId") Long userId,
+                                              @Param("tagId") Long tagId);
 
     @Query("SELECT COUNT(q) > 0 FROM Question q JOIN q.tags t WHERE t.id = :tagId")
     boolean existsByTagId(@Param("tagId") Long tagId);
