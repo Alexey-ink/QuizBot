@@ -4,7 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.spbstu.model.User;
+import ru.spbstu.dto.UserDto;
 import ru.spbstu.service.UserService;
 
 import java.util.List;
@@ -19,9 +19,8 @@ public class UsersController {
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.findAll();
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        List<UserDto> users = userService.findAll();
         return ResponseEntity.ok(users);
     }
-
 }

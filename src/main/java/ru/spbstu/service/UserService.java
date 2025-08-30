@@ -2,10 +2,12 @@ package ru.spbstu.service;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import ru.spbstu.dto.UserDto;
 import ru.spbstu.model.User;
 import ru.spbstu.repository.UserRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -49,7 +51,10 @@ public class UserService {
     }
 
 
-    public List<User> findAll() {
-        return userRepository.findAll();
+    public List<UserDto> findAll() {
+        return userRepository.findAll()
+                .stream()
+                .map(UserDto::toDto)
+                .collect(Collectors.toList());
     }
 }
