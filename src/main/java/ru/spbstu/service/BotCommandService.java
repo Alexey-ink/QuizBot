@@ -55,11 +55,4 @@ public class BotCommandService {
                !command.equals("/start") &&
                !handler.getDescription().equals("Команда бота");
     }
-
-
-    public List<BotCommand> getAllCommands() {
-        return commandHandlers.stream()
-                .map(handler -> new BotCommand(handler.getCommand(), handler.getDescription()))
-                .collect(Collectors.toList());
-    }
 }

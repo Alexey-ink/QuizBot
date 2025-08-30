@@ -23,7 +23,11 @@ import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
-@ComponentScan("ru.spbstu")
+@ComponentScan(basePackages = {
+        "ru.spbstu.service",
+        "ru.spbstu.repository",
+        "ru.spbstu.telegram"
+})
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "ru.spbstu.repository")
 @PropertySource("classpath:application.properties")
@@ -94,4 +98,5 @@ public class AppConfig {
         scheduler.start();
         return scheduler;
     }
+
 }

@@ -1,37 +1,51 @@
 package ru.spbstu;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.core.util.StatusPrinter;
-import org.slf4j.LoggerFactory;
+import org.eclipse.jetty.server.Server;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import ru.spbstu.config.AppConfig;
-
-import java.nio.charset.Charset;
+import ru.spbstu.config.JettyServer;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Default Charset: " + Charset.defaultCharset());
-        System.out.println("File encoding: " + System.getProperty("file.encoding"));
-        System.out.println("Console test: Привет мир!");
+        AnnotationConfigApplicationContext rootContext = null;
+        Server jetty = null;
         try {
-            var context = new AnnotationConfigApplicationContext(AppConfig.class);
-            context.start();
-            System.out.println("\nThe bot is running...");
-            LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-            StatusPrinter.print(lc);
+            rootContext = new AnnotationConfigApplicationContext(AppConfig.class);
+            rootContext.start();
+
+            int port = Integer.parseInt(System.getProperty("http.port", "8080"));
+            jetty = JettyServer.start(rootContext, port);
+
+            System.out.println("The bot is running...");
+
+            Server finalJetty = jetty;
+            AnnotationConfigApplicationContext finalRoot = rootContext;
 
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 System.out.println("Shutting down...");
-                context.close();
+                try {
+                    if (finalJetty.isRunning()) {
+                        finalJetty.stop();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (finalRoot != null) {
+                        finalRoot.close();
+                    }
+                }
             }));
 
-            Thread.currentThread().join();
+            jetty.join();
 
         } catch (Exception e) {
-            System.err.println("Error starting the bot: " + e.getMessage());
+            System.err.println("Error starting app: " + e.getMessage());
             e.printStackTrace();
+            if (jetty != null) {
+                try { jetty.stop(); } catch (Exception ex) { ex.printStackTrace(); }
+            }
+            if (rootContext != null) rootContext.close();
             System.exit(1);
         }
     }
-
 }

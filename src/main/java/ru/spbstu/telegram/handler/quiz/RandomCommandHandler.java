@@ -49,8 +49,8 @@ public class RandomCommandHandler extends CommandHandler {
             logger.error("Ошибка при обработке ответа на опрос {} пользователем {}: {}",
                     pollAnswer.getPollId(), telegramId, e.getMessage(), e);
             messageSender.sendMessage(telegramId, "❌ Произошла ошибка при обработке ответа");
-        }
-        return;
+            }
+            return;
         }
 
         Long telegramId = update.getMessage().getFrom().getId();

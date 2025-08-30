@@ -54,7 +54,6 @@ public class Tag {
         return name;
     }
 
-    // Геттеры
     public Long getId() {
         return id;
     }
