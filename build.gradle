@@ -32,6 +32,7 @@ dependencies {
     implementation 'org.quartz-scheduler:quartz:2.5.0'
     implementation 'org.springframework:spring-context-support:6.1.0'
     implementation 'org.springframework:spring-webmvc:6.1.0'
+    implementation 'org.springframework.security:spring-security-crypto:6.2.0'
 
     implementation 'org.eclipse.jetty:jetty-server:11.0.20'
     implementation 'org.eclipse.jetty:jetty-servlet:11.0.20'

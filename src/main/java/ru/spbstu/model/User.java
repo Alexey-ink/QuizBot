@@ -1,6 +1,8 @@
 package ru.spbstu.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -24,9 +26,13 @@ public class User {
     @Column(name = "time_zone", nullable = true)
     private String timeZone;
 
+    @Column(name = "login", nullable = true)
+    private String login;
+
     @Column(name = "password_hash", nullable = true)
     private String passwordHash;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -71,6 +77,26 @@ public class User {
 
     public String getTimeZone() {
         return timeZone;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public void setScore(Integer score) {
