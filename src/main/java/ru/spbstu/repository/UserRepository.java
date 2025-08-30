@@ -22,4 +22,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u.score FROM User u WHERE u.telegramId = :telegramId")
     Integer findScoreByTelegramId(@Param("telegramId") Long telegramId);
+
+    Optional<User> findByLogin(String login);
 }

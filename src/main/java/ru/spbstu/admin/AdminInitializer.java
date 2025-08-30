@@ -1,4 +1,4 @@
-package ru.spbstu.service;
+package ru.spbstu.admin;
 
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
