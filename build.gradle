@@ -1,18 +1,20 @@
 plugins {
     id 'java'
     id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'ru.spbstu'
 version = '1.0-SNAPSHOT'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_23
-    targetCompatibility = JavaVersion.VERSION_23
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(23)
+    }
 }
 
 application {
-    mainClass = 'ru.spbstu.Main'
+    mainClass.set('ru.spbstu.Main')
 }
 
 repositories {
@@ -41,7 +43,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
     testImplementation 'org.mockito:mockito-core:5.7.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.7.0'
-    testImplementation 'org.springframework:spring-test:6.1.0'
+    testImplementation 'org.springframework:spring-test:6.2.10'
     testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
     testImplementation 'org.testcontainers:postgresql:1.19.0'
     testImplementation 'org.hibernate:hibernate-testing:6.4.0.Final'
@@ -51,4 +53,18 @@ compileJava.options.encoding = 'UTF-8'
 
 test {
     useJUnitPlatform()
+}
+
+tasks.named('shadowJar') {
+    archiveBaseName.set('quizbot-app')
+    archiveClassifier.set('')
+    archiveVersion.set(version)
+    mergeServiceFiles()
+    manifest {
+        attributes 'Main-Class': application.mainClass.get()
+    }
+}
+
+tasks.build {
+    dependsOn tasks.shadowJar
 }
