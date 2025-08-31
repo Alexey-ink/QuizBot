@@ -148,11 +148,11 @@ public class QuestionUploadController {
 
         List<String> tags = new ArrayList<>();
         for (int i = 6; i < parts.length && i < 11; i++) {
-            if (i < parts.length) {
-                String tag = parts[i].trim();
-                if (!tag.isEmpty()) {
-                    tags.add(tag);
-                }
+            String tag = parts[i].trim();
+            if (!tag.isEmpty()) {
+                tag = tag.replaceAll("\\s+", "_")
+                        .toLowerCase();
+                tags.add(tag);
             }
         }
 

@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+import ru.spbstu.telegram.bot.BotCommandInitializer;
 import ru.spbstu.telegram.bot.QuizBot;
 
 import javax.sql.DataSource;
@@ -83,11 +84,11 @@ public class AppConfig {
     }
 
     @Bean
-    public TelegramBotsApi telegramBotsApi(QuizBot bot, ru.spbstu.service.BotCommandService botCommandService) throws Exception {
+    public TelegramBotsApi telegramBotsApi(QuizBot bot, BotCommandInitializer botCommandInitializer) throws Exception {
         TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
         api.registerBot(bot);
-        
-        botCommandService.setBotCommands(bot);
+
+        botCommandInitializer.setBotCommands(bot);
         return api;
     }
 

@@ -1,4 +1,4 @@
-package ru.spbstu.service;
+package ru.spbstu.telegram.bot;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class BotCommandService {
+public class BotCommandInitializer {
     
     private final List<CommandHandler> commandHandlers;
     
     @Autowired
-    public BotCommandService(List<CommandHandler> commandHandlers) {
+    public BotCommandInitializer(List<CommandHandler> commandHandlers) {
         this.commandHandlers = commandHandlers;
     }
     

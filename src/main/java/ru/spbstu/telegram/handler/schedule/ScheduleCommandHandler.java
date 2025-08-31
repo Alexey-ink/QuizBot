@@ -131,7 +131,7 @@ public class ScheduleCommandHandler extends CommandHandler {
                     logger.debug("Обработка дней недели пользователем {}: {}", telegramId, text);
                     String normalizedInput = text.trim().toUpperCase();
 
-                    if (!normalizedInput.matches("^((ПН|ВТ|СР|ЧТ|ПТ|СБ|ВС)([,\\s]|$))+$")) {
+                    if (!normalizedInput.matches("^((ПН|ВТ|СР|ЧТ|ПТ|СБ|ВС)[,\\s]*)+$")) {
                         logger.warn("Неверный формат дней недели от пользователя {}: {}", telegramId, text);
                         messageSender.sendMessage(chatId, """
                                 ❌ Неверный формат. Используйте сокращения дней через запятую или пробел:
