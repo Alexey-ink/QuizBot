@@ -61,6 +61,7 @@ public class AdminInterceptor implements HandlerInterceptor {
         }
 
         logger.info("Успешная аутентификация администратора: {}", login);
+        request.setAttribute("adminLogin", login);
         return true; // авторизован
     }
 }

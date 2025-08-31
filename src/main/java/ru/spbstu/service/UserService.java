@@ -80,4 +80,25 @@ public class UserService {
         return Optional.of(UserDto.toDto(savedUser));
     }
 
+    public Optional<UserDto> demoteUserFromAdmin(Long userId, String currentLogin) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        User target = userOptional.get();
+
+        Optional<User> currentOpt = userRepository.findByLogin(currentLogin);
+        if (currentOpt.isPresent() && currentOpt.get().getId().equals(userId)) {
+            throw new IllegalStateException("Demotion of the currently authenticated admin is not allowed");
+        }
+
+        if (target.getRole() != UserRole.ADMIN) {
+            throw new IllegalArgumentException("User is not an admin");
+        }
+
+        target.setRole(UserRole.USER);
+        User savedUser = userRepository.save(target);
+        return Optional.of(UserDto.toDto(savedUser));
+    }
 }
