@@ -85,7 +85,7 @@ public abstract class BaseQuizService {
 
         if (correctOption != null && !isCorrect) {
             message.append("💡 *Правильный ответ:* ")
-                    .append(". ").append(correctOption.getText()).append("\n\n");
+                    .append(correctOption.getText()).append("\n\n");
         }
 
         if (!question.getTags().isEmpty()) {

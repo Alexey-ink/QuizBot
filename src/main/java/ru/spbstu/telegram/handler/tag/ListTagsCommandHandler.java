@@ -43,7 +43,7 @@ public class ListTagsCommandHandler extends CommandHandler {
             }
 
             StringBuilder response = new StringBuilder();
-            response.append("🏷️ **Ваши теги:**\n\n");
+            response.append("🏷️ **Список всех тегов:**\n\n");
 
             for (TagDto tag : tagsDto) {
                 response.append("• #")
