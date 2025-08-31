@@ -4,9 +4,11 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import ru.spbstu.dto.UserDto;
 import ru.spbstu.model.User;
+import ru.spbstu.model.UserRole;
 import ru.spbstu.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,4 +59,25 @@ public class UserService {
                 .map(UserDto::toDto)
                 .collect(Collectors.toList());
     }
+
+    public Optional<UserDto> promoteUserToAdmin(Long userId, String hashPassword) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        String login = userOptional.get().getUsername();
+        if (login == null) {
+            login = String.valueOf(userOptional.get().getTelegramId());
+        }
+
+        User user = userOptional.get();
+        user.setLogin(login);
+        user.setRole(UserRole.ADMIN);
+        user.setPasswordHash(hashPassword);
+
+        User savedUser = userRepository.save(user);
+        return Optional.of(UserDto.toDto(savedUser));
+    }
+
 }

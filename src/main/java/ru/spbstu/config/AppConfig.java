@@ -27,7 +27,6 @@ import java.util.Properties;
 @Configuration
 @ComponentScan(basePackages = {
         "ru.spbstu.service",
-        "ru.spbstu.repository",
         "ru.spbstu.telegram"
 })
 @EnableTransactionManagement
@@ -49,8 +48,8 @@ public class AppConfig {
     @Value("${spring.jpa.hibernate.ddl-auto}")
     private String ddlAuto;
 
-    @Value("${spring.jpa.database-platform}")
-    private String dialect;
+    //@Value("${spring.jpa.database-platform}")
+    //private String dialect;
 
     @Bean
     public DataSource dataSource() {
@@ -71,7 +70,7 @@ public class AppConfig {
 
         Properties props = new Properties();
         props.put("hibernate.hbm2ddl.auto", ddlAuto);
-        props.put("hibernate.dialect", dialect);
+        //props.put("hibernate.dialect", dialect);
         emf.setJpaProperties(props);
         return emf;
     }
