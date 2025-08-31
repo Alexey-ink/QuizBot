@@ -1,5 +1,6 @@
 package ru.spbstu.config;
 
+import jakarta.servlet.MultipartConfigElement;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -24,6 +25,14 @@ public class JettyServer {
         DispatcherServlet dispatcherServlet = new DispatcherServlet(webContext);
         ServletHolder servletHolder = new ServletHolder("dispatcher", dispatcherServlet);
         servletHolder.setInitParameter("throwExceptionIfNoHandlerFound", "true");
+
+        String tmp = System.getProperty("java.io.tmpdir");
+        long maxFileSize = 50L * 1024 * 1024;    // 50 MB
+        long maxRequestSize = 200L * 1024 * 1024; // 200 MB
+        int fileSizeThreshold = 0; // сразу в файл (0 — сразу в location)
+        MultipartConfigElement multipartConfig =
+                new MultipartConfigElement(tmp, maxFileSize, maxRequestSize, fileSizeThreshold);
+        servletHolder.getRegistration().setMultipartConfig(multipartConfig);
 
         handler.addServlet(servletHolder, "/*");
         server.setHandler(handler);

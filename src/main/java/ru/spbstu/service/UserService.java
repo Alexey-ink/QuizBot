@@ -109,4 +109,9 @@ public class UserService {
     public boolean userExists(Long userId) {
         return userRepository.existsById(userId);
     }
+
+    public Optional<UserDto> findByLogin(String login) {
+        return userRepository.findByLogin(login)
+                .map(UserDto::toDto);
+    }
 }

@@ -30,7 +30,8 @@ public class QuestionService {
     }
 
     @Transactional
-    public String saveQuestion(Long telegramId, String text, List<String> answers, int correctOption, List<String> tagNames) {
+    public String saveQuestion(Long telegramId, String text, List<String> answers,
+                               int correctOption, List<String> tagNames) {
         User user = userService.getUser(telegramId);
 
         Question question = new Question();
