@@ -105,4 +105,8 @@ public class UserService {
         User savedUser = userRepository.save(target);
         return Optional.of(UserDto.toDto(savedUser));
     }
+
+    public boolean userExists(Long userId) {
+        return userRepository.existsById(userId);
+    }
 }

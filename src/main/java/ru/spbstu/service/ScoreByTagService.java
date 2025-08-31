@@ -49,4 +49,11 @@ public class ScoreByTagService {
         scoreByTagRepository.resetScoresByUserId(userId);
         userQuestionRepository.deleteAllByUserId(userId);
     }
+
+    @Transactional
+    public void resetScoreByUserId(Long userId) {
+        userRepository.resetScoreByUserId(userId);
+        scoreByTagRepository.resetScoresByUserId(userId);
+        userQuestionRepository.deleteAllByUserId(userId);
+    }
 }

@@ -60,7 +60,8 @@ public class RandomCommandHandler extends CommandHandler {
         try {
             if (quiz == null) {
                 messageSender.sendMessage(chatId,
-                        "❌ В базе данных нет вопросов. Сначала добавьте несколько вопросов с помощью команды /add_question");
+                        "❌ В базе данных нет вопросов. Сначала добавьте несколько вопросов " +
+                                "с помощью команды `/add_question`");
                 return;
             }
 
