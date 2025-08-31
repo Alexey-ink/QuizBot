@@ -66,6 +66,10 @@ public class UserService {
             return Optional.empty();
         }
 
+        if(userOptional.get().getRole().equals(UserRole.ADMIN)) {
+            throw new IllegalArgumentException("User is already admin");
+        }
+
         String login = userOptional.get().getUsername();
         if (login == null) {
             login = String.valueOf(userOptional.get().getTelegramId());

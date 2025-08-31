@@ -33,22 +33,31 @@ public class PromoteToAdminController {
 
         String password = generatePassword(8);
         String hashPassword = passwordEncoder.encode(password);
-        Optional<UserDto> userDto = userService.promoteUserToAdmin(userId, hashPassword);
+        try {
+            Optional<UserDto> userDto = userService.promoteUserToAdmin(userId, hashPassword);
 
-        if (userDto.isEmpty()) {
-            logger.warn("User with ID: {} not found for promotion", userId);
-            return ResponseEntity.notFound().build();
+            if (userDto.isEmpty()) {
+                logger.warn("User with ID: {} not found for promotion", userId);
+                return ResponseEntity.notFound().build();
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("login", userDto.get().login());
+            response.put("password", password);
+            response.put("promoted", true);
+
+            logger.info("User with ID: {} successfully promoted to admin. New login: {}",
+                    userId, userDto.get().login());
+
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException ex) {
+            logger.warn("User with id {} is already admin", userId);
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        } catch (Exception e) {
+            logger.error("Unexpected error while promoting user {}", userId);
+            return ResponseEntity.status(500).body(Map.of("error", "internal error"));
         }
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("login", userDto.get().login());
-        response.put("password", password);
-        response.put("promoted", true);
-
-        logger.info("User with ID: {} successfully promoted to admin. New login: {}",
-                userId, userDto.get().login());
-
-        return ResponseEntity.ok(response);
     }
 
     private static String generatePassword(int length) {
