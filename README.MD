@@ -259,14 +259,14 @@ java -jar build/libs/quiz-bot-1.0-SNAPSHOT.jar
 ## Примеры использования
 
 <img src="images/start.jpg" alt="Меню" width="250">
-![/help](images\help1.jpg)
-![/add_question](images\add.jpg)
-![/help](images\help2.jpg)
-![Menu](images\menu1.jpg)
-![Menu](images\menu2.jpg)
-![/random](images\random.jpg)
-![/score](images\score.jpg)
-![/list_tags](images\tags.jpg)
+<img src="images/help1.jpg" alt="Меню" width="250">
+<img src="images/help2.jpg" alt="Меню" width="250">
+<img src="images/add.jpg" alt="Меню" width="250">
+<img src="images/menu1.jpg" alt="Меню" width="250">
+<img src="images/menu2.jpg" alt="Меню" width="250">
+<img src="images/random.jpg" alt="Меню" width="250">
+<img src="images/score.jpg" alt="Меню" width="250">
+<img src="images/tags.jpg" alt="Меню" width="250">
 
 ### Запуск бота
 1. Отправьте `/start` вашему боту
