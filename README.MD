@@ -263,7 +263,7 @@ java -jar build/libs/quiz-bot-1.0-SNAPSHOT.jar
 <img src="images/help1.jpg" alt="/help" width="250">
 <img src="images/help2.jpg" alt="/help" width="250">
 <img src="images/add.jpg" alt="/add_question" width="250">
-<img src="images/menu1.jpg" alt="Menu" width="250">
+<img src="images/menu.jpg" alt="Menu" width="250">
 <img src="images/menu2.jpg" alt="Menu" width="250">
 <img src="images/tags.jpg" alt="/list_tags" width="250">
 <img src="images/random.jpg" alt="/random" width="250">
