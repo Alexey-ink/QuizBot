@@ -88,7 +88,7 @@ public class StartCommandHandler extends CommandHandler {
                         "- МСК+9 (Камчатка)\n\n" +
                         "👉 Просто введи нужный вариант (например: МСК+4)";
 
-                messageSender.sendMessage(update.getMessage().getChatId(), text);
+                messageSender.sendPlainMessage(update.getMessage().getChatId(), text);
 
             } else if (session.getType() == SessionType.WAITING_TIMEZONE) {
                 logger.debug("Обработка выбора часового пояса для пользователя {}", telegramId);
