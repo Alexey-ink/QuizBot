@@ -4,9 +4,6 @@ Telegram-бот для создания, управления и участия 
 
 ## Ссылки
 
-**Docker Hub репозиторий с Docker-образом:**
-[Docker Image](https://hub.docker.com/r/quizbot/quizbot)
-
 **Telegram-бот:**
 [@tlgrm_quiz_bot](https://t.me/tlgrm_quiz_bot)
 
