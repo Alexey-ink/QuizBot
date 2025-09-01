@@ -258,8 +258,8 @@ java -jar build/libs/quiz-bot-1.0-SNAPSHOT.jar
 
 ## Примеры использования
 
-![/start](images\start.jpg)
-![/help](images\help1.jpg)
+![/start](images/start.jpg)
+![/help](images/help1.jpg)
 ![/add_question](images\add.jpg)
 ![/help](images\help2.jpg)
 ![Menu](images\menu1.jpg)
