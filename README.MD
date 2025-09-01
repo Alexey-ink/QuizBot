@@ -1,61 +1,88 @@
-# QuizBot - Telegram Quiz Application
+# QuizBot — Telegram-бот для управления викторинами
 
-A comprehensive Telegram bot application built with Java and Spring Framework that allows users to create, manage, and participate in quizzes. The bot supports multiple timezones, scheduled question delivery, and comprehensive quiz management features.
+Telegram-бот для создания, управления и участия в викторинах, реализованный на основе Java Spring с использованием модульной архитектуры и планировщика задач.
 
-## 🚀 Features
+## Ссылки
 
-### Core Functionality
-- **Quiz Management**: Create, edit, and delete quiz questions with multiple choice options
-- **Tag System**: Organize questions by categories using tags
-- **User Management**: User registration, timezone settings, and role-based access
-- **Scheduled Quizzes**: Automated delivery of random questions at scheduled intervals
-- **Score Tracking**: Monitor user performance and track scores by tag categories
+**Docker Hub репозиторий с Docker-образом:**
+[Docker Image](https://hub.docker.com/r/quizbot/quizbot)
 
-### Bot Commands
-- `/start` - Initialize the bot and set timezone
-- `/help` - Display available commands and features
-- Question management commands (add, edit, delete)
-- Tag management commands
-- Quiz participation commands
-- Score and statistics viewing
+**Telegram-бот:**
+[@tlgrm_quiz_bot](https://t.me/tlgrm_quiz_bot)
 
-### Technical Features
-- **Multi-timezone Support**: Supports 11 Russian timezones (MSC-1 to MSC+9)
-- **Session Management**: Stateful conversation handling for complex operations
-- **Database Persistence**: PostgreSQL database with JPA/Hibernate
-- **Scheduled Jobs**: Quartz scheduler for automated question delivery
-- **Comprehensive Logging**: Logback integration for debugging and monitoring
+## Технологический стек
 
-## 🛠️ Technology Stack
+- **Язык программирования:** Java 23
+- **Spring Framework 6.2.10** (без Spring Boot)
+- **Spring Data JPA 3.5.3** - слой доступа к данным
+- **Hibernate 6.6.1** - объектно-реляционное отображение
+- **PostgreSQL** - реляционная СУБД
+- **Telegram Bots API 6.9.7.1** - взаимодействие с пользователями
+- **Quartz 2.5.0** - планировщик задач для автоматической доставки вопросов
+- **Jetty 11.0.20** - веб-сервер для REST API
+- **Docker + Docker Compose** - контейнеризация и оркестрация сервисов
+- **Gradle** - система сборки и управления зависимостями
 
-- **Java 21** - Core programming language
-- **Spring Framework 6.1.0** - Dependency injection and configuration
-- **Spring Data JPA 3.5.0** - Data access layer
-- **Hibernate 6.4.0** - Object-relational mapping
-- **PostgreSQL** - Database
-- **Telegram Bots API 6.9.7.1** - Telegram bot integration
-- **Quartz 2.5.0** - Job scheduling
-- **Gradle** - Build tool and dependency management
-- **JUnit 5** - Testing framework
-- **TestContainers** - Integration testing
+## Архитектура
 
-## 📋 Prerequisites
+Приложение организовано в виде набора модулей в соответствии с модульной архитектурой. Каждый модуль соответствует подпакету в `ru.spbstu` и решает определённую задачу:
 
-- Java 21 or higher
-- PostgreSQL database
-- Telegram Bot Token (obtain from [@BotFather](https://t.me/botfather))
-- Gradle (or use the included wrapper)
+### Основные модули:
 
-## ⚙️ Installation & Setup
+- **Telegram (telegram)** - запуск бота, приём и обработка входящих обновлений, маршрутизация команд к соответствующим сервисам
+- **Model (model)** - сущности данных: вопросы, варианты ответов, теги, пользователи, расписания
+- **Repository (repository)** - слой доступа к данным с использованием Spring Data JPA
+- **Service (service)** - бизнес-логика приложения, включая управление вопросами, пользователями и сессиями
+- **Handler (handler)** - обработчики команд Telegram-бота
+- **Session (session)** - управление состояниями пользовательских сессий для сложных операций
+- **Config (config)** - конфигурация Spring, безопасность, настройки базы данных
+- **API (api)** - REST API для административных функций
+- **Admin (admin)** - административные интерфейсы и контроллеры
+- **DTO (dto)** - объекты передачи данных для API
 
-### 1. Clone the Repository
+### Взаимосвязи между модулями:
+
+- **Модуль Telegram** взаимодействует с **Handler**, **Session** и **Service** для обработки команд пользователей
+- **Модуль Service** использует **Repository** для доступа к данным и **Session** для управления состояниями
+- **Модуль API** использует **Service** и **DTO** для предоставления REST API
+- **Модуль Config** обеспечивает конфигурацию для всех остальных модулей
+
+## Основной функционал
+
+### Управление викторинами
+- Создание, редактирование и удаление вопросов с множественным выбором
+- Система тегов для организации вопросов по категориям
+- Планировщик автоматической доставки случайных вопросов
+
+### Управление пользователями
+- Регистрация пользователей с настройкой часовых поясов
+- Ролевая система доступа (пользователь/администратор)
+- Отслеживание статистики и результатов по тегам
+
+### Команды бота
+- `/start` - инициализация бота и настройка часового пояса
+- `/help` - отображение доступных команд
+- Команды управления вопросами (добавление, редактирование, удаление)
+- Команды управления тегами
+- Команды участия в викторинах
+- Просмотр статистики и результатов
+
+## Установка и запуск
+
+### Предварительные требования
+- Java 23 или выше
+- PostgreSQL база данных
+- Telegram Bot Token (получить у [@BotFather](https://t.me/botfather))
+- Gradle (или использовать встроенный wrapper)
+
+### 1. Клонирование репозитория
 ```bash
 git clone <repository-url>
 cd QuizBot
 ```
 
-### 2. Database Setup
-Create a PostgreSQL database and update the connection settings in `src/main/resources/application.properties`:
+### 2. Настройка базы данных
+Создайте PostgreSQL базу данных и обновите настройки подключения в `src/main/resources/application.properties`:
 
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/quizbot
@@ -63,142 +90,199 @@ spring.datasource.username=your_username
 spring.datasource.password=your_password
 ```
 
-### 3. Telegram Bot Configuration
-Update the bot configuration in `src/main/resources/application.properties`:
+### 3. Настройка Telegram-бота
+Обновите конфигурацию бота в `src/main/resources/application.properties`:
 
 ```properties
 telegram.bot.token=YOUR_BOT_TOKEN
 telegram.bot.username=@YOUR_BOT_USERNAME
 ```
 
-### 4. Build and Run
+### 4. Сборка и запуск
 ```bash
-# Build the project
+# Сборка проекта
 ./gradlew build
 
-# Run the application
+# Запуск приложения
 ./gradlew run
 
-# Or build and run the JAR
+# Или сборка и запуск JAR
 ./gradlew jar
 java -jar build/libs/quiz-bot-1.0-SNAPSHOT.jar
 ```
 
-## 🏗️ Project Structure
+## Конфигурация
 
-```
-src/main/java/ru/spbstu/
-├── config/                 # Spring configuration
-├── dto/                   # Data transfer objects
-├── model/                 # Entity models
-├── repository/            # Data access layer
-├── service/               # Business logic services
-├── telegram/              # Telegram bot implementation
-│   ├── bot/              # Bot core classes
-│   ├── handler/          # Command handlers
-│   ├── job/              # Scheduled jobs
-│   ├── sender/           # Message sending utilities
-│   ├── session/          # User session management
-│   └── utils/            # Utility classes
-└── Main.java             # Application entry point
-```
+### Переменные окружения
+Основные настройки можно задать через переменные окружения:
 
-## 🔧 Configuration
+- `TELEGRAM_BOT_TOKEN` - токен Telegram-бота
+- `TELEGRAM_BOT_USERNAME` - имя пользователя бота
+- `POSTGRES_URL` - URL подключения к PostgreSQL
+- `POSTGRES_USER` - имя пользователя базы данных
+- `POSTGRES_PASSWORD` - пароль базы данных
+- `ADMIN_DEFAULT_LOGIN` - логин администратора по умолчанию
+- `ADMIN_DEFAULT_PASSWORD` - пароль администратора по умолчанию
 
-### Application Properties
-The main configuration file `application.properties` contains:
-- Database connection settings
-- Telegram bot credentials
-- JPA/Hibernate configuration
-- Logging settings
+### Логирование
+Конфигурация Logback предоставляется в `src/main/resources/logback.xml` для комплексного логирования.
 
-### Logging
-Logback configuration is provided in `src/main/resources/logback.xml` for comprehensive logging.
+## Тестирование
 
-## 🧪 Testing
+Проект включает комплексное тестирование с использованием:
+- Модульные тесты с JUnit 5 и Mockito
+- Интеграционные тесты с TestContainers
+- Поддержка Spring Test
 
-The project includes comprehensive testing with:
-- Unit tests using JUnit 5 and Mockito
-- Integration tests with TestContainers
-- Spring test support
-
-Run tests with:
+Запуск тестов:
 ```bash
 ./gradlew test
 ```
 
-## 📦 Building
+## Сборка
 
-### Create Distribution Packages
+### Создание дистрибутивных пакетов
 ```bash
-./gradlew distTar    # Creates .tar distribution
-./gradlew distZip    # Creates .zip distribution
+./gradlew distTar    # Создание .tar дистрибутива
+./gradlew distZip    # Создание .zip дистрибутива
 ```
 
-### Create Executable JAR
+### Создание исполняемого JAR
 ```bash
 ./gradlew jar
 ```
 
-## 🚀 Deployment
+## Развертывание
 
-### Production Deployment
-1. Build the project: `./gradlew build`
-2. Copy the JAR file to your server
-3. Ensure PostgreSQL is running and accessible
-4. Set environment variables for database credentials
-5. Run: `java -jar quiz-bot-1.0-SNAPSHOT.jar`
+### Продакшн развертывание
+1. Соберите проект: `./gradlew build`
+2. Скопируйте JAR файл на сервер
+3. Убедитесь, что PostgreSQL запущен и доступен
+4. Установите переменные окружения для учетных данных базы данных
+5. Запустите: `java -jar quiz-bot-1.0-SNAPSHOT.jar`
 
-### Docker Deployment (Recommended)
-Create a `Dockerfile` and `docker-compose.yml` for easy deployment:
+### Docker развертывание (рекомендуется)
 
-```dockerfile
-FROM openjdk:21-jre-slim
-COPY build/libs/quiz-bot-1.0-SNAPSHOT.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app.jar"]
-```
+Проект включает готовую конфигурацию Docker с несколькими сервисами:
 
-## 📱 Usage Examples
+#### Сервисы Docker
 
-### Starting the Bot
-1. Send `/start` to your bot
-2. Select your timezone (e.g., "MSC+4")
-3. Use `/help` to see available commands
+- **postgres** – сервис с базой данных PostgreSQL для приложения
+- **app** – сервис с основным Java-приложением (QuizBot). Зависит от успешного запуска postgres
 
-### Creating Questions
-- Use the question management commands to create quiz questions
-- Assign tags to organize questions by category
-- Set up scheduled delivery for automated quizzes
+#### Дополнительно:
 
-### Taking Quizzes
-- Participate in scheduled quizzes
-- View your scores and statistics
-- Track performance by tag categories
+- **Том** – `pgdata` сохраняет данные PostgreSQL между перезапусками
+- **Сеть** – `quiznet` для изолированного взаимодействия между сервисами
 
-## 🤝 Contributing
+#### Конфигурация
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+Прежде чем запустить проект, необходимо заполнить все данные для приложения.
 
-## 📄 License
+#### Развёртывание
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+1. **Подготовка окружения**
+   Создайте файл `.env` в корне проекта с необходимыми переменными окружения
 
-## 🆘 Support
+2. **Запуск сервисов**
+   ```bash
+   docker-compose up -d --build
+   ```
 
-For support and questions:
-- Create an issue in the repository
-- Check the logs for debugging information
-- Review the configuration files
+   Первым запустится сервис postgres, после его готовности запустится основной сервис app.
 
-## 🔄 Version History
+3. **Проверка статуса**
+   ```bash
+   docker-compose ps
+   docker-compose logs app
+   ```
 
-- **1.0-SNAPSHOT** - Initial release with core quiz functionality
+4. **Остановка сервисов**
+   ```bash
+   docker-compose down
+   ```
 
----
+## Использование
 
-**Note**: This bot is designed with Russian timezone support but can be easily extended for other regions by modifying the timezone configuration in the `StartCommandHandler`.
+### HTTP эндпоинты
+
+| Метод | Путь | Описание | Права доступа |
+|-------|------|----------|---------------|
+| GET | `/admin/users` | Возвращает список всех зарегистрированных пользователей (кроме данных SUPER-ADMIN). | Только ADMIN или SUPER-ADMIN |
+| POST | `/admin/users/{userId}/promote` | Повысить роль пользователя с указанным userId. Присваивает роль ADMIN и генерирует новый пароль. | Только ADMIN или SUPER-ADMIN |
+| POST | `/admin/users/{userId}/demote` | Понизить роль пользователя с указанным userId. Удаляет роль ADMIN. | Только ADMIN или SUPER-ADMIN |
+| POST | `/admin/users/{userId}/reset-score` | Сбросить счет пользователя с указанным userId. | Только ADMIN или SUPER-ADMIN |
+| POST | `/admin/questions/upload-csv` | Загрузка вопросов из CSV файла. Поддерживает массовое добавление вопросов. | Только ADMIN или SUPER-ADMIN |
+
+### Telegram команды
+
+#### Управление вопросами
+| Команда | Описание |
+|---------|----------|
+| `/add_question` | Создание нового вопроса. Пользователь последовательно вводит необходимые параметры (текст вопроса, варианты ответов, правильный ответ, теги). |
+| `/show_questions_by_tag <тег>` | Отображение всех вопросов с указанным тегом. |
+| `/delete_question <ID>` | Удаление вопроса по указанному идентификатору. |
+
+#### Управление тегами
+| Команда | Описание |
+|---------|----------|
+| `/add_tag <название>` | Добавление нового тега для категоризации вопросов. |
+| `/list_tags` | Отображение списка всех доступных тегов. |
+| `/delete_tag <тег>` | Удаление тега и всех связанных с ним вопросов. |
+
+#### Викторины
+| Команда | Описание |
+|---------|----------|
+| `/random` | Получение случайного вопроса для ответа. |
+| `/random_by_tag <тег>` | Получение случайного вопроса по указанному тегу. |
+
+#### Статистика и результаты
+| Команда | Описание |
+|---------|----------|
+| `/score` | Отображение общего количества баллов пользователя. |
+| `/score_by_tag <тег>` | Показать количество баллов по конкретному тегу. |
+| `/reset_score` | Сбросить свой счет (все вопросы откроются заново для пользователя). |
+
+#### Расписание
+| Команда | Описание |
+|---------|----------|
+| `/schedule` | Настройка автоматической отправки вопросов по расписанию. |
+| `/unschedule` | Отключение автоматической отправки вопросов. |
+
+#### Служебные и информационные команды
+| Команда | Описание |
+|---------|----------|
+| `/start` | Регистрация нового пользователя и присвоение часового пояса. |
+| `/healthcheck` | Отображение текущего состояния бота и информации об авторах. |
+| `/help` | Вывод справочного сообщения со списком всех доступных команд. |
+
+## Примеры использования
+
+![/start](images\start.jpg)
+![/help](images\help1.jpg)
+![/add_question](images\add.jpg)
+![/help](images\help2.jpg)
+![Menu](images\menu1.jpg)
+![Menu](images\menu2.jpg)
+![/random](images\random.jpg)
+![/score](images\score.jpg)
+![/list_tags](images\tags.jpg)
+
+### Запуск бота
+1. Отправьте `/start` вашему боту
+2. Выберите часовой пояс (например, "MSC+4")
+3. Используйте `/help` для просмотра доступных команд
+
+### Создание вопросов
+- Используйте команды управления вопросами для создания вопросов викторины
+- Назначайте теги для организации вопросов по категориям
+- Настройте планируемую доставку для автоматических викторин
+
+### Участие в викторинах
+- Участвуйте в запланированных викторинах
+- Просматривайте свои результаты и статистику
+- Отслеживайте производительность по категориям тегов
+
+## Авторы
+- Шихалев Алексей 
+- Емешкин Максим 
