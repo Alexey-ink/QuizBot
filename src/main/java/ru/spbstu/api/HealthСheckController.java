@@ -17,8 +17,8 @@ public class HealthСheckController {
         String status = "Application is running successfully";
 
         List<Map<String, String>> authors = List.of(
-                Map.of("fullName", "Шихалев Алексей"),
-                Map.of("fullName", "Емешкин Максим")
+                Map.of("fullName", "Шихалев Алексей", "group", "5130201/20102"),
+                Map.of("fullName", "Емешкин Максим", "group", "5130201/20101")
         );
 
         Map<String, Object> response = Map.of(

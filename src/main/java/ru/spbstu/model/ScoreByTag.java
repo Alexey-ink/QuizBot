@@ -20,7 +20,7 @@ public class ScoreByTag {
     @JoinColumn(name = "tag_id", nullable = false)
     private Tag tag;
 
-    protected ScoreByTag() {
+    public ScoreByTag() {
     }
 
     public ScoreByTag(Long id, Integer score, User user, Tag tag) {

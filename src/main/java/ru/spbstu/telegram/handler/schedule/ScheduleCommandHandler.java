@@ -203,8 +203,7 @@ public class ScheduleCommandHandler extends CommandHandler {
                         try {
                             scheduleService.saveAndRegisterSchedule(telegramId, cron);
                             messageSender.sendPlainMessage(chatId,
-                                    "✅ Расписание сохранено и зарегистрировано.\n" +
-                                            "Cron: " + cron);
+                                    "✅ Расписание сохранено и зарегистрировано");
                             logger.info("Расписание создано пользователем {}: {}", telegramId, cron);
                         } catch (SchedulerException e) {
                             logger.error("Ошибка регистрации расписания пользователем {}: {}", telegramId, e.getMessage(), e);

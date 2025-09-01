@@ -63,8 +63,8 @@ public class QuestionService {
         }
         question.setTags(tags);
 
-        questionRepository.save(question);
-        return question.getId();
+        Question savedQuestion = questionRepository.save(question);
+        return savedQuestion.getId();
     }
 
     public boolean tagExists(String tagName) {

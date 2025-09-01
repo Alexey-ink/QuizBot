@@ -114,4 +114,9 @@ public class UserService {
         return userRepository.findByLogin(login)
                 .map(UserDto::toDto);
     }
+
+    @Transactional
+    public Optional<User> findUserByTelegramId(Long telegramId) {
+        return userRepository.findByTelegramId(telegramId);
+    }
 }

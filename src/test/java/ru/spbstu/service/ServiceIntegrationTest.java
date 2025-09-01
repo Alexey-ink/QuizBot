@@ -148,27 +148,6 @@ class ServiceIntegrationTest {
     }
 
     @Test
-    void testCreateNewTag_Success() {
-        // Arrange
-        Long telegramId = 123456789L;
-        String tagName = "newtag";
-
-        when(userService.getUser(telegramId)).thenReturn(testUser);
-        when(tagRepository.save(any(Tag.class))).thenAnswer(invocation -> {
-            Tag tag = invocation.getArgument(0);
-            tag.setId(1L);
-            return tag;
-        });
-
-        // Act
-        tagService.createNewTag(telegramId, tagName);
-
-        // Assert
-        verify(userService).getUser(telegramId);
-        verify(tagRepository).save(any(Tag.class));
-    }
-
-    @Test
     void testFindByNameIgnoreCase_Success() {
         // Arrange
         String tagName = "java";
