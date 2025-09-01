@@ -90,15 +90,7 @@ spring.datasource.username=your_username
 spring.datasource.password=your_password
 ```
 
-### 3. Настройка Telegram-бота
-Обновите конфигурацию бота в `src/main/resources/application.properties`:
-
-```properties
-telegram.bot.token=YOUR_BOT_TOKEN
-telegram.bot.username=@YOUR_BOT_USERNAME
-```
-
-### 4. Сборка и запуск
+### 3. Сборка и запуск
 ```bash
 # Сборка проекта
 ./gradlew build
@@ -169,11 +161,6 @@ java -jar build/libs/quiz-bot-1.0-SNAPSHOT.jar
 
 - **postgres** – сервис с базой данных PostgreSQL для приложения
 - **app** – сервис с основным Java-приложением (QuizBot). Зависит от успешного запуска postgres
-
-#### Дополнительно:
-
-- **Том** – `pgdata` сохраняет данные PostgreSQL между перезапусками
-- **Сеть** – `quiznet` для изолированного взаимодействия между сервисами
 
 #### Конфигурация
 
