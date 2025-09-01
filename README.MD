@@ -259,15 +259,15 @@ java -jar build/libs/quiz-bot-1.0-SNAPSHOT.jar
 ## Примеры использования
 
 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-<img src="images/start.jpg" alt="Меню" width="250">
-<img src="images/help1.jpg" alt="Меню" width="250">
-<img src="images/help2.jpg" alt="Меню" width="250">
-<img src="images/add.jpg" alt="Меню" width="250">
-<img src="images/menu1.jpg" alt="Меню" width="250">
-<img src="images/menu2.jpg" alt="Меню" width="250">
-<img src="images/random.jpg" alt="Меню" width="250">
-<img src="images/score.jpg" alt="Меню" width="250">
-<img src="images/tags.jpg" alt="Меню" width="250">
+<img src="images/start.jpg" alt="/start" width="250">
+<img src="images/help1.jpg" alt="/help" width="250">
+<img src="images/help2.jpg" alt="/help" width="250">
+<img src="images/add.jpg" alt="/add_question" width="250">
+<img src="images/menu1.jpg" alt="Menu" width="250">
+<img src="images/menu2.jpg" alt="Menu" width="250">
+<img src="images/tags.jpg" alt="/list_tags" width="250">
+<img src="images/random.jpg" alt="/random" width="250">
+<img src="images/score.jpg" alt="/score" width="250">
 </div>
 
 ### Запуск бота
