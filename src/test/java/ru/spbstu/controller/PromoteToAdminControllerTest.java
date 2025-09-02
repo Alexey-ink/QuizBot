@@ -44,6 +44,7 @@ public class PromoteToAdminControllerTest extends AbstractControllerTest {
                 54321L,
                 "newuser",
                 "newlogin",
+                "passwordHash",
                 LocalDateTime.now(),
                 "USER",
                 "Europe/Moscow",

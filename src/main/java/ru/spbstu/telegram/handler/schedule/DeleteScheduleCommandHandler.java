@@ -9,6 +9,7 @@ import ru.spbstu.telegram.session.schedule.DeleteScheduleSession;
 import ru.spbstu.telegram.utils.SessionManager;
 import ru.spbstu.service.ScheduleService;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -101,10 +102,9 @@ public class DeleteScheduleCommandHandler extends CommandHandler {
             for (int i = 0; i < schedules.size(); i++) {
                 ScheduleDto s = schedules.get(i);
                 sb.append(i + 1).append(") ");
-                sb.append("id=").append(s.id());
                 try {
                     if (s.cronExpression() != null) {
-                        sb.append(", cron=").append(s.cronExpression());
+                        sb.append(cronToReadable(s));
                     }
                 } catch (Exception ignored) {
                 }
@@ -113,12 +113,61 @@ public class DeleteScheduleCommandHandler extends CommandHandler {
             sb.append("\nОтправьте номер расписания (например: 1) чтобы удалить, или /cancel чтобы отменить.");
 
             pendingDeletes.put(telegramId, schedules);
-            messageSender.sendMessage(chatId, sb.toString());
+            messageSender.sendPlainMessage(chatId, sb.toString());
             logger.info("Список расписаний отправлен пользователю {} для выбора удаления", telegramId);
         } catch (Exception e) {
             logger.error("Ошибка при обработке команды /unschedule пользователем {}: {}",
                     telegramId, e.getMessage(), e);
             messageSender.sendMessage(chatId, "❌ Произошла ошибка при обработке команды");
         }
+
+    }
+
+    private String cronToReadable(ScheduleDto s) {
+        String cron = s.cronExpression();
+        if (cron == null || cron.isEmpty()) return "Неизвестно";
+
+        String[] parts = cron.split(" ");
+        if (parts.length != 6) return cron; // стандартный Quartz cron: sec min hour day month day-of-week
+
+        String min = parts[1];
+        String hour = parts[2];
+        String dayOfMonth = parts[3];
+        String month = parts[4];
+        String dayOfWeek = parts[5];
+
+        if ("*".equals(dayOfMonth) && "*".equals(month)
+                && "?".equals(dayOfWeek) && !hour.contains("/")) {
+            return String.format("ежедневно в %s:%s", hour, min);
+        }
+
+        if ("?".equals(dayOfMonth) && "*".equals(month) && !"?".equals(dayOfWeek)) {
+            // еженедельно
+            String days = Arrays.stream(dayOfWeek.split(","))
+                    .map(this::quartzDayToRussian)
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+            return String.format("еженедельно (%s) в %s:%s", days, hour, min);
+        }
+
+        if (hour.contains("/")) {
+            String[] hParts = hour.split("/");
+            return String.format("каждые %s часов начиная с %s:%s", hParts[1], hParts[0], min);
+        }
+
+        return cron;
+    }
+
+    private String quartzDayToRussian(String day) {
+        return switch (day.toUpperCase()) {
+            case "MON" -> "ПН";
+            case "TUE" -> "ВТ";
+            case "WED" -> "СР";
+            case "THU" -> "ЧТ";
+            case "FRI" -> "ПТ";
+            case "SAT" -> "СБ";
+            case "SUN" -> "ВС";
+            default -> day;
+        };
     }
 }

@@ -6,22 +6,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import ru.spbstu.model.User;
-import ru.spbstu.model.UserRole;
-import ru.spbstu.repository.UserRepository;
+import ru.spbstu.dto.UserDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import ru.spbstu.service.UserService;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
 public class AdminInterceptor implements HandlerInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(AdminInterceptor.class);
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
-    public AdminInterceptor(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
+    public AdminInterceptor(UserService userService, PasswordEncoder passwordEncoder) {
+        this.userService = userService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -52,9 +53,9 @@ public class AdminInterceptor implements HandlerInterceptor {
         String password = values[1];
         logger.debug("Попытка авторизации для пользователя: {}", login);
 
-        Optional<User> userOpt = userRepository.findByLogin(login);
-        if (userOpt.isEmpty() || userOpt.get().getRole() != UserRole.ADMIN
-                || !passwordEncoder.matches(password, userOpt.get().getPasswordHash())) {
+        Optional<UserDto> userOpt = userService.findByLogin(login);
+        if (userOpt.isEmpty() || !Objects.equals(userOpt.get().role(), "ADMIN")
+                || !passwordEncoder.matches(password, userOpt.get().passwordHash())) {
             logger.warn("Пользователь с ролью админ не найден: {}", login);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return false;

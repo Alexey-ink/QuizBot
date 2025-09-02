@@ -42,8 +42,10 @@ public class UsersControllerTest extends AbstractControllerTest {
     @Test
     void getAllUsers_success_generatesSnippets() throws Exception {
         List<UserDto> users = List.of(
-                new UserDto(1L, 12345L, "user1", "login1", LocalDateTime.now(), "USER", "Europe/Moscow", 100),
-                new UserDto(2L, 67890L, "user2", "login2", LocalDateTime.now(), "ADMIN", "Europe/Moscow", 200)
+                new UserDto(1L, 12345L, "user1", null, null,
+                        LocalDateTime.now(), "USER", "Europe/Moscow", 100),
+                new UserDto(2L, 67890L, "user2", "login2",
+                        "passwordHash", LocalDateTime.now(), "ADMIN", "Europe/Moscow", 200)
         );
 
         Mockito.when(userService.findAll()).thenReturn(users);
@@ -61,7 +63,8 @@ public class UsersControllerTest extends AbstractControllerTest {
                                 fieldWithPath("[].user_id").description("ID пользователя"),
                                 fieldWithPath("[].telegram_id").description("Телеграм ID"),
                                 fieldWithPath("[].username").description("Имя пользователя"),
-                                fieldWithPath("[].login").description("Логин пользователя"),
+                                fieldWithPath("[].login").description("Логин пользователя").optional(),
+                                fieldWithPath("[].passwordHash").description("Хэш пароля").optional(),
                                 fieldWithPath("[].role").description("Роль пользователя"),
                                 fieldWithPath("[].time_zone").description("Часовой пояс пользователя"),
                                 fieldWithPath("[].score").description("Баллы пользователя"),

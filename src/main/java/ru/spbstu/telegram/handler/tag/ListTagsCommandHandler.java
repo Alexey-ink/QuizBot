@@ -36,9 +36,9 @@ public class ListTagsCommandHandler extends CommandHandler {
         try {
             List<TagDto> tagsDto = tagService.findAll();
             if (tagsDto.isEmpty()) {
-                messageSender.sendMessage(update.getMessage().getChatId(),
-                        "ℹ️ В базе пока нет тегов.\n\n💡 **Создайте первый тег:** `/add_tag <название>`\n" +
-                                "📝 **Затем добавьте вопрос:** `/add_question`");
+                messageSender.sendPlainMessage(update.getMessage().getChatId(),
+                        "ℹ️ В базе пока нет тегов.\n\n💡 Создайте первый тег: /add_tag\n" +
+                                "📝 Затем добавьте вопрос: /add_question");
                 return;
             }
 

@@ -47,6 +47,7 @@ public class DemoteToUserControllerTest extends AbstractControllerTest{
                 12345L,
                 "testuser",
                 "testlogin",
+                "passwordHash",
                 LocalDateTime.now(),
                 "USER",
                 "Europe/Moscow",
