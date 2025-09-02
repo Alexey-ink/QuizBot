@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
 group = 'ru.spbstu'
@@ -21,38 +22,46 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    asciidoctorExt
+}
+
 dependencies {
     implementation 'org.telegram:telegrambots:6.9.7.1'
     implementation 'org.springframework:spring-context:6.2.10'
     implementation 'org.springframework:spring-orm:6.2.10'
     implementation 'org.springframework.data:spring-data-jpa:3.5.3'
-    implementation 'org.hibernate:hibernate-core:6.6.1.Final'
-    implementation 'com.zaxxer:HikariCP:7.0.2'
-    implementation 'org.postgresql:postgresql:42.7.7'
-    implementation 'ch.qos.logback:logback-classic:1.5.18'
-    implementation 'org.quartz-scheduler:quartz:2.5.0'
     implementation 'org.springframework:spring-context-support:6.2.10'
     implementation 'org.springframework:spring-webmvc:6.2.10'
     implementation 'org.springframework.security:spring-security-crypto:6.5.3'
+
+    implementation 'org.hibernate:hibernate-core:6.6.1.Final'
+    implementation 'org.postgresql:postgresql:42.7.7'
+    implementation 'com.zaxxer:HikariCP:7.0.2'
+
+    implementation 'ch.qos.logback:logback-classic:1.5.18'
+    implementation 'org.quartz-scheduler:quartz:2.5.0'
 
     implementation 'org.eclipse.jetty:jetty-server:11.0.20'
     implementation 'org.eclipse.jetty:jetty-servlet:11.0.20'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
 
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:3.0.5'
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor:3.0.5'
+
     // Test dependencies
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
     testImplementation 'org.mockito:mockito-core:5.7.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.7.0'
-    testImplementation 'org.springframework:spring-test:6.2.10'
-    testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
-    testImplementation 'org.testcontainers:postgresql:1.19.0'
-    testImplementation 'org.hibernate:hibernate-testing:6.4.0.Final'
+    testImplementation 'org.springframework.security:spring-security-test:6.5.3'
 }
 
 compileJava.options.encoding = 'UTF-8'
 
 test {
     useJUnitPlatform()
+    outputs.dir("$buildDir/generated-snippets")
+    systemProperty 'org.springframework.restdocs.outputDir', "$buildDir/generated-snippets"
 }
 
 tasks.named('shadowJar') {
@@ -67,4 +76,13 @@ tasks.named('shadowJar') {
 
 tasks.build {
     dependsOn tasks.shadowJar
+}
+
+asciidoctor {
+    configurations 'asciidoctorExt'
+    sources {
+        include 'index.adoc'
+    }
+    attributes 'snippets': file("$buildDir/generated-snippets")
+    outputDir = file("$buildDir/docs/asciidoc")
 }

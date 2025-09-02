@@ -1,0 +1,52 @@
+= QuizBot REST API Documentation
+QuizBot
+:toc: left
+:icons: font
+:sectnums:
+
+=== Overview
+This document provides a detailed reference for the REST API of QuizBot.
+It includes request and response examples, headers, and field descriptions.
+
+=== Promote user to role ADMIN
+Promotes a regular user to an admin.
+**Endpoint:** `POST /admin/users/{userId}/promote`
+
+include::{snippets}/promote-user/http-request.adoc[]
+include::{snippets}/promote-user/request-headers.adoc[]
+
+==== Response
+include::{snippets}/promote-user/http-response.adoc[]
+include::{snippets}/promote-user/response-fields.adoc[]
+
+=== Demote user to role USER
+Demotes an existing admin user to a regular USER.
+**Endpoint:** `POST /admin/users/{userId}/demote`
+
+include::{snippets}/demote-user/http-request.adoc[]
+include::{snippets}/demote-user/request-headers.adoc[]
+
+==== Response
+The API returns the demoted user's information.
+
+include::{snippets}/demote-user/http-response.adoc[]
+include::{snippets}/demote-user/response-fields.adoc[]
+
+=== Get all users
+Retrieves a list of all users in the system, including their roles, logins, and other details.
+**Endpoint:** `GET /admin/users`
+
+include::{snippets}/get-all-users/http-request.adoc[]
+include::{snippets}/get-all-users/request-headers.adoc[]
+
+==== Response
+The API returns a list of all users with their details, such as ID, login, role, timezone, score, and creation date.
+
+include::{snippets}/get-all-users/http-response.adoc[]
+include::{snippets}/get-all-users/response-fields.adoc[]
+
+
+=== Notes
+* All requests require **Basic Authentication**.
+* Request and response examples are generated from automated tests using Spring REST Docs.
+* Ensure that the `{userId}` path parameter is replaced with the actual user ID.

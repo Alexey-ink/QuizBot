@@ -1,0 +1,13 @@
+= API Documentation
+Author Name
+:toc: left
+:icons: font
+
+== Users API
+
+include::{snippets}/get-user/curl-request.adoc[]
+include::{snippets}/get-user/http-response.adoc[]
+include::{snippets}/get-user/path-parameters.adoc[]
+include::{snippets}/demote-to-user-controller-test/demote-user_success_generates-snippets/http-request.adoc[]
+include::{snippets}/demote-to-user-controller-test/demote-user_success_generates-snippets/http-response.adoc[]
+include::{snippets}/demote-to-user-controller-test/demote-user-controller-test/demote-user_success_generates-snippets/response-fields.adoc[]
