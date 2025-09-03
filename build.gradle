@@ -46,6 +46,8 @@ dependencies {
     implementation 'org.eclipse.jetty:jetty-servlet:11.0.20'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
 
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+
     // Test dependencies
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
     testImplementation 'org.mockito:mockito-core:5.7.0'

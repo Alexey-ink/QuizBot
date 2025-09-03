@@ -1,5 +1,6 @@
 package ru.spbstu;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.eclipse.jetty.server.Server;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import ru.spbstu.config.AppConfig;
@@ -10,6 +11,11 @@ public class Main {
         AnnotationConfigApplicationContext rootContext = null;
         Server jetty = null;
         try {
+            Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+            dotenv.entries().forEach(entry -> {
+                System.setProperty(entry.getKey(), entry.getValue());
+            });
+
             rootContext = new AnnotationConfigApplicationContext(AppConfig.class);
             rootContext.start();
 

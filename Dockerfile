@@ -7,7 +7,6 @@ FROM eclipse-temurin:23-jre
 WORKDIR /app
 COPY --from=build /workspace/build/libs/*.jar /app/app.jar
 
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+COPY .env /app/.env
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["java", "-jar", "/app/app.jar"]
