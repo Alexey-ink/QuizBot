@@ -39,7 +39,7 @@ QuizBot — это серверное Java-приложение, реализу�
 
 #### Диаграмма приложения:
 
-мб добавить диаграмму
+![Диаграмма приложения](images/arch.png)
 
 ## Основной функционал
 
@@ -99,7 +99,7 @@ QuizBot — это серверное Java-приложение, реализу�
    
    2. **Настройка docker-compose.yml:**
    
-      - Скачайте оригинальный файл: `docker-compose.yml`
+      - Скачайте оригинальный файл: `docker-compose.yaml`
    
       - Измените секцию app:
    
@@ -118,38 +118,44 @@ QuizBot — это серверное Java-приложение, реализу�
        ```
    5. Остановка приложения:
        ```bash
-       docker-compose down
+       docker-compose stop
        ```
 
 ### Вариант 2. Запуск из исходников
    1. **Клонирование репозитория**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Alexey-ink/QuizBot.git
    cd QuizBot
    ```
    
-   2. **Настройка базы данных**
-   Создайте PostgreSQL базу данных и обновите настройки подключения в `src/main/resources/application.properties`:
-   
-   ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/quizbot
-   spring.datasource.username=your_username
-   spring.datasource.password=your_password
+   2. **Создайте и настройте файл .env:**
+   - Скопируйте пример:
+   ```bash
+   cp .env.example .env
    ```
    
-   3. **Настройка всех остальных переменных `src/main/resources/application.properties`:**
+   - Затем откройте .env и заполните значения:
+   ```bash
+   # Telegram
+   TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+   TELEGRAM_BOT_USERNAME=@your_bot_username
    
-   ```properties
-   telegram.bot.token=YOUR_TELEGRAM_BOT_TOKEN
-   telegram.bot.username=YOUR_TELEGRAM_BOT_USERNAME
+   # Postgres
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=your_password
+   POSTGRES_DB=quizbot
+   POSTGRES_URL=jdbc:postgresql://localhost:5432/quizbot
    
-   admin.default.login=ADMIN_DEFAULT_LOGIN
-   admin.default.password=ADMIN_DEFAULT_PASSWORD
-   admin.default.telegram-id=ADMIN_DEFAULT_TELEGRAM_ID
+   # JPA / Hibernate
+   JPA_DDL_AUTO=update
    
+   # Админ-пользователь по умолчанию
+   ADMIN_DEFAULT_LOGIN=admin
+   ADMIN_DEFAULT_PASSWORD=admin_password
+   ADMIN_DEFAULT_TELEGRAM_ID=your_telegram_user_id
    ```
-      
-   4. **Сборка и запуск**
+
+   3. **Сборка и запуск**
    
    ```bash
    # Сборка проекта
@@ -158,9 +164,9 @@ QuizBot — это серверное Java-приложение, реализу�
    # Запуск приложения
    ./gradlew run
    
-   # Или сборка и запуск JAR
-   ./gradlew jar
-   java -jar build/libs/quiz-bot-1.0-SNAPSHOT.jar
+   # Или сборка и запуск fat JAR
+   ./gradlew shadowJar
+   java -jar build\libs\quizbot-app-1.0-SNAPSHOT.jar
    ```
 
 ## Логирование
