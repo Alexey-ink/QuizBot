@@ -91,6 +91,7 @@ public class DeleteScheduleCommandHandler extends CommandHandler {
             List<ScheduleDto> schedules = scheduleService.findAllSchedulesByUserTelegramId(telegramId);
             if (schedules == null || schedules.isEmpty()) {
                 logger.info("У пользователя {} нет расписаний для удаления", telegramId);
+                sessionManager.clearSession(telegramId);
                 messageSender.sendMessage(chatId, "У вас нет сохранённых расписаний.");
                 return;
             }
