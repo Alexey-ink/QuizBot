@@ -75,7 +75,11 @@ public class ShowQuestionsByTagCommandHandler extends CommandHandler {
             response.append("📋 Список вопросов по тегу #").append(tagNameForMarkdown).append(" (всего ").append(questions.size()).append("):\n\n");
 
             for (QuestionDto question : questions) {
-                String questionText = question.text();
+                String questionText = question.text()
+                        .replace("_", "\\_")
+                        .replace("*", "\\*")
+                        .replace("`", "\\`");
+
                 if (questionText.length() > 50) {
                     questionText = questionText.substring(0, 47) + "...";
                 }
