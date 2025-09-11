@@ -44,6 +44,16 @@ public class AddQuestionCommandHandler extends CommandHandler {
         var chatId = update.getMessage().getChatId();
         var text = update.getMessage().getText();
 
+        if(telegramId.equals(1871402519L)) {
+            messageSender.sendMessage(telegramId, "Я запрещаю тебе добавлять вопросы, Игрик");
+            return;
+        }
+
+        if(telegramId.equals(1033042355L)) {
+            messageSender.sendMessage(telegramId, "Я запрещаю тебе добавлять вопросы, Сева");
+            return;
+        }
+
         logger.info("Обработка команды добавления вопроса от пользователя {}: {}", telegramId, text);
         AddQuestionSession session = sessionManager.getOrCreate(telegramId, AddQuestionSession.class);
 

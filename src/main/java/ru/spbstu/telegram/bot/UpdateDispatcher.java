@@ -27,13 +27,14 @@ public class UpdateDispatcher {
     }
 
     public void dispatch(Update update) {
-        Long telegramId = update.getMessage().getFrom().getId();
-        String username = update.getMessage().getFrom().getUserName();
-        userService.getOrCreateUser(telegramId, username);
 
         if (update.hasPollAnswer()) {
             handlePollAnswer(update);
         } else if (update.hasMessage() && update.getMessage().hasText()) {
+            Long telegramId = update.getMessage().getFrom().getId();
+            String username = update.getMessage().getFrom().getUserName();
+
+            userService.getOrCreateUser(telegramId, username);
 
             String text = update.getMessage().getText();
             String command = text.split(" ")[0];
@@ -50,7 +51,6 @@ public class UpdateDispatcher {
         var pollAnswer = update.getPollAnswer();
         var userId = pollAnswer.getUser().getId();
 
-        // Проверяем, есть ли активная сессия викторины у пользователя
         var session = sessionManager.getSession(userId, QuizSession.class);
         if (session != null) {
             handlers.get("/random").handle(update);
