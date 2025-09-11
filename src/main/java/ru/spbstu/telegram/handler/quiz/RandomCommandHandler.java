@@ -7,17 +7,20 @@ import ru.spbstu.telegram.handler.CommandHandler;
 import ru.spbstu.telegram.sender.MessageSender;
 import ru.spbstu.service.quiz.QuizService;
 import ru.spbstu.dto.QuizDto;
+import ru.spbstu.telegram.utils.SessionManager;
 
 import java.util.List;
 
 @Component
 public class RandomCommandHandler extends CommandHandler {
     private final QuizService quizService;
+    private final SessionManager sessionManager;
 
     public RandomCommandHandler(MessageSender messageSender,
-                                QuizService quizService) {
+                                QuizService quizService, SessionManager sessionManager) {
         super(messageSender);
         this.quizService = quizService;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -54,6 +57,12 @@ public class RandomCommandHandler extends CommandHandler {
         }
 
         Long telegramId = update.getMessage().getFrom().getId();
+
+        if (sessionManager.hasSession(telegramId)) {
+            messageSender.sendMessage(telegramId, "❌ Ответьте сначала на уже отправленный вам вопрос!");
+            return;
+        }
+
         Long chatId = update.getMessage().getChatId();
         QuizDto quiz = quizService.getQuiz(telegramId);
 

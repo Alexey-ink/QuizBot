@@ -47,7 +47,6 @@ public class MessageSender {
         poll.setOptions(options);
         poll.setCorrectOptionId(correctAnswerInd);
         poll.setType("quiz");
-        poll.setOpenPeriod(30);
         poll.setIsAnonymous(false);
         execute(poll);
     }
