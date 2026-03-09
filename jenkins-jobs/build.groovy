@@ -176,7 +176,6 @@ pipeline {
         // failure - выполняется только если сборка провалилась
         failure {
             echo '❌ Сборка провалилась! Проверьте логи выше.'
-            emailext subject: "Build Failed", body: "Check: ${env.BUILD_URL}", to: 'alexey.shihalev@internet.ru'
         }
         
         success {
