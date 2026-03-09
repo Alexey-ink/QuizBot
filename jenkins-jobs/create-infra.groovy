@@ -36,19 +36,15 @@ pipeline {
                     // ✅ Изменили string() на file()
                     withCredentials([file(credentialsId: env.OS_CREDENTIALS_ID, variable: 'OPENRC_FILE')]) {
                         sh '''
-                            # Не нужно echo, файл уже существует
-                            chmod 600 "$OPENRC_FILE"
-                            set +x
-                            . "$OPENRC_FILE"
+                            cp "$OPENRC_FILE" openrc.sh
+                            chmod 600 openrc.sh   
+                            . openrc.sh
                             
                             echo "🔑 Проверка подключения к OpenStack..."
                             openstack token issue -f yaml | head -5
                             
                             export OS_AUTH_URL OS_USERNAME OS_PASSWORD OS_PROJECT_NAME OS_REGION_NAME
 
-                            # Копируем в openrc.sh для использования в других стадиях
-                            cp "$OPENRC_FILE" openrc.sh
-                            chmod 600 openrc.sh
                         '''
                     }
                 }
@@ -61,7 +57,7 @@ pipeline {
                     echo "🧹 Проверка существующего стека '${STACK_NAME}'..."
                     
                     def stackStatus = sh(
-                        script: "openstack stack show ${STACK_NAME} -f value -c stack_status 2>/dev/null || echo 'NOT_FOUND'",
+                        script: ". openrc.sh && openstack stack show ${STACK_NAME} -f value -c stack_status 2>/dev/null || echo 'NOT_FOUND'",
                         returnStdout: true
                     ).trim()
                     
@@ -121,7 +117,7 @@ pipeline {
                     echo "📥 Получаем выходные параметры стека..."
                     
                     env.SERVER_IP = sh(
-                        script: "openstack stack output show -c output_value -f value ${STACK_NAME} server_private_ip",
+                        script: ". openrc.sh && openstack stack output show -c output_value -f value ${STACK_NAME} server_private_ip",
                         returnStdout: true
                     ).trim()
 
