@@ -81,7 +81,6 @@ pipeline {
                     env.DOCKER_IMAGE_LOCAL = "${DOCKER_REGISTRY}/${DOCKER_REPO}:local"
                     
                     // ⚠️ ВНИМАНИЕ: .env создаётся только для сборки, НЕ добавляется в образ!
-                    // Секреты должны передаваться через docker-compose или K8s при запуске
                     sh '''
                         # Копируем .env из Jenkins credentials (ENV_FILE)
                         cp "$ENV_FILE" .env 2>/dev/null || true
@@ -118,7 +117,7 @@ pipeline {
                 // withCredentials - безопасное использование секретов
                 // credentialsId настраивается в: Jenkins → Credentials → System → Global
                 withCredentials([usernamePassword(
-                    credentialsId: 'docker-registry-creds',  // ID из Jenkins Credentials
+                    credentialsId: 'shihalev-docker-registry-creds',  // ID из Jenkins Credentials
                     usernameVariable: 'DOCKER_USER',          // Имя переменной для логина
                     passwordVariable: 'DOCKER_PASS'           // Имя переменной для пароля
                 )]) {
@@ -157,7 +156,7 @@ pipeline {
 
     // POST: Действия после завершения pipeline (всегда выполняются)
     post {
-        // always - выполняется независимо от результата (success/failure/aborted)
+        // always - выполняется независимо от результата
         always {
             echo '🧹 Очистка после сборки...'
             
@@ -173,7 +172,6 @@ pipeline {
             cleanWs()
         }
         
-        // failure - выполняется только если сборка провалилась
         failure {
             echo '❌ Сборка провалилась! Проверьте логи выше.'
         }
