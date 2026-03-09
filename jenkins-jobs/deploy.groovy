@@ -9,7 +9,7 @@ pipeline {
         DOCKER_REPO = 'alexeyshihalev/quizbot'
         
         // Имя credentials в Jenkins (SSH Username with private key)
-        SSH_KEY_NAME = 'shihalev'
+        SSH_KEY_NAME = 'shihalev-ssh-key'
 
         INFRA_ARTIFACT_JOB = 'shihalev/create-infra-pipeline'
         BUILD_ARTIFACT_JOB = 'shihalev/build-pipeline'
