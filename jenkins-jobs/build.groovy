@@ -72,7 +72,6 @@ pipeline {
         }
 
         stage('Docker Build') {
-            // 🐳 Сборка Docker-образа из Dockerfile
             steps {
                 echo '🐳 Сборка Docker-образа...'
                 
@@ -99,7 +98,6 @@ pipeline {
         }
 
         stage('Docker Push') {
-            // 🚀 Публикация образа в Docker Hub
             
             // when {
             //    branch 'main'
@@ -118,11 +116,10 @@ pipeline {
                 // credentialsId настраивается в: Jenkins → Credentials → System → Global
                 withCredentials([usernamePassword(
                     credentialsId: 'shihalev-docker-registry-creds',  // ID из Jenkins Credentials
-                    usernameVariable: 'DOCKER_USER',          // Имя переменной для логина
-                    passwordVariable: 'DOCKER_PASS'           // Имя переменной для пароля
+                    usernameVariable: 'DOCKER_USER',         
+                    passwordVariable: 'DOCKER_PASS'        
                 )]) {
                     // Все команды внутри выполняются с доступом к DOCKER_USER и DOCKER_PASS
-                    // Переменные автоматически маскируются в логах (*****)
                     sh """
                         # Авторизация в Docker Hub
                         # --password-stdin безопаснее, чем передача пароля в аргументах
@@ -156,15 +153,12 @@ pipeline {
 
     // POST: Действия после завершения pipeline (всегда выполняются)
     post {
-        // always - выполняется независимо от результата
         always {
             echo '🧹 Очистка после сборки...'
             
-            // Удаляем локальный Docker-образ (экономия места на агенте)
-            // 2>/dev/null || true - игнорируем ошибки (если образа нет)
+            // Удаляем локальный Docker-образ
             sh "docker rmi ${DOCKER_REGISTRY}/${DOCKER_REPO}:local 2>/dev/null || true"
             
-            // Удаляем чувствительные файлы (секреты, временные данные)
             sh 'rm -f .env docker-image.txt'
             
             // cleanWs() - стандартная команда Jenkins для очистки workspace
@@ -183,7 +177,6 @@ pipeline {
             
         }
         
-        // aborted - если сборка была отменена вручную
         aborted {
             echo '🛑 Сборка была отменена пользователем'
         }
