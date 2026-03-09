@@ -22,7 +22,6 @@ pipeline {
                 echo '📥 Клонируем репозиторий...'
                 checkout scm
                 
-                // ✅ Проверка: файл шаблона существует
                 script {
                     if (!fileExists(env.HEAT_TEMPLATE)) {
                         error "❌ Heat-шаблон не найден: ${HEAT_TEMPLATE}"
@@ -40,12 +39,16 @@ pipeline {
                             # Не нужно echo, файл уже существует
                             chmod 600 "$OPENRC_FILE"
                             set +x
-                            source "$OPENRC_FILE"
+                            . "$OPENRC_FILE"
                             
                             echo "🔑 Проверка подключения к OpenStack..."
                             openstack token issue -f yaml | head -5
                             
                             export OS_AUTH_URL OS_USERNAME OS_PASSWORD OS_PROJECT_NAME OS_REGION_NAME
+
+                            # Копируем в openrc.sh для использования в других стадиях
+                            cp "$OPENRC_FILE" openrc.sh
+                            chmod 600 openrc.sh
                         '''
                     }
                 }
@@ -69,7 +72,7 @@ pipeline {
                         
                         sh '''
                             set +x
-                            source openrc.sh
+                            . openrc.sh
                             openstack stack delete --yes ${STACK_NAME}
                         '''
                         
