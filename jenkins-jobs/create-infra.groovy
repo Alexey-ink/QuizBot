@@ -70,7 +70,7 @@ pipeline {
                         sh '''
                             for i in {1..24}; do
                                 STATUS=$(openstack stack show ${STACK_NAME} -f value -c stack_status 2>/dev/null || echo "DELETED")
-                                if [[ "$STATUS" == "DELETED" || "$STATUS" == "" ]]; then
+                                if [ "$STATUS" == "DELETED" || "$STATUS" == "" ]; then
                                     echo "✅ Стек удалён"
                                     break
                                 fi
@@ -89,7 +89,8 @@ pipeline {
                     echo "🚀 Создание стека '${STACK_NAME}'..."
                     echo "   Шаблон: ${HEAT_TEMPLATE}"
                     
-                    sh '''                        
+                    sh '''  
+                        set +x                      
                         # ✅ Параметры подтянутся из дефолтов шаблона
                         openstack stack create \
                             -t ${HEAT_TEMPLATE} \
