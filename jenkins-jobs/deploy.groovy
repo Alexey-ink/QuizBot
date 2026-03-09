@@ -110,6 +110,16 @@ pipeline {
                 }
             }
         }
+
+        stage('Test SSH Connection') {
+            steps {
+                sshagent(["${SSH_KEY_NAME}"]) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@${VM_IP} "echo ✅ SSH OK"
+                    '''
+                }
+            }
+        }
         
         // ========================================================================
         // 🐳 Pull Docker Image на VM (с SSH ключом из Jenkins)
@@ -119,7 +129,7 @@ pipeline {
                 sshagent(["${SSH_KEY_NAME}"]) {
                     script {
                         def VM_USER = 'ubuntu'
-                        def APP_DIR = '/opt/currency-converter-bot'
+                        def APP_DIR = '/opt/quizbot'
                         
                         echo "🐳 Deploying to ${VM_USER}@${env.VM_IP}..."
                         
