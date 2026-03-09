@@ -38,7 +38,7 @@ pipeline {
                         sh '''
                             cp "$OPENRC_FILE" openrc.sh
                             chmod 600 openrc.sh   
-                            . openrc.sh
+                            . ./openrc.sh
                             
                             echo "🔑 Проверка подключения к OpenStack..."
                             openstack token issue -f yaml | head -5
@@ -57,7 +57,7 @@ pipeline {
                     echo "🧹 Проверка существующего стека '${STACK_NAME}'..."
                     
                     def stackStatus = sh(
-                        script: ". openrc.sh && openstack stack show ${STACK_NAME} -f value -c stack_status 2>/dev/null || echo 'NOT_FOUND'",
+                        script: ". ./openrc.sh && openstack stack show ${STACK_NAME} -f value -c stack_status 2>/dev/null || echo 'NOT_FOUND'",
                         returnStdout: true
                     ).trim()
                     
@@ -68,7 +68,7 @@ pipeline {
                         
                         sh '''
                             set +x
-                            . openrc.sh
+                            . ./openrc.sh
                             openstack stack delete --yes ${STACK_NAME}
                         '''
                         
@@ -97,7 +97,7 @@ pipeline {
                     
                     sh '''
                         set +x
-                        . openrc.sh
+                        . ./openrc.sh
                         
                         # ✅ Параметры подтянутся из дефолтов шаблона
                         openstack stack create \
@@ -117,7 +117,7 @@ pipeline {
                     echo "📥 Получаем выходные параметры стека..."
                     
                     env.SERVER_IP = sh(
-                        script: ". openrc.sh && openstack stack output show -c output_value -f value ${STACK_NAME} server_private_ip",
+                        script: ". ./openrc.sh.sh && openstack stack output show -c output_value -f value ${STACK_NAME} server_private_ip",
                         returnStdout: true
                     ).trim()
 
@@ -142,7 +142,7 @@ pipeline {
     post {
         always {
             echo '📦 Завершение...'
-            sh 'rm -f openrc.sh'
+            sh 'rm -f ./openrc.sh'
             cleanWs()
         }
         failure {
@@ -150,7 +150,7 @@ pipeline {
             echo "🔍 Проверьте OpenStack dashboard"
             sh '''
                 set +x
-                . openrc.sh 2>/dev/null || true
+                . ./openrc.sh 2>/dev/null || true
                 if openstack stack show ${STACK_NAME} &>/dev/null; then
                     echo "🗑️ Очищаем частично созданный стек..."
                     openstack stack delete --yes ${STACK_NAME} || true
