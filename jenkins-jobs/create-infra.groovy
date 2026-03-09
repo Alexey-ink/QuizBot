@@ -101,7 +101,7 @@ pipeline {
                     
                     sh '''
                         set +x
-                        source openrc.sh
+                        . openrc.sh
                         
                         # ✅ Параметры подтянутся из дефолтов шаблона
                         openstack stack create \
@@ -154,7 +154,7 @@ pipeline {
             echo "🔍 Проверьте OpenStack dashboard"
             sh '''
                 set +x
-                source openrc.sh 2>/dev/null || true
+                . openrc.sh 2>/dev/null || true
                 if openstack stack show ${STACK_NAME} &>/dev/null; then
                     echo "🗑️ Очищаем частично созданный стек..."
                     openstack stack delete --yes ${STACK_NAME} || true
