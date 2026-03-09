@@ -117,7 +117,7 @@ pipeline {
                     echo "📥 Получаем выходные параметры стека..."
                     
                     env.SERVER_IP = sh(
-                        script: ". ./openrc.sh.sh && openstack stack output show -c output_value -f value ${STACK_NAME} server_private_ip",
+                        script: ". ./openrc.sh && openstack stack output show -c output_value -f value ${STACK_NAME} server_private_ip",
                         returnStdout: true
                     ).trim()
 
