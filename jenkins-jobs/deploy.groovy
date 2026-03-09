@@ -133,23 +133,12 @@ pipeline {
 
                         printStep("Copying .env from credentials...")
 
-                        withCredentials([file(credentialsId: 'currency-bot-env-arseniy', variable: 'ENV_FILE')]) {
+                        withCredentials([file(credentialsId: 'quizbot-env-file', variable: 'ENV_FILE')]) {
                             sh """
                                 scp -o StrictHostKeyChecking=no \\
                                     -o UserKnownHostsFile=/dev/null \\
                                     "\${ENV_FILE}" \\
                                     ${VM_USER}@${env.VM_IP}:/tmp/.env.tmp
-                            """
-                        }
-
-                        printStep("Copying vault-init.sh from credentials...")
-
-                        withCredentials([file(credentialsId: 'vault-init-script-arseniy', variable: 'INIT_SCRIPT')]) {
-                            sh """
-                                scp -o StrictHostKeyChecking=no \\
-                                    -o UserKnownHostsFile=/dev/null \\
-                                    "\${INIT_SCRIPT}" \\
-                                    ${VM_USER}@${env.VM_IP}:/tmp/init-vault.sh.tmp
                             """
                         }
                         
@@ -171,11 +160,6 @@ pipeline {
                                 sudo mv /tmp/.env.tmp \${APP_DIR}/.env
                                 sudo chown ${VM_USER}:${VM_USER} \${APP_DIR}/.env
                                 sudo chmod 600 \${APP_DIR}/.env
-
-                                sudo mkdir -p \${APP_DIR}/vault/scripts
-                                sudo mv /tmp/init-vault.sh.tmp \${APP_DIR}/vault/scripts/init-vault.sh
-                                sudo chown ${VM_USER}:${VM_USER} \${APP_DIR}/vault/scripts/init-vault.sh
-                                sudo chmod 700 \${APP_DIR}/vault/scripts/init-vault.sh
                                 
                                 cd \${APP_DIR}
                                 
