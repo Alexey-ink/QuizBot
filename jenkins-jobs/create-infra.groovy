@@ -128,7 +128,7 @@ pipeline {
                     echo "🌍 Инфраструктура готова: ${env.SERVER_IP}"
                     
                     sh """
-                        openstack stack output show --all --format json ${STACK_NAME} > stack_outputs.json
+                        . ./openrc.sh && openstack stack output show --all --format json ${STACK_NAME} > stack_outputs.json
                     """
             
                     echo "✅ Outputs сохранены в stack_outputs.json"
