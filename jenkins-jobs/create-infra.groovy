@@ -34,12 +34,13 @@ pipeline {
         stage('Load OpenStack Credentials') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: env.OS_CREDENTIALS_ID, variable: 'OPENRC_CONTENT')]) {
+                    // ✅ Изменили string() на file()
+                    withCredentials([file(credentialsId: env.OS_CREDENTIALS_ID, variable: 'OPENRC_FILE')]) {
                         sh '''
-                            echo "$OPENRC_CONTENT" > openrc.sh
-                            chmod 600 openrc.sh
+                            # Не нужно echo, файл уже существует
+                            chmod 600 "$OPENRC_FILE"
                             set +x
-                            source openrc.sh
+                            source "$OPENRC_FILE"
                             
                             echo "🔑 Проверка подключения к OpenStack..."
                             openstack token issue -f yaml | head -5
@@ -159,7 +160,7 @@ pipeline {
         }
         success {
             echo "🎉 Инфраструктура создана успешно!"
-            echo "🔐 SSH: ssh -i ~/.ssh/Arseniy ubuntu@${env.SERVER_IP}"
+            echo "🔐 SSH: ssh ubuntu@${env.SERVER_IP}"
         }
     }
 }
