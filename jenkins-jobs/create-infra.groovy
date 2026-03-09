@@ -163,13 +163,18 @@ def loadSecretsIntoEnv(String credentialId) {
                 def line = rawLine.trim()
                 if (!line || line.startsWith('#')) return
                 
-                // Разделяем по первому '='
+                // ✅ Удаляем префикс "export " если есть
+                if (line.startsWith('export ')) {
+                    line = line.substring(7).trim()
+                }
+                
                 def parts = line.split('=', 2)
                 if (parts.length != 2) return
                 
                 def key = parts[0].trim()
                 def value = parts[1].trim()
                 
+                // Удаляем кавычки
                 while (value.length() >= 2 && 
                       ((value.startsWith('"') && value.endsWith('"')) || 
                        (value.startsWith("'") && value.endsWith("'")))) {
@@ -177,9 +182,15 @@ def loadSecretsIntoEnv(String credentialId) {
                 }
                 value = value.trim()
                 
-                // записываем в env.* — доступно во всём пайплайне!
+                // Записываем в env.*
                 env."${key}" = value
-                echo "✅ Loaded: ${key}"
+                
+                // ✅ Не логируем пароль
+                if (key == 'OS_PASSWORD') {
+                    echo "✅ Loaded: ${key}=***"
+                } else {
+                    echo "✅ Loaded: ${key}=${value}"
+                }
                 
             } catch (Exception e) {
                 echo "❌ Error loading ${key ?: 'unknown'}: ${e.message}"
