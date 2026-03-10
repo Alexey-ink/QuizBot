@@ -9,7 +9,7 @@ pipeline {
         DOCKER_REPO = 'alexeyshihalev/quizbot'
         
         // Имя credentials в Jenkins (SSH Username with private key)
-        SSH_KEY_NAME = 'shihalev-ssh-key'
+        SSH_KEY_NAME = 'shihalev-key'
 
         INFRA_ARTIFACT_JOB = 'shihalev/create-infra-pipeline'
         BUILD_ARTIFACT_JOB = 'shihalev/build-pipeline'
@@ -128,7 +128,7 @@ pipeline {
             steps {
                 sshagent(["${SSH_KEY_NAME}"]) {
                     script {
-                        def VM_USER = 'jenkins'
+                        def VM_USER = 'ubuntu'
                         def APP_DIR = '/opt/quizbot'
                         
                         echo "🐳 Deploying to ${VM_USER}@${env.VM_IP}..."
