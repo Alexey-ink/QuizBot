@@ -128,7 +128,7 @@ pipeline {
             steps {
                 sshagent(["${SSH_KEY_NAME}"]) {
                     script {
-                        def VM_USER = 'ubuntu'
+                        def VM_USER = 'jenkins'
                         def APP_DIR = '/opt/quizbot'
                         
                         echo "🐳 Deploying to ${VM_USER}@${env.VM_IP}..."
