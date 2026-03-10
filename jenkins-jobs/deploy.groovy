@@ -143,7 +143,7 @@ pipeline {
 
                         printStep("Copying .env from credentials...")
 
-                        withCredentials([file(credentialsId: 'quizbot-env-file', variable: 'ENV_FILE')]) {
+                        withCredentials([file(credentialsId: 'shihalev-env-file', variable: 'ENV_FILE')]) {
                             sh """
                                 scp -o StrictHostKeyChecking=no \\
                                     -o UserKnownHostsFile=/dev/null \\
