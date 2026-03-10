@@ -129,16 +129,24 @@ pipeline {
                 sshagent(["${SSH_KEY_NAME}"]) {
                     script {
                         def VM_USER = 'ubuntu'
-                        def APP_DIR = '/opt/quizbot'
+                        def APP_DIR = '/home/ubuntu/quizbot'
                         
                         echo "🐳 Deploying to ${VM_USER}@${env.VM_IP}..."
+                        
+                        printStep("Creating app directory...")
+                        sh """
+                            ssh -o StrictHostKeyChecking=no \\
+                                -o UserKnownHostsFile=/dev/null \\
+                                ${VM_USER}@${env.VM_IP} \\
+                                "sudo mkdir -p ${APP_DIR}"
+                        """
                         
                         printStep("Copying docker-compose.yaml...")
                         sh """
                             scp -o StrictHostKeyChecking=no \\
                                 -o UserKnownHostsFile=/dev/null \\
                                 docker-compose.yaml \\
-                                ${VM_USER}@${env.VM_IP}:~/docker-compose.yaml.tmp
+                                ${VM_USER}@${env.VM_IP}:${APP_DIR}/docker-compose.yaml
                         """
 
                         printStep("Copying .env from credentials...")
@@ -148,7 +156,7 @@ pipeline {
                                 scp -o StrictHostKeyChecking=no \\
                                     -o UserKnownHostsFile=/dev/null \\
                                     "\${ENV_FILE}" \\
-                                    ${VM_USER}@${env.VM_IP}:/tmp/.env.tmp
+                                    ${VM_USER}@${env.VM_IP}:${APP_DIR}/.env
                             """
                         }
                         
@@ -160,21 +168,12 @@ pipeline {
                                 ${VM_USER}@${env.VM_IP} << 'REMOTEOF'
                                 
                                 set -e
-                                APP_DIR="${APP_DIR}"
-
-                                echo "📁 Creating app directory..."
-                                sudo mkdir -p \${APP_DIR}
                                 
-                                echo "📁 Moving files to app directory..."
+                                echo "🔒 Setting permissions..."
+                                sudo chown ${VM_USER}:${VM_USER} ${APP_DIR}/docker-compose.yaml
+                                sudo chmod 600 ${APP_DIR}/.env
                                 
-                                sudo mv ~/docker-compose.yaml.tmp \${APP_DIR}/docker-compose.yaml
-                                sudo chown ${VM_USER}:${VM_USER} \${APP_DIR}/docker-compose.yaml
-
-                                sudo mv /tmp/.env.tmp \${APP_DIR}/.env
-                                sudo chown ${VM_USER}:${VM_USER} \${APP_DIR}/.env
-                                sudo chmod 600 \${APP_DIR}/.env
-                                
-                                cd \${APP_DIR}
+                                cd ${APP_DIR}
                                 
                                 echo "📥 Pulling image: ${env.DOCKER_IMAGE}"
                                 docker pull ${env.DOCKER_IMAGE}
@@ -190,13 +189,12 @@ pipeline {
                                 docker image prune -f
                                 
                                 echo "✅ Deployment complete"
-    REMOTEOF
-    """
+                    REMOTEOF
+                    """
                     }
                 }
             }
         }
-    }
     
     post {
         always {
