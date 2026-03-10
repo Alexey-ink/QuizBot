@@ -161,6 +161,9 @@ pipeline {
                                 
                                 set -e
                                 APP_DIR="${APP_DIR}"
+
+                                echo "📁 Creating app directory..."
+                                sudo mkdir -p \${APP_DIR}
                                 
                                 echo "📁 Moving files to app directory..."
                                 
