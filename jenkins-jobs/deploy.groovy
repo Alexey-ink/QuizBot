@@ -128,7 +128,7 @@ pipeline {
                             ssh -o StrictHostKeyChecking=no \\
                                 -o UserKnownHostsFile=/dev/null \\
                                 ${VM_USER}@${env.VM_IP} \\
-                                "sudo mkdir -p ${APP_DIR}"
+                                "mkdir -p ${APP_DIR}"
                         """
                         
                         printStep("Copying docker-compose.yaml...")
