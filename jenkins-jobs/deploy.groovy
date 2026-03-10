@@ -115,76 +115,134 @@ pipeline {
         // 🐳 Pull Docker Image на VM (с SSH ключом из Jenkins)
         // ========================================================================
         stage('Pull Docker Image on VM') {
-            steps {
-                sshagent(["${SSH_KEY_NAME}"]) {
-                    script {
-                        def VM_USER = 'ubuntu'
-                        def APP_DIR = '/home/ubuntu/quizbot'
+    steps {
+        sshagent(["${SSH_KEY_NAME}"]) {
+            script {
+                def VM_USER = 'ubuntu'
+                def APP_DIR = '/home/ubuntu/quizbot'
+                
+                echo "🐳 Deploying to ${VM_USER}@${env.VM_IP}..."
+                
+                // ✅ 1. Создаём директорию и фиксируем права
+                printStep("Creating app directory...")
+                sh """
+                    ssh -o StrictHostKeyChecking=no \\
+                        -o UserKnownHostsFile=/dev/null \\
+                        ${VM_USER}@${env.VM_IP} \\
+                        "mkdir -p ${APP_DIR} && sudo chown ${VM_USER}:${VM_USER} ${APP_DIR}"
+                """
+                
+                // ✅ 2. Проверяем и устанавливаем Docker при необходимости
+                printStep("Checking Docker installation...")
+                sh """
+                    ssh -o StrictHostKeyChecking=no \\
+                        -o UserKnownHostsFile=/dev/null \\
+                        ${VM_USER}@${env.VM_IP} << 'DOCKEREOF'
                         
-                        echo "🐳 Deploying to ${VM_USER}@${env.VM_IP}..."
+                        set -e
                         
-                        printStep("Creating app directory...")
-                        sh """
-                            ssh -o StrictHostKeyChecking=no \\
-                                -o UserKnownHostsFile=/dev/null \\
-                                ${VM_USER}@${env.VM_IP} \\
-                                "mkdir -p ${APP_DIR}"
-                        """
-                        
-                        printStep("Copying docker-compose.yaml...")
-                        sh """
-                            scp -o StrictHostKeyChecking=no \\
-                                -o UserKnownHostsFile=/dev/null \\
-                                docker-compose.yaml \\
-                                ${VM_USER}@${env.VM_IP}:${APP_DIR}/docker-compose.yaml
-                        """
+                        # Проверяем, установлен ли docker
+                        if ! command -v docker &> /dev/null; then
+                            echo "🔧 Docker not found, installing..."
+                            
+                            # Обновляем пакеты
+                            sudo apt-get update -qq
+                            
+                            # Устанавливаем зависимости
+                            sudo apt-get install -y -qq \\
+                                ca-certificates \\
+                                curl \\
+                                gnupg \\
+                                lsb-release
+                            
+                            # Добавляем GPG ключ Docker
+                            sudo install -m 0755 -d /etc/apt/keyrings
+                            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \\
+                                sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+                            sudo chmod a+r /etc/apt/keyrings/docker.gpg
+                            
+                            # Добавляем репозиторий
+                            echo \\
+                              "deb [arch=\$(dpkg --print-architecture) \\
+                              signed-by=/etc/apt/keyrings/docker.gpg] \\
+                              https://download.docker.com/linux/ubuntu \\
+                              \$(. /etc/os-release && echo "\$VERSION_CODENAME") stable" | \\
+                              sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+                            
+                            # Устанавливаем Docker
+                            sudo apt-get update -qq
+                            sudo apt-get install -y -qq \\
+                                docker-ce \\
+                                docker-ce-cli \\
+                                containerd.io \\
+                                docker-buildx-plugin \\
+                                docker-compose-plugin
+                            
+                            # Добавляем пользователя в группу docker
+                            sudo usermod -aG docker ${VM_USER}
+                            
+                            echo "✅ Docker installed successfully"
+                        else
+                            echo "✅ Docker already installed: \$(docker --version)"
+                        fi
+DOCKEREOF
+                """
+                
+                // ✅ 3. Копируем файлы
+                printStep("Copying docker-compose.yaml...")
+                sh """
+                    scp -o StrictHostKeyChecking=no \\
+                        -o UserKnownHostsFile=/dev/null \\
+                        docker-compose.yaml \\
+                        ${VM_USER}@${env.VM_IP}:${APP_DIR}/docker-compose.yaml
+                """
 
-                        printStep("Copying .env from credentials...")
-
-                        withCredentials([file(credentialsId: 'shihalev-env-file', variable: 'ENV_FILE')]) {
-                            sh """
-                                scp -o StrictHostKeyChecking=no \\
-                                    -o UserKnownHostsFile=/dev/null \\
-                                    "\${ENV_FILE}" \\
-                                    ${VM_USER}@${env.VM_IP}:${APP_DIR}/.env
-                            """
-                        }
-                        
-                        printStep("Pulling image and restarting containers...")
-                        
-                        sh """
-                            ssh -o StrictHostKeyChecking=no \\
-                                -o UserKnownHostsFile=/dev/null \\
-                                ${VM_USER}@${env.VM_IP} << 'REMOTEOF'
-                                
-                                set -e
-                                
-                                echo "🔒 Setting permissions..."
-                                sudo chown ${VM_USER}:${VM_USER} ${APP_DIR}/docker-compose.yaml
-                                sudo chmod 600 ${APP_DIR}/.env
-                                
-                                cd ${APP_DIR}
-                                
-                                echo "📥 Pulling image: ${env.DOCKER_IMAGE}"
-                                docker pull ${env.DOCKER_IMAGE}
-                                
-                                echo "🔄 Updating image tag in docker-compose.yaml"
-                                sudo sed -i "s|<image>|${env.DOCKER_IMAGE}|g" docker-compose.yaml
-                                
-                                echo "🚀 Restarting containers"
-                                docker compose down
-                                docker compose up -d
-                                
-                                echo "🧹 Cleaning up old images"
-                                docker image prune -f
-                                
-                                echo "✅ Deployment complete"
-                    REMOTEOF
+                printStep("Copying .env from credentials...")
+                withCredentials([file(credentialsId: 'shihalev-env-file', variable: 'ENV_FILE')]) {
+                    sh """
+                        scp -o StrictHostKeyChecking=no \\
+                            -o UserKnownHostsFile=/dev/null \\
+                            "\${ENV_FILE}" \\
+                            ${VM_USER}@${env.VM_IP}:${APP_DIR}/.env
                     """
-                    }
                 }
+                
+                // ✅ 4. Деплой приложения
+                printStep("Pulling image and restarting containers...")
+                sh """
+                    ssh -o StrictHostKeyChecking=no \\
+                        -o UserKnownHostsFile=/dev/null \\
+                        ${VM_USER}@${env.VM_IP} << 'REMOTEOF'
+                        
+                        set -e
+                        
+                        echo "🔒 Setting permissions..."
+                        sudo chown ${VM_USER}:${VM_USER} ${APP_DIR}/docker-compose.yaml
+                        sudo chmod 600 ${APP_DIR}/.env
+                        
+                        cd ${APP_DIR}
+                        
+                        # ✅ Важно: используем sudo для docker, т.к. группа docker может не примениться в текущей сессии
+                        echo "📥 Pulling image: ${env.DOCKER_IMAGE}"
+                        sudo docker pull ${env.DOCKER_IMAGE}
+                        
+                        echo "🔄 Updating image tag in docker-compose.yaml"
+                        sed -i "s|<image>|${env.DOCKER_IMAGE}|g" docker-compose.yaml
+                        
+                        echo "🚀 Restarting containers"
+                        sudo docker compose down
+                        sudo docker compose up -d
+                        
+                        echo "🧹 Cleaning up old images"
+                        sudo docker image prune -f
+                        
+                        echo "✅ Deployment complete"
+REMOTEOF
+                """
             }
         }
+    }
+}
     }
     
     post {
