@@ -110,16 +110,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Test SSH Connection') {
-            steps {
-                sshagent(["${SSH_KEY_NAME}"]) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no ubuntu@${VM_IP} "echo ✅ SSH OK"
-                    '''
-                }
-            }
-        }
         
         // ========================================================================
         // 🐳 Pull Docker Image на VM (с SSH ключом из Jenkins)
@@ -195,6 +185,7 @@ pipeline {
                 }
             }
         }
+    }
     
     post {
         always {
