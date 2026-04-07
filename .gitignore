@@ -36,3 +36,5 @@ terraform.tfvars
 *.tfvars.json
 
 quizbot.yml
+
+.DS_Store
