@@ -1,0 +1,18 @@
+all:
+  children:
+    quizbot:
+      hosts:
+        quizbot_server:
+          ansible_host: "{{ lookup('env', 'SERVER_IP') }}"
+          ansible_user: ubuntu
+          ansible_ssh_private_key_file: "~/.ssh/id_ed25519"
+      vars:
+        # Общие переменные для группы [quizbot]
+        app_user: ubuntu
+        app_group: ubuntu
+        app_dir: /opt/quizbot
+        
+        # PostgreSQL (Managed Yandex Cloud) — публичные значения
+        postgres_port: 6432
+        postgres_db: quizbot
+        postgres_user: quizbot_user

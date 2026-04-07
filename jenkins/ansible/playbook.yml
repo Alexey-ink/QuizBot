@@ -1,0 +1,134 @@
+---
+- name: Provision QuizBot VM (Managed PostgreSQL + .env config)
+  hosts: quizbot
+  become: true
+  gather_facts: true
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+  vars:
+    # === Пути и пользователь ===
+    app_user: ubuntu
+    app_group: ubuntu
+    app_dir: /opt/quizbot
+
+    # === PostgreSQL (Managed) ===
+    postgres_host: "{{ managed_postgres_endpoint }}"
+    postgres_port: 6432
+    postgres_db: quizbot
+    postgres_user: quizbot_user
+
+  tasks:
+    # 1. Ожидание завершения cloud-init
+    - name: Wait for cloud-init to complete
+      wait_for:
+        path: /var/lib/cloud/instance/boot-finished
+        timeout: 300
+      tags: [init]
+
+    # 2. Базовые пакеты
+    - name: Update apt cache and install base packages
+      apt:
+        name:
+          - curl
+          - postgresql-client
+          - jq
+          - ca-certificates
+        state: present
+        update_cache: true
+      tags: [packages]
+
+    # 3. Установка Docker
+    - name: Install Docker from Ubuntu repository
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+        state: present
+      tags: [docker]
+
+    - name: Enable and start Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: true # Автозапуск при загрузке
+        daemon_reload: true
+      tags: [docker]
+
+    - name: Add {{ app_user }} to docker group
+      user:
+        name: "{{ app_user }}"
+        groups: docker
+        append: true
+      tags: [docker]
+
+    # 4. Настройка подключения к Managed PostgreSQL
+    - name: Create .pgpass for PostgreSQL authentication
+      copy:
+        dest: "/home/{{ app_user }}/.pgpass"
+        content: "{{ postgres_host }}:{{ postgres_port }}:{{ postgres_db }}:{{ postgres_user }}:{{ postgres_password }}"
+        mode: '0600'
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+      no_log: true
+      tags: [postgres, config]
+
+    # 5. Создание .env файла для приложения
+    - name: Create application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0755"
+      tags: [app]
+
+    - name: Generate .env file from template
+      template:
+        src: "./app.env"
+        dest: "{{ app_dir }}/.env"
+        mode: '0640'
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        backup: true
+      no_log: true
+      tags: [app, config]
+
+
+    # 8. Проверки
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_version
+      changed_when: false
+      tags: [test]
+
+    - name: Show Docker version
+      debug:
+        msg: "✅ Docker: {{ docker_version.stdout }}"
+      tags: [test]
+
+    - name: Test PostgreSQL connection
+      become_user: "{{ app_user }}"  # ✅ Запускать от имени ubuntu, у которого есть .pgpass
+      environment:
+        PGPASSWORD: "{{ postgres_password }}"  # ✅ Явно передаём пароль
+      command: >
+        psql -h {{ postgres_host }} -p {{ postgres_port }} -U {{ postgres_user }} -d {{ postgres_db }}
+        -c "SELECT 1"
+      register: db_test
+      changed_when: false
+      failed_when: false
+      no_log: false  # ✅ Включаем лог для отладки
+      tags: [postgres, test]
+
+    - name: Report PostgreSQL connection status
+      debug:
+        msg: |
+          {% if db_test.rc == 0 %}
+          ✅ PostgreSQL connection OK
+          {% else %}
+          ⚠️ Could not connect to PostgreSQL. Check:
+          - Security group rules (port {{ postgres_port }})
+          - Credentials (postgres_password)
+          - Endpoint: {{ postgres_host }}
+          {% endif %}
+      tags: [postgres, test]
