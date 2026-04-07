@@ -37,6 +37,39 @@ pipeline {
             }
         }
 
+        stage('Setup Java') {
+            steps {
+                script {
+                    // Проверяем, есть ли уже Java 23
+                    def javaVersion = sh(script: 'java -version 2>&1 | head -n 1', returnStdout: true).trim()
+                    echo "Текущая Java: ${javaVersion}"
+                    
+                    if (!javaVersion.contains('23')) {
+                        echo '⚠️ Java 23 не найдена. Устанавливаем...'
+                        
+                        sh '''
+                            # Скачиваем и устанавливаем Java 23
+                            cd /tmp
+                            wget -q https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23%2B37/OpenJDK23U-jdk_x64_linux_hotspot_23_37.tar.gz
+                            
+                            # Распаковываем
+                            sudo mkdir -p /opt/java/openjdk-23
+                            sudo tar -xzf OpenJDK23U-jdk_x64_linux_hotspot_23_37.tar.gz -C /opt/java/openjdk-23 --strip-components=1
+                            
+                            # Настраиваем PATH для текущей сессии
+                            export JAVA_HOME=/opt/java/openjdk-23
+                            export PATH=$JAVA_HOME/bin:$PATH
+                            
+                            # Проверяем
+                            java -version
+                        '''
+                    } else {
+                        echo '✅ Java 23 уже установлена'
+                    }
+                }
+            }
+        }
+        
         stage('Build & Test') {
             // 🔨 Компиляция проекта и запуск тестов через Gradle
             steps {
