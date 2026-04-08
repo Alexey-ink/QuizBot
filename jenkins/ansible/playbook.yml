@@ -1,25 +1,13 @@
 ---
-- name: Provision QuizBot VM (Managed PostgreSQL + .env config)
+- name: Prepare QuizBot VM environment
   hosts: quizbot
   become: true
   gather_facts: true
   environment:
     DEBIAN_FRONTEND: noninteractive
 
-  vars:
-    # === Пути и пользователь ===
-    app_user: ubuntu
-    app_group: ubuntu
-    app_dir: /opt/quizbot
-
-    # === PostgreSQL (Managed) ===
-    postgres_host: "{{ managed_postgres_endpoint }}"
-    postgres_port: 6432
-    postgres_db: quizbot
-    postgres_user: quizbot_user
-
   tasks:
-    # 1. Ожидание завершения cloud-init
+    # 1. Инициализация и ожидание cloud-init
     - name: Wait for cloud-init to complete
       wait_for:
         path: /var/lib/cloud/instance/boot-finished
@@ -27,23 +15,25 @@
       tags: [init]
 
     # 2. Базовые пакеты
-    - name: Update apt cache and install base packages
+    - name: Install base packages
       apt:
         name:
           - curl
-          - postgresql-client
+          - wget
           - jq
           - ca-certificates
+          - gnupg
+          - acl
         state: present
         update_cache: true
       tags: [packages]
 
     # 3. Установка Docker
-    - name: Install Docker from Ubuntu repository
+    - name: Install Docker
       apt:
         name:
           - docker.io
-          - docker-compose
+          - docker-compose-plugin
         state: present
       tags: [docker]
 
@@ -51,7 +41,7 @@
       systemd:
         name: docker
         state: started
-        enabled: true # Автозапуск при загрузке
+        enabled: true
         daemon_reload: true
       tags: [docker]
 
@@ -62,18 +52,50 @@
         append: true
       tags: [docker]
 
-    # 4. Настройка подключения к Managed PostgreSQL
-    - name: Create .pgpass for PostgreSQL authentication
-      copy:
-        dest: "/home/{{ app_user }}/.pgpass"
-        content: "{{ postgres_host }}:{{ postgres_port }}:{{ postgres_db }}:{{ postgres_user }}:{{ postgres_password }}"
-        mode: '0600'
+    # 4. Подготовка диска для PostgreSQL
+    - name: Check if disk is already formatted
+      # Проверяем, есть ли файловая система на диске
+      command: blkid -s TYPE -o value {{ postgres_disk_device }}
+      register: disk_check
+      failed_when: false
+      changed_when: false
+      tags: [disk]
+
+    # Форматируем диск, если на нем нет файловой системы
+    - name: Format disk as {{ postgres_disk_fstype }}
+      filesystem:
+        fstype: "{{ postgres_disk_fstype }}"
+        dev: "{{ postgres_disk_device }}"
+      when: disk_check.stdout == ""
+      tags: [disk]
+
+    - name: Create mount point directory
+      file:
+        path: "{{ postgres_disk_mount }}"
+        state: directory
+        mode: "0755"
+      tags: [disk]
+
+    # Монтируем диск (или проверяем, что он уже смонтирован)
+    - name: Mount disk to {{ postgres_disk_mount }}
+      mount:
+        path: "{{ postgres_disk_mount }}"
+        src: "{{ postgres_disk_device }}"
+        fstype: "{{ postgres_disk_fstype }}"
+        state: mounted
+        opts: defaults,nofail,noatime
+      tags: [disk]
+
+    # Устанавливаем права на директорию для PostgreSQL
+    - name: Ensure directory is writable by docker group
+      file:
+        path: "{{ postgres_disk_mount }}"
         owner: "{{ app_user }}"
         group: "{{ app_group }}"
-      no_log: true
-      tags: [postgres, config]
+        mode: "0775"
+      tags: [disk]
 
-    # 5. Создание .env файла для приложения
+    # 5. Подготовка конфигурации приложения
     - name: Create application directory
       file:
         path: "{{ app_dir }}"
@@ -81,54 +103,14 @@
         owner: "{{ app_user }}"
         group: "{{ app_group }}"
         mode: "0755"
-      tags: [app]
+      tags: [config]
 
-    - name: Generate .env file from template
-      template:
-        src: "./app.env"
-        dest: "{{ app_dir }}/.env"
-        mode: '0640'
-        owner: "{{ app_user }}"
-        group: "{{ app_group }}"
-        backup: true
-      no_log: true
-      tags: [app, config]
-
-
-    # 8. Проверки
-    - name: Verify Docker installation
-      command: docker --version
-      register: docker_version
-      changed_when: false
-      tags: [test]
-
-    - name: Show Docker version
-      debug:
-        msg: "✅ Docker: {{ docker_version.stdout }}"
-      tags: [test]
-
-    - name: Test PostgreSQL connection
-      become_user: "{{ app_user }}"  # ✅ Запускать от имени ubuntu, у которого есть .pgpass
-      environment:
-        PGPASSWORD: "{{ postgres_password }}"  # ✅ Явно передаём пароль
-      command: >
-        psql -h {{ postgres_host }} -p {{ postgres_port }} -U {{ postgres_user }} -d {{ postgres_db }}
-        -c "SELECT 1"
-      register: db_test
-      changed_when: false
-      failed_when: false
-      no_log: false  # ✅ Включаем лог для отладки
-      tags: [postgres, test]
-
-    - name: Report PostgreSQL connection status
+    - name: Show environment ready message
       debug:
         msg: |
-          {% if db_test.rc == 0 %}
-          ✅ PostgreSQL connection OK
-          {% else %}
-          ⚠️ Could not connect to PostgreSQL. Check:
-          - Security group rules (port {{ postgres_port }})
-          - Credentials (postgres_password)
-          - Endpoint: {{ postgres_host }}
-          {% endif %}
-      tags: [postgres, test]
+          ✅ Environment prepared successfully!
+          ─────────────────────────────
+          Server: {{ ansible_host }}
+          App dir: {{ app_dir }}
+          Data disk: {{ postgres_disk_device }} → {{ postgres_disk_mount }}
+      tags: [ready]
