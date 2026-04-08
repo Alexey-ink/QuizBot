@@ -33,7 +33,7 @@
       apt:
         name:
           - docker.io
-          - docker-compose-plugin
+          - docker-compose
         state: present
       tags: [docker]
 
