@@ -110,8 +110,8 @@ pipeline {
                     dir("${env.ANSIBLE_DIR}") {
                         script {
                             // Читаем IP из предыдущей стадии
-                            def serverIP = readFile(file: "../server_ip.txt").trim()
-                            def diskId = readFile(file: "../disk_id.txt").trim()
+                            def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
+                            def diskId = readFile(file: "${env.WORKSPACE}/disk_id.txt").trim()
                             
                             // Генерируем inventory динамически
                             writeFile(
@@ -171,7 +171,7 @@ pipeline {
                     )
                 ]) {
                     script {
-                        def serverIP = readFile(file: "server_ip.txt").trim()
+                        def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
                         def postgresMount = "/data/postgres"
                         
                         // Генерируем docker-compose.yml из шаблона
@@ -202,7 +202,7 @@ pipeline {
             }
             post {
                 success {
-                    echo "✅ Приложение деплоено на ${readFile(file: 'server_ip.txt').trim()}:8080"
+                    echo "✅ Приложение деплоено на ${readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()}:8080"
                 }
                 failure {
                     echo "❌ Ошибка деплоя! Проверьте логи и выполните откат при необходимости."
@@ -213,7 +213,7 @@ pipeline {
         stage('Health Check') {
             steps {
                 script {
-                    def serverIP = readFile(file: "server_ip.txt").trim()
+                    def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
                     // Простая проверка доступности
                     retry(3) {
                         sh "curl -sf --connect-timeout 10 http://${serverIP}:8080/healthcheck || exit 1"
