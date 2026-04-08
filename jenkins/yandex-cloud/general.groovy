@@ -17,6 +17,7 @@ pipeline {
         POSTGRES_IMAGE = "postgres:17"
         DOCKER_IMAGE = "alexeyshihalev/quizbot"
         DOCKER_TAG = "${env.BUILD_NUMBER}"
+        DOCKER_REGISTRY_URL = 'alexeyshihalev/quizbot'
     }
 
     parameters {
@@ -194,8 +195,8 @@ pipeline {
                             # Запускаем приложение
                             ssh -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no ubuntu@${serverIP} \\
                                 "cd ${env.DEPLOY_DIR} && \\
-                                 docker compose pull && \\
-                                 docker compose up -d --remove-orphans"
+                                 docker-compose pull && \\
+                                 docker-compose up -d --remove-orphans"
                         """
                     }
                 }
