@@ -59,6 +59,11 @@ pipeline {
         }
 
         stage('Terraform: Infrastructure') {
+            when {
+                anyOf {
+                    expression { params.ACTION in ['deploy', 'redeploy'] }
+                }
+            }
             steps {
                 withCredentials([
                     string(credentialsId: 'yc-token', variable: 'YC_TOKEN'),
