@@ -257,7 +257,7 @@ pipeline {
                         sh """
                             export TF_VAR_yc_token="${YC_TOKEN}"
                             terraform init
-                            terraform destroy
+                            terraform destroy -auto-approve
                         """
                     }
                 }

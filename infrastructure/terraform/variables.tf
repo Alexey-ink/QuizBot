@@ -13,6 +13,7 @@ variable "subnet_id" {
 variable "ssh_public_key" {
   type        = string
   description = "Public SSH key for ubuntu user"
+  default = ""
 }
 
 variable "image_family" {
@@ -35,4 +36,5 @@ variable "postgres_password" {
   type        = string
   description = "Password for PostgreSQL user"
   sensitive   = true
+  default     = "postgres"
 }
