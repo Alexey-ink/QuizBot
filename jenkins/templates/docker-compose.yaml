@@ -1,0 +1,40 @@
+# ansible/templates/docker-compose.yml.j2
+version: '3.8'
+
+services:
+  postgres:
+    image: {{ postgres_image }}
+    restart: unless-stopped
+    env_file:
+      - .env  # ✅ Загружает POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+    volumes:
+      - {{ postgres_disk_mount }}:/var/lib/postgresql/data  # 🔥 Bind mount
+    networks:
+      - quiznet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    image: {{ docker_image }}:{{ docker_tag }}
+    restart: unless-stopped
+    env_file:
+      - .env  # ✅ Загружает все переменные приложения
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"  # 🔒 Только localhost!
+    networks:
+      - quiznet
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  quiznet:
+    driver: bridge
