@@ -113,12 +113,12 @@ pipeline {
                             def diskId = readFile(file: "${env.WORKSPACE}/disk_id.txt").trim()
                             
                             // Запускаем playbook
-                            sh '''
+                            sh """
                                 ansible-playbook -i inventory.yml playbook.yml \
                                     --extra-vars "server_ip=${serverIP}" \
                                     --extra-vars "postgres_disk_id=${diskId}" \
                                     -v
-                            '''
+                            """
                         }
                     }
                 }
@@ -236,11 +236,13 @@ pipeline {
 
     post {
         always {
-            // Очистка чувствительных файлов
-            sh 'rm -f server_ip.txt disk_id.txt server_name.txt docker-compose.yml .env'
-            
-            // Логи
-            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true, fingerprint: true
+            sh """
+                rm -f ${env.WORKSPACE}/server_ip.txt \\
+                    ${env.WORKSPACE}/disk_id.txt \\
+                    ${env.WORKSPACE}/server_name.txt \\
+                    ${env.WORKSPACE}/docker-compose.yml \\
+                    ${env.WORKSPACE}/.env
+            """
         }
     }
 }
