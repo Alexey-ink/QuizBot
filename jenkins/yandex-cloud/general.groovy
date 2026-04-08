@@ -184,34 +184,33 @@ pipeline {
                         
                         writeFile(file: 'docker-compose.yml', text: composeContent)
                         
+                        // ✅ Единый блок: фикс прав + копирование с правильным именем + запуск
                         sh """
-                            # 1. Сначала исправляем права на целевом файле (если он существует)
+                            # 1. Исправляем права на ВМ (если файл существует) — для ОБОИХ возможных имён
                             ssh -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no ubuntu@${serverIP} \\
-                                'test -f ${env.DEPLOY_DIR}/.env && chmod u+w ${env.DEPLOY_DIR}/.env || true'
+                                'for f in ${env.DEPLOY_DIR}/.env ${env.DEPLOY_DIR}/app.env; do \\
+                                    test -f "\$f" && chmod u+w "\$f" || true; \\
+                                done'
                             
-                            # 2. Теперь копируем файлы
+                            # 2. Копируем docker-compose.yml
                             scp -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no \\
                                 docker-compose.yml \\
-                                ${ENV_FILE_PATH} \\
                                 ubuntu@${serverIP}:${env.DEPLOY_DIR}/
                             
-                            # 3. Убеждаемся, что после копирования права корректные
+                            # 3. Копируем .env с ЯВНЫМ указанием целевого имени (важно!)
+                            scp -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no \\
+                                ${ENV_FILE_PATH} \\
+                                ubuntu@${serverIP}:${env.DEPLOY_DIR}/.env
+                            
+                            # 4. Фиксируем права после копирования
                             ssh -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no ubuntu@${serverIP} \\
                                 'chmod 664 ${env.DEPLOY_DIR}/.env ${env.DEPLOY_DIR}/docker-compose.yml'
-                        """
-                        // Копируем файлы на сервер и деплоим
-                        sh """
-                            # Копируем docker-compose.yml и .env
-                            scp -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no \\
-                                docker-compose.yml \\
-                                ${ENV_FILE_PATH} \\
-                                ubuntu@${serverIP}:${env.DEPLOY_DIR}/
                             
-                            # Запускаем приложение
+                            # 5. Запускаем приложение
                             ssh -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no ubuntu@${serverIP} \\
                                 "cd ${env.DEPLOY_DIR} && \\
-                                 docker-compose pull && \\
-                                 docker-compose up -d --remove-orphans"
+                                docker-compose pull && \\
+                                docker-compose up -d --remove-orphans"
                         """
                     }
                 }
