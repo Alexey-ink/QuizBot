@@ -256,7 +256,7 @@ pipeline {
                     dir("${env.TF_DIR}") {
                         sh """
                             export TF_VAR_yc_token="${YC_TOKEN}"
-                            terraform init"
+                            terraform init
                             terraform destroy -auto-approve -var="postgres_password=${YC_TOKEN}"
                         """
                     }
