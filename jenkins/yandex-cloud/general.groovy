@@ -81,6 +81,13 @@ pipeline {
                                 sh "terraform apply -auto-approve tfplan"
                             }
                         }
+
+
+                        sh '''
+                            terraform output -raw server_public_ip > ''' + env.WORKSPACE + '''/server_ip.txt
+                            terraform output -raw postgres_disk_id > ''' + env.WORKSPACE + '''/disk_id.txt
+                            terraform output -raw server_name > ''' + env.WORKSPACE + '''/server_name.txt
+                        '''
                     }
                 }
             }
