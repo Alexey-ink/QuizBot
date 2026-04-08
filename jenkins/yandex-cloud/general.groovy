@@ -254,11 +254,11 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'yc-token', variable: 'YC_TOKEN')]) {
                     dir("${env.TF_DIR}") {
-                        sh '''
+                        sh """
                             export TF_VAR_yc_token="${YC_TOKEN}"
                             terraform init"
                             terraform destroy -auto-approve -var="postgres_password=${YC_TOKEN}"
-                        '''
+                        """
                     }
                 }
             }
