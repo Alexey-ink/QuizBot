@@ -113,11 +113,6 @@ pipeline {
                             def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
                             def diskId = readFile(file: "${env.WORKSPACE}/disk_id.txt").trim()
                             
-                            // Генерируем inventory динамически
-                            writeFile(
-                                file: 'inventory.yml'
-                            )
-                            
                             // Запускаем playbook
                             sh '''
                                 ansible-playbook -i inventory.yml playbook.yml \
