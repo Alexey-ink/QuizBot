@@ -184,6 +184,21 @@ pipeline {
                         
                         writeFile(file: 'docker-compose.yml', text: composeContent)
                         
+                        sh """
+                            # 1. Сначала исправляем права на целевом файле (если он существует)
+                            ssh -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no ubuntu@${serverIP} \\
+                                'test -f ${env.DEPLOY_DIR}/.env && chmod u+w ${env.DEPLOY_DIR}/.env || true'
+                            
+                            # 2. Теперь копируем файлы
+                            scp -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no \\
+                                docker-compose.yml \\
+                                ${ENV_FILE_PATH} \\
+                                ubuntu@${serverIP}:${env.DEPLOY_DIR}/
+                            
+                            # 3. Убеждаемся, что после копирования права корректные
+                            ssh -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no ubuntu@${serverIP} \\
+                                'chmod 664 ${env.DEPLOY_DIR}/.env ${env.DEPLOY_DIR}/docker-compose.yml'
+                        """
                         // Копируем файлы на сервер и деплоим
                         sh """
                             # Копируем docker-compose.yml и .env
