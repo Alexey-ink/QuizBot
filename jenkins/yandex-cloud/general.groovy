@@ -17,7 +17,7 @@ pipeline {
         POSTGRES_IMAGE = "postgres:17"
         DOCKER_IMAGE = "alexeyshihalev/quizbot"
         DOCKER_TAG = "${env.BUILD_NUMBER}"
-        DOCKER_REGISTRY_URL = 'alexeyshihalev/quizbot'
+        DOCKER_REGISTRY_URL = 'docker.io'
     }
 
     parameters {
