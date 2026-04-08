@@ -117,6 +117,15 @@ pipeline {
                             def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
                             def diskId = readFile(file: "${env.WORKSPACE}/disk_id.txt").trim()
                             
+                            echo "Waiting for SSH on ${serverIP}..."
+                    
+                            // Ждем, пока порт 22 не станет доступен (таймаут 120 секунд)
+                            sh """
+                                timeout 120 bash -c 'until nc -z ${serverIP} 22; do sleep 5; done'
+                            """
+                            
+                            echo "✅ SSH is ready. Starting Ansible..."
+
                             if (!serverIP) {
                                 error("server_ip is empty!")
                             }

@@ -69,12 +69,14 @@
       when: disk_check.stdout == ""
       tags: [disk]
 
-    - name: Create mount point directory
+    - name: Create PostgreSQL data subdirectory
       file:
-        path: "{{ postgres_disk_mount }}"
+        path: "{{ postgres_disk_mount }}/pgdata"
         state: directory
-        mode: "0755"
-      tags: [disk]
+        owner: "999"
+        group: "999"
+        mode: "0700"
+      tags: [disk, postgres]
 
     # Монтируем диск (или проверяем, что он уже смонтирован)
     - name: Mount disk to {{ postgres_disk_mount }}
