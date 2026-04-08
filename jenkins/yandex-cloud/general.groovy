@@ -65,7 +65,7 @@ pipeline {
                 ]) {
                     dir("${env.TF_DIR}") {
                         // Init
-                        sh "terraform init -backend-config='bucket=${TF_BACKEND_BUCKET}' -reconfigure"
+                        sh "terraform init -reconfigure"
                         
                         // Plan — передаём все переменные явно
                         sh """
@@ -224,7 +224,7 @@ pipeline {
                     dir("${env.TF_DIR}") {
                         sh '''
                             export TF_VAR_yc_token="${YC_TOKEN}"
-                            terraform init -backend-config="bucket=${TF_BACKEND_BUCKET}"
+                            terraform init"
                             terraform destroy -auto-approve -var="postgres_password=${YC_TOKEN}"
                         '''
                     }
