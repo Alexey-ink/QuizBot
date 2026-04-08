@@ -45,6 +45,10 @@ pipeline {
             steps {
                 dir("${env.TF_DIR}") {
                     sh 'terraform fmt -check -recursive || terraform fmt -recursive'
+                    
+                    // Инициализируем провайдеры (без бэкенда, чтобы не требовать доступ к хранилищу)
+                    sh 'terraform init -backend=false'
+                    
                     sh 'terraform validate'
                 }
                 dir("${env.ANSIBLE_DIR}") {
