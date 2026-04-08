@@ -150,8 +150,8 @@ pipeline {
                     sh """
                         echo "${DOCKER_PASS}" | docker login ${DOCKER_REGISTRY_URL} -u "${DOCKER_USER}" --password-stdin
                         # Если нужно собрать образ:
-                        # docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
-                        # docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
                     """
                 }
             }
