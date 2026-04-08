@@ -58,47 +58,30 @@ pipeline {
         }
 
         stage('Terraform: Infrastructure') {
-            when {
-                anyOf {
-                    expression { params.ACTION in ['deploy', 'redeploy'] }
-                }
-            }
             steps {
                 withCredentials([
                     string(credentialsId: 'yc-token', variable: 'YC_TOKEN'),
-                    string(credentialsId: 'ssh-public-key', variable: 'SSH_PUB_KEY') // опционально
+                    string(credentialsId: 'ssh-public-key', variable: 'SSH_PUB_KEY')
                 ]) {
                     dir("${env.TF_DIR}") {
-                        // Инициализация с безопасным хранением токена
-                        sh '''
-                            export TF_VAR_yc_token="${YC_TOKEN}"
-                            export TF_VAR_ssh_public_key="${SSH_PUB_KEY}"
-                            terraform init -backend-config="bucket=${TF_BACKEND_BUCKET}" -reconfigure
-                        '''
+                        // Init
+                        sh "terraform init -backend-config='bucket=${TF_BACKEND_BUCKET}' -reconfigure"
                         
-                        // Plan
-                        sh 'terraform plan -out=tfplan -var="postgres_password=${YC_TOKEN}"'
+                        // Plan — передаём все переменные явно
+                        sh """
+                            terraform plan -out=tfplan \\
+                                -var='yc_token=${YC_TOKEN}' \\
+                                -var='ssh_public_key=${SSH_PUB_KEY}' \\
+                                -var='postgres_password=${YC_TOKEN}'
+                        """
                         
-                        // Apply (только если не только план)
+                        // Apply
                         script {
                             if (params.ACTION != 'plan-only') {
-                                sh 'terraform apply -auto-approve tfplan'
+                                sh "terraform apply -auto-approve tfplan"
                             }
                         }
-                        
-                        // Сохраняем выходы для следующих стадий
-                        sh '''
-                            terraform output -raw server_public_ip > ../server_ip.txt
-                            terraform output -raw postgres_disk_id > ../disk_id.txt
-                            terraform output -raw server_name > ../server_name.txt
-                        '''
                     }
-                }
-            }
-            post {
-                always {
-                    // Архивируем terraform plan для аудита
-                    archiveArtifacts artifacts: "${env.TF_DIR}/tfplan", allowEmptyArchive: true
                 }
             }
         }
