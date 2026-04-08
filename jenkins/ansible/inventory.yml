@@ -4,8 +4,9 @@ all:
       hosts:
         quizbot_server:
           ansible_host: "{{ server_ip | mandatory }}"
-          ansible_user: ubuntu
-          ansible_ssh_private_key_file: "/tmp/quizbot_key"
+          ansible_user: "{{ ansible_user | default('ubuntu') }}"
+          ansible_ssh_private_key_file: "{{ ansible_ssh_private_key_file | default('/tmp/quizbot_key') }}"
+      
       vars:
         app_user: ubuntu
         app_group: ubuntu

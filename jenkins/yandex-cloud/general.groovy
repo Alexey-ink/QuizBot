@@ -92,7 +92,7 @@ pipeline {
             }
         }
 
-        stage('Ansible: VM Preparation') {
+       stage('Ansible: VM Preparation') {
             when {
                 anyOf {
                     expression { params.ACTION in ['deploy', 'redeploy'] }
@@ -108,15 +108,21 @@ pipeline {
                 ]) {
                     dir("${env.ANSIBLE_DIR}") {
                         script {
-                            // Читаем IP из предыдущей стадии
                             def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
                             def diskId = readFile(file: "${env.WORKSPACE}/disk_id.txt").trim()
                             
-                            // Запускаем playbook
+                            if (!serverIP) {
+                                error("server_ip is empty!")
+                            }
+                            echo "📡 Deploying to: ${serverIP}"
+                            
                             sh """
-                                ansible-playbook -i inventory.yml playbook.yml \
-                                    --extra-vars "server_ip=${serverIP}" \
-                                    --extra-vars "postgres_disk_id=${diskId}" \
+                                chmod 600 ${SSH_KEY_PATH} && \\
+                                ansible-playbook -i inventory.yml playbook.yml \\
+                                    --extra-vars "server_ip=${serverIP}" \\
+                                    --extra-vars "postgres_disk_id=${diskId}" \\
+                                    --extra-vars "ansible_ssh_private_key_file=${SSH_KEY_PATH}" \\
+                                    --extra-vars "ansible_user=${SSH_USER}" \\
                                     -v
                             """
                         }
@@ -140,12 +146,12 @@ pipeline {
                         passwordVariable: 'DOCKER_PASS'
                     )
                 ]) {
-                    sh '''
+                    sh """
                         echo "${DOCKER_PASS}" | docker login ${DOCKER_REGISTRY_URL} -u "${DOCKER_USER}" --password-stdin
                         # Если нужно собрать образ:
                         # docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
                         # docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    '''
+                    """
                 }
             }
         }
