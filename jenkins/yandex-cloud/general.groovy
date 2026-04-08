@@ -231,6 +231,11 @@ pipeline {
         }
 
         stage('Health Check') {
+            when {
+                anyOf {
+                    expression { params.ACTION in ['deploy', 'redeploy'] }
+                }
+            }
             steps {
                 script {
                     def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
