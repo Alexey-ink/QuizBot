@@ -8,7 +8,7 @@ pipeline {
 
     options {
         timeout(time: 10, unit: 'MINUTES')
-        disableConcurrentBuilds()  // Не запускать параллельно на один сервер
+        disableConcurrentBuilds()
     }
 
     environment {
@@ -23,7 +23,7 @@ pipeline {
     }
 
     stages {
-        stage('📦 Checkout') {
+        stage('Checkout') {
             steps {
                 checkout scm
                 echo "✅ Code checked out: ${env.GIT_COMMIT?.take(7)}"
@@ -62,7 +62,7 @@ pipeline {
             }
         }
 
-        stage('🔧 Prepare Deployment Files') {
+        stage('Prepare Deployment Files') {
             steps {
                 script {
                     def postgresMount = "/data/postgres"
@@ -82,7 +82,7 @@ pipeline {
             }
         }
 
-        stage('📤 Copy Files to Server') {
+        stage('Copy Files to Server') {
             steps {
                 withCredentials([
                     file(credentialsId: 'env-file-quizbot', variable: 'ENV_FILE_PATH'),
@@ -114,7 +114,7 @@ pipeline {
             }
         }
 
-        stage('🚀 Deploy Application') {
+        stage('Deploy Application') {
             steps {
                 withCredentials([
                     sshUserPrivateKey(
@@ -145,7 +145,7 @@ pipeline {
             }
         }
 
-        stage('🩺 Health Check') {
+        stage('Health Check') {
             steps {
                 script {
                     echo "⏳ Waiting for application to start..."

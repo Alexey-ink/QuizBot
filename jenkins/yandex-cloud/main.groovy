@@ -2,13 +2,12 @@ pipeline {
     agent { label 'shihalev' }
 
     options {
-        timeout(time: 40, unit: 'MINUTES')
+        timeout(time: 20, unit: 'MINUTES')
         disableConcurrentBuilds()
-        buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
     stages {
-        stage('🔨 Run Build') {
+        stage('Run Build') {
             steps {
                 script {
                     // Запускаем джоб 'build' и ждём завершения
@@ -27,7 +26,7 @@ pipeline {
             }
         }
 
-        stage('🏗️ Run Create-Infra') {
+        stage('Run Create-Infra') {
             steps {
                 script {
                     def infraResult = build(
@@ -41,7 +40,7 @@ pipeline {
             }
         }
 
-        stage('🚀 Run Deploy') {
+        stage('Run Deploy') {
             steps {
                 script {
                     // Deploy сам заберёт артефакты из build и create-infra через copyArtifacts
@@ -57,9 +56,6 @@ pipeline {
     }
 
     post {
-        always {
-            echo "📦 Orchestrator finished."
-        }
         success {
             echo "🎉 All stages completed successfully!"
         }
