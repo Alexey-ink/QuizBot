@@ -54,7 +54,7 @@ pipeline {
                         sh """
                             terraform plan -out=tfplan \\
                                 -var='yc_token=${YC_TOKEN}' \\
-                                -var='ssh_public_key=${SSH_PUB_KEY}' \\
+                                -var='ssh_public_key=${SSH_PUB_KEY}'
                         """
 
                         echo "🚀 Applying terraform plan..."
@@ -70,7 +70,6 @@ pipeline {
                         }
                     }
                 }
-        }
             post {
                 success {
                     script {
@@ -80,6 +79,7 @@ pipeline {
                     }
                 }
             }
+        }
 
         stage('⏳ Wait for SSH') {
             steps {
