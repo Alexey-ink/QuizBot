@@ -206,16 +206,15 @@ pipeline {
         stage('Health Check') {
             steps {
                 script {
-                    def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
-                    // Простая проверка доступности
-                    retry(3) {
-                        sh "curl -sf --connect-timeout 20 http://${serverIP}:8080/healthcheck || exit 1"
+                    def ip = readFile('server_ip.txt').trim()
+                    retry(10) {
+                        sleep 10
+                        sh "curl -f --connect-timeout 10 http://${ip}:8080/healthcheck"
                     }
                 }
             }
         }
-    }
-
+        
     post {
         always {
             sh """
