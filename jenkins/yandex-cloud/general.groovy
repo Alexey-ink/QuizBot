@@ -50,10 +50,8 @@ pipeline {
                     string(credentialsId: 'ssh-public-key', variable: 'SSH_PUB_KEY')
                 ]) {
                     dir("${env.TF_DIR}") {
-                        // Init
                         sh "terraform init -reconfigure"
                         
-                        // Plan — передаём все переменные явно
                         sh """
                             terraform plan -out=tfplan \\
                                 -var='yc_token=${YC_TOKEN}' \\
@@ -61,7 +59,6 @@ pipeline {
                                 -var='postgres_password=${YC_TOKEN}'
                         """
                         
-                        // Apply
                         script {
                             sh "terraform apply -auto-approve tfplan"      
                         }
@@ -102,7 +99,6 @@ pipeline {
                             if (!serverIP) {
                                 error("server_ip is empty!")
                             }
-                            echo "📡 Deploying to: ${serverIP}"
                             
                             sh """
                                 chmod 600 ${SSH_KEY_PATH} && \\
