@@ -8,7 +8,6 @@ pipeline {
         TF_INPUT = "0"
         ANSIBLE_HOST_KEY_CHECKING = "False"
         
-        // Пути к артефактам
         TF_DIR = "infrastructure/terraform"
         ANSIBLE_DIR = "jenkins/ansible"
         DEPLOY_DIR = "/opt/quizbot"
@@ -24,8 +23,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                // Показываем структуру для отладки
-                sh 'find . -maxdepth 3 -type f -name "*.tf" -o -name "*.yml" -o -name "general.groovy" | head -20'
+                echo "✅ Code checked out: ${env.GIT_COMMIT}"
             }
         }
 
@@ -34,7 +32,6 @@ pipeline {
                 dir("${env.TF_DIR}") {
                     sh 'terraform fmt -check -recursive || terraform fmt -recursive'
                     
-                    // Инициализируем провайдеры (без бэкенда, чтобы не требовать доступ к хранилищу)
                     sh 'terraform init -backend=false'
                     
                     sh 'terraform validate'
@@ -42,6 +39,7 @@ pipeline {
                 dir("${env.ANSIBLE_DIR}") {
                     sh 'ansible-playbook --syntax-check playbook.yml'
                 }
+                echo "✅ Validation and formatting completed successfully."
             }
         }
 
@@ -74,6 +72,7 @@ pipeline {
                             terraform output -raw server_name > ${env.WORKSPACE}/server_name.txt
                         """
                     }
+                    echo "✅ Infrastructure provisioned. Server IP: ${readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()}"
                 }
             }
         }
@@ -94,7 +93,6 @@ pipeline {
                             
                             echo "Waiting for SSH on ${serverIP}..."
                     
-                            // Ждем, пока порт 22 не станет доступен (таймаут 120 секунд)
                             sh """
                                 timeout 120 bash -c 'until nc -z ${serverIP} 22; do sleep 5; done'
                             """
@@ -115,13 +113,15 @@ pipeline {
                                     --extra-vars "ansible_user=${SSH_USER}" \\
                                     -v
                             """
+
+                            echo "✅ Ansible playbook executed successfully on ${serverIP}."
                         }
                     }
                 }
             }
         }
 
-        stage('Docker: Build & Push (optional)') {
+        stage('Docker: Build & Push') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -137,6 +137,7 @@ pipeline {
                         docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
                     """
                 }
+                echo "✅ Docker image built and pushed: ${DOCKER_IMAGE}:${DOCKER_TAG}"
             }
         }
 
@@ -162,29 +163,22 @@ pipeline {
                         
                         writeFile(file: 'docker-compose.yml', text: composeContent)
                         
-                        // ✅ Единый блок: фикс прав + копирование с правильным именем + запуск
+                        // Копируем docker-compose.yml и .env на сервер и запускаем контейнеры
                         sh """
-                            # 1. Исправляем права на ВМ (если файл существует) — для ОБОИХ возможных имён
                             ssh -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no ubuntu@${serverIP} \\
-                                'for f in ${env.DEPLOY_DIR}/.env ${env.DEPLOY_DIR}/app.env; do \\
-                                    test -f "\$f" && chmod u+w "\$f" || true; \\
-                                done'
+                                'test -f ${env.DEPLOY_DIR}/.env && chmod u+w ${env.DEPLOY_DIR}/.env || true'
                             
-                            # 2. Копируем docker-compose.yml
                             scp -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no \\
                                 docker-compose.yml \\
                                 ubuntu@${serverIP}:${env.DEPLOY_DIR}/
-                            
-                            # 3. Копируем .env с ЯВНЫМ указанием целевого имени (важно!)
+                        
                             scp -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no \\
                                 ${ENV_FILE_PATH} \\
                                 ubuntu@${serverIP}:${env.DEPLOY_DIR}/.env
                             
-                            # 4. Фиксируем права после копирования
                             ssh -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no ubuntu@${serverIP} \\
                                 'chmod 664 ${env.DEPLOY_DIR}/.env ${env.DEPLOY_DIR}/docker-compose.yml'
                             
-                            # 5. Запускаем приложение
                             ssh -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no ubuntu@${serverIP} \\
                                 "cd ${env.DEPLOY_DIR} && \\
                                 docker-compose pull && \\
