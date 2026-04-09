@@ -36,7 +36,7 @@ pipeline {
                     // Копируем последние успешные артефакты из create-infra
                     copyArtifacts(
                         projectName: 'create-infra',
-                        selector: latestSuccessful(),
+                        selector: lastSuccessful(),
                         target: 'infra-artifacts',
                         filter: 'server_ip.txt,disk_id.txt,server_name.txt'
                     )
@@ -44,7 +44,7 @@ pipeline {
                     // Копируем последние успешные артефакты из build
                     copyArtifacts(
                         projectName: 'build',
-                        selector: latestSuccessful(),
+                        selector: lastSuccessful(),
                         target: 'build-artifacts',
                         filter: 'docker_tag.txt,docker_image.txt'
                     )
