@@ -70,3 +70,12 @@ resource "yandex_compute_instance" "quizbot_server" {
   allow_stopping_for_update = true
 
 }
+
+resource "yandex_vpc_security_group_rule" "allow_quizbot_http" {
+  security_group_binding = var.security_group_id
+  direction              = "ingress"
+  description            = "Allow HTTP access to QuizBot application"
+  protocol               = "TCP"
+  port                   = 8080
+  v4_cidr_blocks         = ["0.0.0.0/0"]  # Разрешить всем, или укажите конкретные IP
+}
