@@ -33,8 +33,15 @@
       apt:
         name:
           - docker.io
-          - docker-compose
         state: present
+      tags: [docker]
+
+    - name: Install docker-compose v2 manually
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+      become: true
       tags: [docker]
 
     - name: Enable and start Docker
