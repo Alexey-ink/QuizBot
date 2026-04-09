@@ -209,7 +209,7 @@ pipeline {
                     def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
                     // Простая проверка доступности
                     retry(3) {
-                        sh "curl -sf --connect-timeout 10 http://${serverIP}:8080/healthcheck || exit 1"
+                        sh "curl -sf --connect-timeout 20 http://${serverIP}:8080/healthcheck || exit 1"
                     }
                 }
             }
