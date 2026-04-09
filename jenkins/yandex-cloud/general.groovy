@@ -20,19 +20,6 @@ pipeline {
         DOCKER_REGISTRY_URL = 'docker.io'
     }
 
-    parameters {
-        choice(
-            name: 'ACTION',
-            choices: ['deploy', 'destroy', 'redeploy'],
-            description: 'Выберите действие'
-        )
-        booleanParam(
-            name: 'FORCE_RECREATE',
-            defaultValue: false,
-            description: 'Пересоздать инфраструктуру (terraform apply -refresh-only)'
-        )
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -59,11 +46,6 @@ pipeline {
         }
 
         stage('Terraform: Infrastructure') {
-            when {
-                anyOf {
-                    expression { params.ACTION in ['deploy', 'redeploy'] }
-                }
-            }
             steps {
                 withCredentials([
                     string(credentialsId: 'yc-token', variable: 'YC_TOKEN'),
@@ -83,9 +65,7 @@ pipeline {
                         
                         // Apply
                         script {
-                            if (params.ACTION != 'plan-only') {
-                                sh "terraform apply -auto-approve tfplan"
-                            }
+                            sh "terraform apply -auto-approve tfplan"      
                         }
 
                         sh """
@@ -99,11 +79,6 @@ pipeline {
         }
 
        stage('Ansible: VM Preparation') {
-            when {
-                anyOf {
-                    expression { params.ACTION in ['deploy', 'redeploy'] }
-                }
-            }
             steps {
                 withCredentials([
                     sshUserPrivateKey(
@@ -147,12 +122,6 @@ pipeline {
         }
 
         stage('Docker: Build & Push (optional)') {
-            when {
-                allOf {
-                    expression { params.ACTION in ['deploy', 'redeploy'] }
-                    expression { env.DOCKER_REGISTRY_URL != null }
-                }
-            }
             steps {
                 withCredentials([
                     usernamePassword(
@@ -172,11 +141,6 @@ pipeline {
         }
 
         stage('Docker Compose: Deploy Application') {
-            when {
-                anyOf {
-                    expression { params.ACTION in ['deploy', 'redeploy'] }
-                }
-            }
             steps {
                 withCredentials([
                     file(credentialsId: 'env-file-quizbot', variable: 'ENV_FILE_PATH'),
@@ -240,34 +204,12 @@ pipeline {
         }
 
         stage('Health Check') {
-            when {
-                anyOf {
-                    expression { params.ACTION in ['deploy', 'redeploy'] }
-                }
-            }
             steps {
                 script {
                     def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
                     // Простая проверка доступности
                     retry(3) {
                         sh "curl -sf --connect-timeout 10 http://${serverIP}:8080/healthcheck || exit 1"
-                    }
-                }
-            }
-        }
-
-        stage('Terraform: Destroy (optional)') {
-            when {
-                expression { params.ACTION == 'destroy' }
-            }
-            steps {
-                withCredentials([string(credentialsId: 'yc-token', variable: 'YC_TOKEN')]) {
-                    dir("${env.TF_DIR}") {
-                        sh """
-                            export TF_VAR_yc_token="${YC_TOKEN}"
-                            terraform init
-                            terraform destroy -auto-approve
-                        """
                     }
                 }
             }
