@@ -70,7 +70,7 @@ pipeline {
                         }
                     }
                 }
-            }
+        }
             post {
                 success {
                     script {
@@ -80,7 +80,6 @@ pipeline {
                     }
                 }
             }
-        }
 
         stage('⏳ Wait for SSH') {
             steps {
