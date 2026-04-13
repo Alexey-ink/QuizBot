@@ -39,7 +39,7 @@ pipeline {
             steps {
                 dir("${env.APP_DIR}") {
                     sh """
-                        docker build --platform ${env.TARGET_ARCH} \\
+                        docker build --network=host --platform ${env.TARGET_ARCH} \\
                             --build-arg BUILD_NUMBER=${env.BUILD_NUMBER} \\
                             --build-arg GIT_COMMIT=${env.GIT_COMMIT} \\
                             -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
