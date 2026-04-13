@@ -28,14 +28,14 @@ pipeline {
     }
 
     stages {
-        stage('📦 Checkout') {
+        stage('Checkout') {
             steps {
                 checkout scm
                 echo "✅ Code checked out: ${env.GIT_COMMIT?.take(7)}"
             }
         }
 
-        stage('📥 Retrieve Build Artifacts') {
+        stage('Retrieve Build Artifacts') {
             steps {
                 script {
                     // 👇 Копируем артефакты из последнего успешного build
@@ -64,7 +64,16 @@ pipeline {
             }
         }
 
-        stage('🔐 Create/Update Kubernetes Secrets') {
+        stage('🔐 Create Namespace') {
+            steps {
+                withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
+                    sh """kubectl create namespace ${env.K8S_NAMESPACE} \\
+                        --dry-run=client -o yaml | kubectl apply -f -"""
+                }
+            }
+        }
+
+        stage('Create/Update Kubernetes Secrets') {
             steps {
                 withCredentials([
                     file(credentialsId: 'env-file-quizbot', variable: 'ENV_FILE_PATH')
@@ -98,7 +107,7 @@ pipeline {
             }
         }
 
-        stage('🔄 Render Kubernetes Manifests') {
+        stage('Render Kubernetes Manifests') {
             steps {
                 script {
                     echo "🔄 Rendering deployment.yaml with image info..."
@@ -120,7 +129,7 @@ pipeline {
             }
         }
 
-        stage('🚀 Apply Kubernetes Resources') {
+        stage('Apply Kubernetes Resources') {
             steps {
                 withKubeConfig([
                     credentialsId: 'k8s-kubeconfig',
@@ -158,7 +167,7 @@ pipeline {
             }
         }
 
-        stage('🧪 Health Check') {
+        stage('Health Check') {
             steps {
                 script {
                     echo "⏳ Waiting for application to start..."
