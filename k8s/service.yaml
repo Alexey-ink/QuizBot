@@ -1,0 +1,27 @@
+# Сервис для Postgres (внутренний, доступен только внутри кластера)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: quizbot
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+# Сервис для Quizbot (внешний, доступен через NodePort)
+apiVersion: v1
+kind: Service
+metadata:
+  name: quizbot-service
+  namespace: quizbot
+spec:
+  type: NodePort
+  selector:
+    app: quizbot
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30080
