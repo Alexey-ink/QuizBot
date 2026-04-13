@@ -1,4 +1,3 @@
-// deploy/Jenkinsfile
 // Ответственность: деплой приложения в Kubernetes-кластер (Minikube)
 // Зависимости: 
 //   - успешный build (артефакты: docker_image.txt, docker_tag.txt)
@@ -7,7 +6,7 @@
 
 pipeline {
     agent {
-        label 'shihalev'  // Агент с kubectl, minikube, docker
+        label 'shihalev' 
     }
 
     options {
@@ -17,14 +16,14 @@ pipeline {
     }
 
     environment {
-        // Kubernetes
         K8S_NAMESPACE = 'quizbot'
         K8S_MANIFESTS_DIR = 'k8s'
         DEPLOY_TIMEOUT = '180s'
         
-        // Пути к манифестам
         DEPLOYMENT_FILE = "${env.K8S_MANIFESTS_DIR}/deployment.yaml"
         SERVICE_FILE = "${env.K8S_MANIFESTS_DIR}/service.yaml"
+
+        MINIKUBE_IP = '192.168.49.2'
     }
 
     stages {
@@ -38,7 +37,7 @@ pipeline {
         stage('Retrieve Build Artifacts') {
             steps {
                 script {
-                    // 👇 Копируем артефакты из последнего успешного build
+                    // Копируем артефакты из последнего успешного build
                     copyArtifacts(
                         projectName: 'build',
                         selector: lastSuccessful(),
@@ -47,7 +46,6 @@ pipeline {
                         fingerprintArtifacts: true
                     )
                     
-                    // Загружаем переменные из файлов
                     env.DOCKER_TAG = readFile('build-artifacts/docker_tag.txt').trim()
                     env.DOCKER_IMAGE = readFile('build-artifacts/docker_image.txt').trim()
                     
@@ -64,7 +62,7 @@ pipeline {
             }
         }
 
-        stage('🔐 Create Namespace') {
+        stage('Create Namespace') {
             steps {
                 withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
                     sh """kubectl create namespace ${env.K8S_NAMESPACE} \\
@@ -87,7 +85,6 @@ pipeline {
                             echo "🔐 Creating/updating secrets from .env file..."
                             
                             // Создаём или обновляем Secret из .env
-                            // --dry-run=client + kubectl apply = идемпотентное обновление
                             sh """
                                 kubectl create secret generic quizbot-secrets \\
                                     --from-env-file=${ENV_FILE_PATH} \\
@@ -179,11 +176,11 @@ pipeline {
                         returnStdout: true
                     ).trim()
                     
-                    echo "🔍 Checking health at http://${minikubeIP}:30080/healthcheck"
+                    echo "🔍 Checking health at http://${env.MINIKUBE_IP}:30080/healthcheck"
                     
                     retry(10) {
                         sleep 5
-                        sh "curl -f --connect-timeout 10 --max-time 30 http://${minikubeIP}:30080/healthcheck"
+                        sh "curl -f --connect-timeout 10 --max-time 30 http://${env.MINIKUBE_IP}:30080/healthcheck"
                     }
                     
                     echo "✅ Health check passed"
@@ -218,8 +215,8 @@ pipeline {
                 ).trim()
                 
                 echo "🎉 Deploy completed successfully!"
-                echo "🌐 Application: http://${minikubeIP}:30080"
-                echo "🔗 Health: http://${minikubeIP}:30080/healthcheck"
+                echo "🌐 Application: http://${env.MINIKUBE_IP}:30080"
+                echo "🔗 Health: http://${env.MINIKUBE_IP}:30080/healthcheck"
                 echo "📊 Pods: kubectl get pods -n ${env.K8S_NAMESPACE}"
                 echo "🗄️  DB: kubectl exec -n ${env.K8S_NAMESPACE} deploy/postgres -- psql -U \$POSTGRES_USER -d quizbot"
             }
