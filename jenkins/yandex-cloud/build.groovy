@@ -19,6 +19,14 @@ pipeline {
         APP_DIR = "." 
     }
 
+    parameters {
+        choice(
+            name: 'TARGET_ARCH',
+            choices: ['linux/amd64', 'linux/arm64'],
+            description: 'Целевая архитектура для Docker-образа'
+        )
+    }
+
     stages {
         stage('📦 Checkout') {
             steps {
@@ -31,7 +39,7 @@ pipeline {
             steps {
                 dir("${env.APP_DIR}") {
                     sh """
-                        docker build --platform linux/amd64 \\
+                        docker build --platform ${env.TARGET_ARCH} \\
                             --build-arg BUILD_NUMBER=${env.BUILD_NUMBER} \\
                             --build-arg GIT_COMMIT=${env.GIT_COMMIT} \\
                             -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
