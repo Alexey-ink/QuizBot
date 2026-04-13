@@ -115,8 +115,8 @@ pipeline {
                     // Читаем шаблон и заменяем плейсхолдеры
                     def deploymentTemplate = readFile(file: "${env.DEPLOYMENT_FILE}")
                     def renderedDeployment = deploymentTemplate
-                        .replaceAll('{{ docker_image }}', env.DOCKER_IMAGE)
-                        .replaceAll('{{ docker_tag }}', env.DOCKER_TAG)
+                        .replace('{{ docker_image }}', env.DOCKER_IMAGE)
+                        .replace('{{ docker_tag }}', env.DOCKER_TAG)
                     
                     // Пишем отрендеренный файл
                     writeFile(
