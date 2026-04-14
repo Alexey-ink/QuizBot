@@ -23,7 +23,7 @@ pipeline {
         DEPLOYMENT_FILE = "${env.K8S_MANIFESTS_DIR}/deployment.yaml"
         SERVICE_FILE = "${env.K8S_MANIFESTS_DIR}/service.yaml"
 
-        MINIKUBE_IP = '192.168.49.2'
+        HEALTH_CHECK_PORT = '9090'
     }
 
     stages {
@@ -170,21 +170,42 @@ pipeline {
                     echo "⏳ Waiting for application to start..."
                     sleep 15  // Даём время контейнерам инициализироваться
                     
-                    // Получаем IP Minikube для проверки
-                    def minikubeIP = sh(
-                        script: 'minikube ip 2>/dev/null || echo "127.0.0.1"',
-                        returnStdout: true
-                    ).trim()
-                    
-                    echo "🔍 Checking health at http://${env.MINIKUBE_IP}:30080/healthcheck"
-                    
-                    retry(10) {
-                        sleep 5
-                        sh "curl -f --connect-timeout 10 --max-time 30 http://${env.MINIKUBE_IP}:30080/healthcheck"
+                    withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
+                        sh """
+                            kubectl port-forward -n ${env.K8S_NAMESPACE} \\
+                                svc/quizbot-service ${env.HEALTH_CHECK_PORT}:80 \\
+                                --address 0.0.0.0 > /tmp/pf.log 2>&1 &
+                            echo \$! > /tmp/pf.pid
+                            sleep 5
+                        """
+
+                        def hostIP = sh(
+                            script: """
+                                IP=$(ipconfig getifaddr en0 2>/dev/null)
+                            """,
+                            returnStdout: true
+                        ).trim()
+
+                        try {
+                            echo "🔍 Checking health at http://${hostIP}:${env.HEALTH_CHECK_PORT}/healthcheck"
+                            
+                            retry(10) {
+                                sleep 5
+                                sh "curl -f --connect-timeout 10 --max-time 30 http://${hostIP}:${env.HEALTH_CHECK_PORT}/healthcheck"
+                            }
+                            echo "✅ Health check passed"
+                            
+                        } catch (Exception e) {
+                            echo "❌ Health check failed. Port-forward log:"
+                            sh "cat /tmp/pf.log || true"
+                            throw e
+                        } finally {
+                            // Всегда убиваем процесс по PID
+                            sh "kill \$(cat /tmp/pf.pid 2>/dev/null) 2>/dev/null || true"
+                            sh "rm -f /tmp/pf.pid /tmp/pf.log"
+                        }
                     }
-                    
-                    echo "✅ Health check passed"
-                }
+                } 
             }
             post {
                 failure {
@@ -200,25 +221,26 @@ pipeline {
 
     post {
         always {
-            // Очищаем временные файлы
             sh "rm -f deployment.rendered.yaml"
-            
-            // Логируем завершение
             echo "📦 Deploy #${env.BUILD_NUMBER} finished."
         }
         
         success {
             script {
-                def minikubeIP = sh(
-                    script: 'minikube ip 2>/dev/null || echo "127.0.0.1"',
+                def displayIP = sh(
+                    script: """
+                        IP=$(ipconfig getifaddr en0 2>/dev/null)
+                        echo ${IP:-127.0.0.1}
+                    """,
                     returnStdout: true
                 ).trim()
-                
+
                 echo "🎉 Deploy completed successfully!"
-                echo "🌐 Application: http://${env.MINIKUBE_IP}:30080"
-                echo "🔗 Health: http://${env.MINIKUBE_IP}:30080/healthcheck"
+                echo "🌐 Application: http://${hostIP}:${env.HEALTH_CHECK_PORT} (via port-forward)"
+                echo "🔗 Health: http://${hostIP}:${env.HEALTH_CHECK_PORT}/healthcheck"
+                echo "📱 From other devices in same network:"
+                echo "   http://${hostIP}:${env.HEALTH_CHECK_PORT}"
                 echo "📊 Pods: kubectl get pods -n ${env.K8S_NAMESPACE}"
-                echo "🗄️  DB: kubectl exec -n ${env.K8S_NAMESPACE} deploy/postgres -- psql -U \$POSTGRES_USER -d quizbot"
             }
         }
         
