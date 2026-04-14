@@ -180,9 +180,9 @@ pipeline {
                         """
 
                         def hostIP = sh(
-                            script: """
+                            script: '''
                                 IP=$(ipconfig getifaddr en0 2>/dev/null)
-                            """,
+                            ''',
                             returnStdout: true
                         ).trim()
 
