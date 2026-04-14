@@ -228,10 +228,10 @@ pipeline {
         success {
             script {
                 def displayIP = sh(
-                    script: """
+                    script: '''
                         IP=$(ipconfig getifaddr en0 2>/dev/null)
                         echo ${IP:-127.0.0.1}
-                    """,
+                    ''',
                     returnStdout: true
                 ).trim()
 
