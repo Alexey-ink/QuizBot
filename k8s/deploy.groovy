@@ -136,7 +136,6 @@ pipeline {
                     script {
                         echo "🚀 Applying Kubernetes manifests..."
                         
-                        // Применяем в правильном порядке:
                         // 1. deployment.yaml (содержит Namespace, PVC, Deployments)
                         // 2. service.yaml (Services, зависят от Deployments)
                         sh """
@@ -164,48 +163,43 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
+        stage('Verify Deployment') {
             steps {
-                script {
-                    echo "⏳ Waiting for application to start..."
-                    sleep 15  // Даём время контейнерам инициализироваться
-                    
-                    withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
-                        sh """
-                            kubectl port-forward -n ${env.K8S_NAMESPACE} \\
-                                svc/quizbot-service ${env.HEALTH_CHECK_PORT}:80 \\
-                                --address 0.0.0.0 > /tmp/pf.log 2>&1 &
-                            echo \$! > /tmp/pf.pid
-                            sleep 5
-                        """
+                withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
+                    sh """
+                        echo "📊 Pods:"
+                        kubectl get pods -n ${K8S_NAMESPACE} -o wide
 
-                        def hostIP = sh(
-                            script: '''
-                                IP=$(ipconfig getifaddr en0 2>/dev/null)
-                            ''',
-                            returnStdout: true
-                        ).trim()
+                        echo "🖥 Nodes:"
+                        kubectl get nodes -o wide
 
-                        try {
-                            echo "🔍 Checking health at http://${hostIP}:${env.HEALTH_CHECK_PORT}/healthcheck"
-                            
-                            retry(10) {
-                                sleep 5
-                                sh "curl -f --connect-timeout 10 --max-time 30 http://${hostIP}:${env.HEALTH_CHECK_PORT}/healthcheck"
-                            }
-                            echo "✅ Health check passed"
-                            
-                        } catch (Exception e) {
-                            echo "❌ Health check failed. Port-forward log:"
-                            sh "cat /tmp/pf.log || true"
-                            throw e
-                        } finally {
-                            // Всегда убиваем процесс по PID
-                            sh "kill \$(cat /tmp/pf.pid 2>/dev/null) 2>/dev/null || true"
-                            sh "rm -f /tmp/pf.pid /tmp/pf.log"
-                        }
-                    }
-                } 
+                        echo "🌐 Services:"
+                        kubectl get svc -n ${K8S_NAMESPACE}
+
+                        echo "🔗 Starting port-forward..."
+
+                        kubectl port-forward -n ${K8S_NAMESPACE} \
+                            svc/quizbot-service 9090:80 > pf.log 2>&1 &
+
+                        PF_PID=\$!
+
+                        echo "⏳ Waiting for service..."
+
+                        for i in {1..10}; do
+                        if curl -s http://localhost:9090/healthcheck; then
+                            echo "✅ Healthcheck OK"
+                            break
+                        fi
+                        sleep 2
+                        done
+
+                        echo "📄 Port-forward log:"
+                        cat pf.log || true
+
+                        echo "🛑 Stopping port-forward..."
+                        kill \$PF_PID 2>/dev/null || true
+                    """
+                }
             }
             post {
                 failure {
@@ -216,7 +210,7 @@ pipeline {
                     echo "   kubectl describe service quizbot-service -n ${env.K8S_NAMESPACE}"
                 }
             }
-        }
+        }                
     }
 
     post {
@@ -226,22 +220,16 @@ pipeline {
         }
         
         success {
-            script {
-                def displayIP = sh(
-                    script: '''
-                        IP=$(ipconfig getifaddr en0 2>/dev/null)
-                        echo ${IP:-127.0.0.1}
-                    ''',
-                    returnStdout: true
-                ).trim()
+            echo "🎉 Deploy completed successfully!"
 
-                echo "🎉 Deploy completed successfully!"
-                echo "🌐 Application: http://${hostIP}:${env.HEALTH_CHECK_PORT} (via port-forward)"
-                echo "🔗 Health: http://${hostIP}:${env.HEALTH_CHECK_PORT}/healthcheck"
-                echo "📱 From other devices in same network:"
-                echo "   http://${hostIP}:${env.HEALTH_CHECK_PORT}"
-                echo "📊 Pods: kubectl get pods -n ${env.K8S_NAMESPACE}"
-            }
+            echo "📊 Pods:"
+            echo "   kubectl get pods -n ${env.K8S_NAMESPACE}"
+
+            echo "🌐 If using Minikube:"
+            echo "   minikube service quizbot-service --url"
+
+            echo "🔗 Or via NodePort:"
+            echo "   http://<minikube-ip>:30080/healthcheck"
         }
         
         failure {
