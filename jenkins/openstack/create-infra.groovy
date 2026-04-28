@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'shihalev'
+        label 'openstack'
     }
 
     options {
