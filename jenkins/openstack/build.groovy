@@ -20,7 +20,11 @@ pipeline {
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         
         // Переменная для файла с секретами (настраивается в Jenkins Credentials)
-        ENV_FILE = '.env' 
+        ENV_FILE = '.env'
+
+        JAVA_23_HOME = '/opt/jdk-23.0.2+7'
+        JAVA_HOME = "${JAVA_23_HOME}"
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
     }
 
     stages {
