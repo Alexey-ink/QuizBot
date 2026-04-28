@@ -1,7 +1,7 @@
 pipeline {
     // AGENT: нода, где выполняется pipeline
     agent {
-        label 'shihalev'
+        label 'openstack'
     }
 
     options {
