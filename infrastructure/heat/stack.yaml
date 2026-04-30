@@ -17,7 +17,7 @@ parameters:
   key_name:
     type: string
     label: SSH Key
-    default: "shihalev"
+    default: "shihalev-key-pair"
   
   existing_subnet_id:
     type: string
