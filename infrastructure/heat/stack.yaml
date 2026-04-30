@@ -22,7 +22,7 @@ parameters:
   existing_subnet_id:
     type: string
     label: Existing Subnet ID
-    default: "6a69f855-8a2d-4994-baf0-ed4feedd897b"
+    default: "87af7ae7-714d-4472-b19a-7a4ec8505165"
 
 resources:
   bot_security_group:
