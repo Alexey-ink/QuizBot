@@ -200,7 +200,7 @@ DOCKEREOF
                 """
 
                 printStep("Copying .env from credentials...")
-                withCredentials([file(credentialsId: 'shihalev-env-file', variable: 'ENV_FILE')]) {
+                withCredentials([file(credentialsId: 'env-file-quizbot', variable: 'ENV_FILE')]) {
                     sh """
                         scp -o StrictHostKeyChecking=no \\
                             -o UserKnownHostsFile=/dev/null \\
