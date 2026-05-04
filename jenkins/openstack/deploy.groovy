@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'openstack'
+    }
     
     environment {
         OS_CREDENTIALS_ID = 'shihalev-rc'
@@ -9,7 +11,7 @@ pipeline {
         DOCKER_REPO = 'alexeyshihalev/quizbot'
         
         // Имя credentials в Jenkins (SSH Username with private key)
-        SSH_KEY_NAME = 'ssh-private-key'
+        SSH_KEY_NAME = 'shihalev-key'
 
         INFRA_ARTIFACT_JOB = 'openstack/create-infra'
         BUILD_ARTIFACT_JOB = 'openstack/build'
