@@ -11,8 +11,8 @@ pipeline {
         // Имя credentials в Jenkins (SSH Username with private key)
         SSH_KEY_NAME = 'shihalev-key'
 
-        INFRA_ARTIFACT_JOB = 'shihalev/create-infra-pipeline'
-        BUILD_ARTIFACT_JOB = 'shihalev/build-pipeline'
+        INFRA_ARTIFACT_JOB = 'openstack/create-infra'
+        BUILD_ARTIFACT_JOB = 'openstack/build'
     }
     
     parameters {
