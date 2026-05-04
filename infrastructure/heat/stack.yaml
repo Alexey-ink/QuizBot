@@ -17,7 +17,7 @@ parameters:
   key_name:
     type: string
     label: SSH Key
-    default: "shihalev-key-pair"
+    default: "emeshkin-key"
   
   existing_subnet_id:
     type: string
@@ -28,7 +28,7 @@ resources:
   bot_security_group:
     type: OS::Neutron::SecurityGroup
     properties:
-      name: shihalev-sg
+      name: emeshkin-sg
       description: SG for QuizBot
       rules:
         - protocol: tcp
@@ -44,14 +44,14 @@ resources:
     type: OS::Cinder::Volume
     deletion_policy: Delete
     properties:
-      name: postgres-vol
+      name: emeshkin-postgres-vol
       size: 10
       description: PostgreSQL data volume
 
   bot_server:
     type: OS::Nova::Server
     properties:
-      name: shihalev-bot-vm
+      name: emeshkin-bot-vm
       image: { get_param: image_id }
       flavor: { get_param: flavor_id }
       key_name: { get_param: key_name }
@@ -86,4 +86,4 @@ outputs:
   
   console_url:
     description: "How to access console"
-    value: "OpenStack Dashboard → Compute → Instances → shihalev-bot-vm → Console"
+    value: "OpenStack Dashboard → Compute → Instances → emeshkin-bot-vm → Console"
