@@ -10,6 +10,7 @@ pipeline {
         TF_IN_AUTOMATION = '1'
         TF_INPUT = '0'
         TF_DIR = 'infrastructure/terraform'
+        TF_CLI_CONFIG_FILE = '/home/ubuntu/.terraformrc'
         ANSIBLE_DIR = 'jenkins/ansible'
         ANSIBLE_HOST_KEY_CHECKING = 'False'
     }
