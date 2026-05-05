@@ -57,11 +57,16 @@ resource "openstack_compute_instance_v2" "quizbot_server" {
   flavor_name = var.flavor_name
   key_pair    = var.keypair_name
 
-  security_groups = var.create_security_group ? [openstack_networking_secgroup_v2.quizbot_sg[0].name] : [var.security_group_name]
-
   network {
-    uuid = var.network_id
+    port = openstack_networking_port_v2.quizbot_port.id
   }
+}
+
+resource "openstack_networking_port_v2" "quizbot_port" {
+  name       = "${var.server_name}-port"
+  network_id = var.network_id
+
+  security_group_ids = var.create_security_group ? [openstack_networking_secgroup_v2.quizbot_sg[0].id] : []
 }
 
 resource "openstack_compute_volume_attach_v2" "postgres_attach" {
