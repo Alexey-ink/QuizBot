@@ -62,10 +62,6 @@ resource "openstack_compute_instance_v2" "quizbot_server" {
   network {
     uuid = var.network_id
   }
-
-  metadata = {
-    ssh-keys = "ubuntu:${var.ssh_public_key}"
-  }
 }
 
 resource "openstack_compute_volume_attach_v2" "postgres_attach" {
