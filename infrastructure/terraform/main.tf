@@ -18,11 +18,6 @@ provider "openstack" {
   region              = var.region
 }
 
-resource "openstack_compute_keypair_v2" "quizbot_keypair" {
-  name       = var.keypair_name
-  public_key = var.ssh_public_key
-}
-
 resource "openstack_networking_secgroup_v2" "quizbot_sg" {
   count       = var.create_security_group ? 1 : 0
   name        = var.security_group_name
@@ -60,7 +55,7 @@ resource "openstack_compute_instance_v2" "quizbot_server" {
   name        = var.server_name
   image_name  = var.image_name
   flavor_name = var.flavor_name
-  key_pair    = openstack_compute_keypair_v2.quizbot_keypair.name
+  key_pair    = var.keypair_name
 
   security_groups = var.create_security_group ? [openstack_networking_secgroup_v2.quizbot_sg[0].name] : [var.security_group_name]
 
