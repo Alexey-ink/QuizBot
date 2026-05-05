@@ -50,7 +50,7 @@ pipeline {
                 ]) {
                     dir("${env.TF_DIR}") {
                         sh '''
-                            set -euo pipefail
+                            set -euo
 
                             # Load all OS_* except password from openrc credential file
                             while IFS= read -r line; do
@@ -114,7 +114,7 @@ pipeline {
                         def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
                         dir("${env.ANSIBLE_DIR}") {
                             sh """
-                                set -euo pipefail
+                                set -euo
                                 chmod 600 "${SSH_KEY_PATH}"
                                 ansible-playbook -i inventory.yml playbook.yml \
                                   --extra-vars "server_ip=${serverIP}" \
