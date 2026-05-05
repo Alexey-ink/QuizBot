@@ -1,315 +1,150 @@
 pipeline {
-    agent any
-    
+    agent { label 'emeshkin' }
+
     environment {
-        OS_CREDENTIALS_ID = 'shihalev-rc'
-        STACK_NAME = "shihalev-quizbot-stack"
-        
-        DOCKER_REGISTRY = 'docker.io'
-        DOCKER_REPO = 'alexeyshihalev/quizbot'
-        
-        // Имя credentials в Jenkins (SSH Username with private key)
-        SSH_KEY_NAME = 'shihalev-key'
+        // Jenkins credential type: "Secret file" with openrc OR your student openrc script
+        OS_CREDENTIALS_ID = 'emeshkin-openrc'
+
+        // Jenkins credential type: "SSH Username with private key" (private key for VM access)
+        SSH_CREDENTIALS_ID = 'emeshkin-bot-ssh'
 
         INFRA_ARTIFACT_JOB = 'openstack/create-infra'
         BUILD_ARTIFACT_JOB = 'openstack/build'
+
+        VM_USER = 'ubuntu'
+        REMOTE_APP_DIR = '/opt/quizbot'
+        REMOTE_JAR_NAME = 'quizbot.jar'
+        SYSTEMD_UNIT = 'quizbot.service'
     }
-    
-    parameters {
-        string(name: 'IMAGE_NAME', defaultValue: '', description: 'Docker image name (optional, если пусто - берётся из build job)')
-    }
-    
+
     stages {
         stage('Checkout') {
             steps {
-                echo '📥 Клонируем репозиторий...'
                 checkout scm
             }
         }
 
         stage('Prepare OpenStack Env') {
             steps {
-                echo "🔐 Loading OpenStack credentials..."
-                loadSecretsIntoEnv("${OS_CREDENTIALS_ID}")
-                echo "🔑 Testing OpenStack connection..."
+                script {
+                    loadSecretsIntoEnv("${OS_CREDENTIALS_ID}")
+                }
                 sh '''
                     set +x
-                    openstack token issue -f yaml
+                    openstack token issue -f yaml | head -5
                 '''
-                printSuccess("Auth successful")
             }
         }
 
-        // ========================================================================
-        // 📦  
-        // ========================================================================
-        stage('Get Docker Image from Build Job') {
-            steps {
-                script {
-                    if (!params.IMAGE_NAME) {
-                        echo "📦 IMAGE_NAME не указан, получаем из build job..."
-                
-                        try {
-                            copyArtifacts projectName: BUILD_ARTIFACT_JOB,
-                                        filter: 'docker-image.txt',
-                                        target: '.',
-                                        selector: lastSuccessful(),
-                                        flatten: true
-                            
-                            env.DOCKER_IMAGE = readFile('docker-image.txt').trim()
-                            
-                            printDebug("🔍 Debug: env.DOCKER_IMAGE='${env.DOCKER_IMAGE}'")
-                            
-                            if (!env.DOCKER_IMAGE) {
-                                printError("❌ Файл docker-image.txt пустой!")
-                                error("❌ Файл docker-image.txt пустой!")
-                            }
-                            
-                            printSuccess("Docker image из build: ${env.DOCKER_IMAGE}")
-                            
-                        } catch (Exception e) {
-                            printError("❌ Ошибка: ${e.message}")
-                            throw e
-                        }
-                    } else {
-                        env.DOCKER_IMAGE = params.IMAGE_NAME
-                        printSuccess("✅ Docker image из параметра: ${env.DOCKER_IMAGE}")
-                    }
-                }
-            }
-        }
-
-        // ========================================================================
-        // 🖥️ Получаем VM IP из Infra Job
-        // ========================================================================
         stage('Get VM IP from Infra Job') {
             steps {
                 script {
-                    echo "🖥️ Получаем IP виртуалки из артефактов infra job..."
-                    
                     copyArtifacts projectName: INFRA_ARTIFACT_JOB,
-                                filter: 'stack_outputs.json',
-                                target: '.',
-                                selector: lastSuccessful(),
-                                flatten: true
-                    
-                    def jsonContent = readFile('stack_outputs.json')
-                    def outputs = readJSON text: jsonContent
-                    def vmIpOutput = readJSON text: outputs['server_private_ip']
-                    
-                    if (vmIpOutput) {
-                        env.VM_IP = vmIpOutput['output_value'].trim()
-                        printSuccess("✅ VM IP: ${env.VM_IP}")
-                    } else {
-                        echo "⚠️ Доступные outputs:"
-                        outputs.each { out ->
-                            echo "  - ${out}"
-                        }
-                        error("❌ Не найдено 'server_private_ip'")
-                    }
-                }
-            }
-        }
-        
-        // ========================================================================
-        // 🐳 Pull Docker Image на VM (с SSH ключом из Jenkins)
-        // ========================================================================
-        stage('Pull Docker Image on VM') {
-    steps {
-        sshagent(["${SSH_KEY_NAME}"]) {
-            script {
-                def VM_USER = 'ubuntu'
-                def APP_DIR = '/home/ubuntu/quizbot'
-                
-                echo "🐳 Deploying to ${VM_USER}@${env.VM_IP}..."
-                
-                // ✅ 1. Создаём директорию и фиксируем права
-                printStep("Creating app directory...")
-                sh """
-                    ssh -o StrictHostKeyChecking=no \\
-                        -o UserKnownHostsFile=/dev/null \\
-                        ${VM_USER}@${env.VM_IP} \\
-                        "mkdir -p ${APP_DIR} && sudo chown ${VM_USER}:${VM_USER} ${APP_DIR}"
-                """
-                
-                // ✅ 2. Проверяем и устанавливаем Docker при необходимости
-                printStep("Checking Docker installation...")
-                sh """
-                    ssh -o StrictHostKeyChecking=no \\
-                        -o UserKnownHostsFile=/dev/null \\
-                        ${VM_USER}@${env.VM_IP} << 'DOCKEREOF'
-                        
-                        set -e
-                        
-                        # Проверяем, установлен ли docker
-                        if ! command -v docker &> /dev/null; then
-                            echo "🔧 Docker not found, installing..."
-                            
-                            # Обновляем пакеты
-                            sudo apt-get update -qq
-                            
-                            # Устанавливаем зависимости
-                            sudo apt-get install -y -qq \\
-                                ca-certificates \\
-                                curl \\
-                                gnupg \\
-                                lsb-release
-                            
-                            # Добавляем GPG ключ Docker
-                            sudo install -m 0755 -d /etc/apt/keyrings
-                            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \\
-                                sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-                            sudo chmod a+r /etc/apt/keyrings/docker.gpg
-                            
-                            # Добавляем репозиторий
-                            echo \\
-                              "deb [arch=\$(dpkg --print-architecture) \\
-                              signed-by=/etc/apt/keyrings/docker.gpg] \\
-                              https://download.docker.com/linux/ubuntu \\
-                              \$(. /etc/os-release && echo "\$VERSION_CODENAME") stable" | \\
-                              sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-                            
-                            # Устанавливаем Docker
-                            sudo apt-get update -qq
-                            sudo apt-get install -y -qq \\
-                                docker-ce \\
-                                docker-ce-cli \\
-                                containerd.io \\
-                                docker-buildx-plugin \\
-                                docker-compose-plugin
-                            
-                            # Добавляем пользователя в группу docker
-                            sudo usermod -aG docker ${VM_USER}
-                            
-                            echo "✅ Docker installed successfully"
-                        else
-                            echo "✅ Docker already installed: \$(docker --version)"
-                        fi
-DOCKEREOF
-                """
-                
-                // ✅ 3. Копируем файлы
-                printStep("Copying docker-compose.yaml...")
-                sh """
-                    scp -o StrictHostKeyChecking=no \\
-                        -o UserKnownHostsFile=/dev/null \\
-                        docker-compose.yaml \\
-                        ${VM_USER}@${env.VM_IP}:${APP_DIR}/docker-compose.yaml
-                """
+                            filter: 'stack_outputs.json',
+                            target: '.',
+                            selector: lastSuccessful(),
+                            flatten: true
 
-                printStep("Copying .env from credentials...")
-                withCredentials([file(credentialsId: 'shihalev-env-file', variable: 'ENV_FILE')]) {
-                    sh """
-                        scp -o StrictHostKeyChecking=no \\
-                            -o UserKnownHostsFile=/dev/null \\
-                            "\${ENV_FILE}" \\
-                            ${VM_USER}@${env.VM_IP}:${APP_DIR}/.env
-                    """
+                    def outputs = readJSON file: 'stack_outputs.json'
+                    def serverPrivateIp = outputs.find { it.output_key == 'server_private_ip' }
+                    if (!serverPrivateIp) {
+                        error("❌ Не найден output 'server_private_ip' в stack_outputs.json")
+                    }
+                    env.VM_IP = serverPrivateIp.output_value.toString().trim()
+                    echo "✅ VM IP: ${env.VM_IP}"
                 }
-                
-                // ✅ 4. Деплой приложения
-                printStep("Pulling image and restarting containers...")
-                sh """
-                    ssh -o StrictHostKeyChecking=no \\
-                        -o UserKnownHostsFile=/dev/null \\
-                        ${VM_USER}@${env.VM_IP} << 'REMOTEOF'
-                        
-                        set -e
-                        
-                        echo "🔒 Setting permissions..."
-                        sudo chown ${VM_USER}:${VM_USER} ${APP_DIR}/docker-compose.yaml
-                        sudo chmod 600 ${APP_DIR}/.env
-                        
-                        cd ${APP_DIR}
-                        
-                        # ✅ Важно: используем sudo для docker, т.к. группа docker может не примениться в текущей сессии
-                        echo "📥 Pulling image: ${env.DOCKER_IMAGE}"
-                        sudo docker pull ${env.DOCKER_IMAGE}
-                        
-                        echo "🔄 Updating image tag in docker-compose.yaml"
-                        sed -i "s|<image>|${env.DOCKER_IMAGE}|g" docker-compose.yaml
-                        
-                        echo "🚀 Restarting containers"
-                        sudo docker compose down
-                        sudo docker compose up -d
-                        
-                        echo "🧹 Cleaning up old images"
-                        sudo docker image prune -f
-                        
-                        echo "✅ Deployment complete"
-REMOTEOF
-                """
+            }
+        }
+
+        stage('Copy JAR from Build Job') {
+            steps {
+                script {
+                    copyArtifacts projectName: BUILD_ARTIFACT_JOB,
+                            filter: '**/build/libs/*.jar',
+                            target: 'artifacts',
+                            selector: lastSuccessful(),
+                            flatten: true
+
+                    def jars = findFiles glob: 'artifacts/*.jar'
+                    if (!jars || jars.length == 0) {
+                        error("❌ Не найден JAR в артефактах job '${BUILD_ARTIFACT_JOB}' (ожидалось **/build/libs/*.jar)")
+                    }
+                    // Берём самый свежий по времени модификации (на случай нескольких jar)
+                    def picked = jars.max { f -> new File(f.path).lastModified() }
+                    env.LOCAL_JAR = picked.path
+                    echo "✅ Выбран JAR: ${env.LOCAL_JAR}"
+                }
+            }
+        }
+
+        stage('Deploy JAR over SSH') {
+            steps {
+                sshagent(["${SSH_CREDENTIALS_ID}"]) {
+                    sh '''
+                        set -euo pipefail
+                        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                          "${VM_USER}@${VM_IP}" "sudo mkdir -p '${REMOTE_APP_DIR}' && sudo chown -R ${VM_USER}:${VM_USER} '${REMOTE_APP_DIR}'"
+
+                        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                          "${LOCAL_JAR}" "${VM_USER}@${VM_IP}:${REMOTE_APP_DIR}/${REMOTE_JAR_NAME}"
+
+                        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                          "${VM_USER}@${VM_IP}" "sudo systemctl restart '${SYSTEMD_UNIT}' && sudo systemctl --no-pager --full status '${SYSTEMD_UNIT}' | head -n 40"
+                    '''
+                }
             }
         }
     }
-}
-    }
-    
+
     post {
         always {
-            echo "📊 Deployment completed"
             cleanWs()
         }
         failure {
-            printError("Deployment failed! Check logs.")
+            echo "❌ Deploy failed: ${env.BUILD_URL}"
         }
         success {
-            printSuccess("Deployment successful! Image: ${env.DOCKER_IMAGE}, VM: ${env.VM_IP}")
+            echo "✅ Deploy OK: ${env.VM_USER}@${env.VM_IP}:${env.REMOTE_APP_DIR}/${env.REMOTE_JAR_NAME}"
         }
     }
 }
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-def printInfo(String message)    { echo "ℹ️  ${message}" }
-def printSuccess(String message) { echo "✅ ${message}" }
-def printWarning(String message) { echo "⚠️  ${message}" }
-def printError(String message)   { echo "❌ ${message}" }
-def printDebug(String message)   { echo "🔍 ${message}" }
-def printStep(String message)    { echo "📍 ${message}" }
 
 // Загрузка openrc из FILE-credential в env.* переменные
 def loadSecretsIntoEnv(String credentialId) {
     withCredentials([file(credentialsId: credentialId, variable: 'OPENRC_FILE')]) {
         def content = readFile file: OPENRC_FILE, encoding: 'UTF-8'
-        
+
         content.split('\n').each { rawLine ->
             try {
                 def line = rawLine.trim()
                 if (!line || line.startsWith('#')) return
-                
-                // ✅ Удаляем префикс "export " если есть
+
                 if (line.startsWith('export ')) {
                     line = line.substring(7).trim()
                 }
-                
+
                 def parts = line.split('=', 2)
                 if (parts.length != 2) return
-                
+
                 def key = parts[0].trim()
                 def value = parts[1].trim()
-                
-                // Удаляем кавычки
-                while (value.length() >= 2 && 
-                      ((value.startsWith('"') && value.endsWith('"')) || 
-                       (value.startsWith("'") && value.endsWith("'")))) {
+
+                while (value.length() >= 2 &&
+                        ((value.startsWith('"') && value.endsWith('"')) ||
+                         (value.startsWith("'") && value.endsWith("'")))) {
                     value = value.substring(1, value.length() - 1)
                 }
                 value = value.trim()
-                
-                // Записываем в env.*
+
                 env."${key}" = value
-                
+
                 if (key == 'OS_PASSWORD') {
                     echo "✅ Loaded: ${key}=***"
                 } else {
                     echo "✅ Loaded: ${key}=${value}"
                 }
-                
             } catch (Exception e) {
-                echo "❌ Error loading ${key ?: 'unknown'}: ${e.message}"
+                echo "❌ Error parsing openrc line: ${e.message}"
             }
         }
     }

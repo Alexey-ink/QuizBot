@@ -5,7 +5,8 @@ all:
         quizbot_server:
           ansible_host: "{{ server_ip | mandatory }}"
           ansible_user: "{{ ansible_user | default('ubuntu') }}"
-          ansible_ssh_private_key_file: "{{ ansible_ssh_private_key_file | default('/var/jenkins_home/.ssh/ed25519') }}"
+          # На агенте Jenkins обычно ubuntu; ключ положи на агент и выдай chmod 600
+          ansible_ssh_private_key_file: "{{ ansible_ssh_private_key_file | default('/home/ubuntu/.ssh/emeshkin-bot.pem') }}"
       
       vars:
         app_user: ubuntu

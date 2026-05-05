@@ -6,7 +6,7 @@
 
 pipeline {
     agent {
-        label 'shihalev' 
+        label 'emeshkin'
     }
 
     options {

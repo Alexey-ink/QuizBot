@@ -1,10 +1,10 @@
 // Сборка и публикация Docker-образа
 // Тег образа: ${BUILD_NUMBER} (автоматически из Jenkins)
-// Пуш: всегда в docker.io/alexeyshihalev/quizbot
+// Пуш: docker.io/<DOCKER_IMAGE>:<DOCKER_TAG> (namespace задай свой в DOCKER_IMAGE)
 
 pipeline {
     agent {
-        label 'shihalev'
+        label 'emeshkin'
     }
 
     options {
@@ -13,7 +13,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE = "alexeyshihalev/quizbot"
+        DOCKER_IMAGE = "emeshkin/quizbot"
         DOCKER_TAG = "${env.BUILD_NUMBER}"  
         DOCKER_REGISTRY_URL = 'docker.io'
         APP_DIR = "." 
@@ -61,7 +61,7 @@ pipeline {
             steps {
                 withCredentials([
                     usernamePassword(
-                        credentialsId: 'shihalev-docker-registry-creds',
+                        credentialsId: 'emeshkin-docker-registry-creds',
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )

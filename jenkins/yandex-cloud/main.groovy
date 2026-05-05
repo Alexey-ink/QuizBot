@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'shihalev' }
+    agent { label 'emeshkin' }
 
     options {
         timeout(time: 20, unit: 'MINUTES')

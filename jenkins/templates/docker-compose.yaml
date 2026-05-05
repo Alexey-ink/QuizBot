@@ -1,13 +1,11 @@
-version: '3.8'
-
 services:
   postgres:
-    image: {{ postgres_image }}
+    image: postgres:17
     restart: unless-stopped
     env_file:
-      - .env 
+      - .env
     volumes:
-      - {{ postgres_disk_mount }}/pgdata:/var/lib/postgresql/data
+      - /data/postgres/pgdata:/var/lib/postgresql/data
     networks:
       - quiznet
     healthcheck:
@@ -17,7 +15,8 @@ services:
       retries: 5
 
   app:
-    image: {{ docker_image }}:{{ docker_tag }}
+    # deploy.groovy ожидает placeholder "<image>" и подставляет полный image ref через sed
+    image: <image>
     restart: unless-stopped
     env_file:
       - .env
@@ -25,7 +24,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "8080:8080" 
+      - "8080:8080"
     networks:
       - quiznet
     logging:

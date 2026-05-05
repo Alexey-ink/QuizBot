@@ -2,7 +2,7 @@
 // Артефакты на выходе: server_ip.txt, disk_id.txt, server_name.txt
 pipeline {
     agent {
-        label 'shihalev'  // Агент с установленными terraform, ansible, yc-cli
+        label 'emeshkin'  // Агент с установленными terraform, ansible, yc-cli
     }
 
     options {

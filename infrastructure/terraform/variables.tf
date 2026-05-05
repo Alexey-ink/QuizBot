@@ -1,13 +1,14 @@
 variable "folder_id" {
   type        = string
   description = "Yandex Cloud Folder ID"
-  default     = "b1gkeihpvcehagj9bjlf"
+  # IMPORTANT: do not commit real cloud IDs in git. Pass via TF_VAR_folder_id / -var or tfvars locally.
+  default     = ""
 }
 
 variable "subnet_id" {
   type        = string
   description = "Existing Subnet ID"
-  default     = "fl80id702e4irnblcd63"
+  default     = ""
 }
 
 variable "ssh_public_key" {
@@ -24,7 +25,7 @@ variable "image_family" {
 variable "security_group_id" {
   type        = string
   description = "security group id"
-  default     = "enpkd9np0qbhc064o9mu"
+  default     = ""
 }
 
 variable "yc_token" {
@@ -36,5 +37,6 @@ variable "postgres_password" {
   type        = string
   description = "Password for PostgreSQL user"
   sensitive   = true
-  default     = "postgres"
+  # IMPORTANT: never commit real passwords. Provide via secrets/CI.
+  default     = ""
 }

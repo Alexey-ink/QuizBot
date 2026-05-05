@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'shihalev'
+        label 'emeshkin'
     }
 
     environment {
@@ -14,7 +14,8 @@ pipeline {
         ENV_FILE_NAME = ".env"
         
         POSTGRES_IMAGE = "postgres:17"
-        DOCKER_IMAGE = "alexeyshihalev/quizbot"
+        // Замени на свой Docker Hub namespace/repo (без registry-префикса)
+        DOCKER_IMAGE = "emeshkin/quizbot"
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         DOCKER_REGISTRY_URL = 'docker.io'
     }
@@ -121,7 +122,7 @@ pipeline {
             steps {
                 withCredentials([
                     usernamePassword(
-                        credentialsId: 'shihalev-docker-registry-creds',
+                        credentialsId: 'emeshkin-docker-registry-creds',
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )
