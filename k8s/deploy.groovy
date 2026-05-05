@@ -39,7 +39,7 @@ pipeline {
                 script {
                     // Копируем артефакты из последнего успешного build
                     copyArtifacts(
-                        projectName: 'java-build',
+                        projectName: 'java-build-k8s',
                         selector: lastSuccessful(),
                         target: 'build-artifacts',
                         filter: 'docker_tag.txt,docker_image.txt',
@@ -56,7 +56,7 @@ pipeline {
             post {
                 failure {
                     echo "❌ Failed to retrieve build artifacts!"
-                    echo "🔍 Check that 'build' job has successful runs with archived artifacts."
+                    echo "🔍 Check that 'java-build-k8s' has successful runs with archived docker_image.txt and docker_tag.txt."
                     error("Artifact retrieval failed")
                 }
             }
