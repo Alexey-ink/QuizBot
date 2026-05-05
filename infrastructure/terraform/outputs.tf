@@ -1,18 +1,20 @@
-output "server_public_ip" {
-  description = "Public IP address"
-  value       = yandex_compute_instance.quizbot_server.network_interface[0].nat_ip_address
+output "server_ip" {
+  description = "Instance fixed IP"
+  value = coalesce(
+    openstack_compute_instance_v2.quizbot_server.access_ip_v4,
+    openstack_compute_instance_v2.quizbot_server.network[0].fixed_ip_v4
+  )
 }
 
 output "server_name" {
-  value = yandex_compute_instance.quizbot_server.name
+  value = openstack_compute_instance_v2.quizbot_server.name
 }
 
-output "postgres_disk_id" {
-  description = "Disk ID for PostgreSQL data (for manual snapshot/restore)"
-  value       = yandex_compute_disk.postgres_data.id
-  sensitive   = false
+output "postgres_volume_id" {
+  description = "Cinder volume ID attached to VM"
+  value       = openstack_blockstorage_volume_v3.postgres_data.id
 }
 
 output "ssh_command" {
-  value = "ssh -i ~/.ssh/id_ed25519 ubuntu@${yandex_compute_instance.quizbot_server.network_interface[0].nat_ip_address}"
+  value = "ssh ubuntu@${coalesce(openstack_compute_instance_v2.quizbot_server.access_ip_v4, openstack_compute_instance_v2.quizbot_server.network[0].fixed_ip_v4)}"
 }

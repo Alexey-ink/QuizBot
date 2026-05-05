@@ -1,72 +1,79 @@
 terraform {
   required_providers {
-    yandex = {
-      source  = "yandex-cloud/yandex"
-      version = "~> 0.130"
+    openstack = {
+      source  = "terraform-provider-openstack/openstack"
+      version = "~> 1.54"
     }
   }
   required_version = ">= 1.0"
 }
 
-provider "yandex" {
-  folder_id = var.folder_id
-  token     = var.yc_token
+provider "openstack" {
+  auth_url            = var.auth_url
+  user_name           = var.username
+  password            = var.password
+  tenant_name         = var.project_name
+  user_domain_name    = var.user_domain_name
+  project_domain_name = var.project_domain_name
+  region              = var.region
 }
 
-data "yandex_vpc_subnet" "main" {
-  subnet_id = var.subnet_id
+resource "openstack_compute_keypair_v2" "quizbot_keypair" {
+  name       = var.keypair_name
+  public_key = var.ssh_public_key
 }
 
-data "yandex_compute_image" "ubuntu" {
-  family = var.image_family
+resource "openstack_networking_secgroup_v2" "quizbot_sg" {
+  count       = var.create_security_group ? 1 : 0
+  name        = var.security_group_name
+  description = "Security group for QuizBot VM"
 }
 
-# диск для PostgreSQL
-resource "yandex_compute_disk" "postgres_data" {
-  name     = "quizbot-postgres-data"
-  type     = "network-hdd"    
-  zone     = data.yandex_vpc_subnet.main.zone
-  size     = 10              
-  
+resource "openstack_networking_secgroup_rule_v2" "ssh_ingress" {
+  count             = var.create_security_group ? 1 : 0
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 22
+  port_range_max    = 22
+  remote_ip_prefix  = "0.0.0.0/0"
+  security_group_id = openstack_networking_secgroup_v2.quizbot_sg[0].id
 }
 
-# Виртуальная машина с подключённым диском
-resource "yandex_compute_instance" "quizbot_server" {
-  name        = "quizbot"
-  platform_id = "standard-v3"
-  zone        = data.yandex_vpc_subnet.main.zone
+resource "openstack_networking_secgroup_rule_v2" "app_ingress" {
+  count             = var.create_security_group ? 1 : 0
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 8080
+  port_range_max    = 8080
+  remote_ip_prefix  = "0.0.0.0/0"
+  security_group_id = openstack_networking_secgroup_v2.quizbot_sg[0].id
+}
 
-  resources {
-    cores         = 2
-    memory        = 2
-    core_fraction = 20 
-  }
+resource "openstack_blockstorage_volume_v3" "postgres_data" {
+  name = var.volume_name
+  size = var.volume_size_gb
+}
 
-  boot_disk {
-    initialize_params {
-      image_id = data.yandex_compute_image.ubuntu.id
-      size     = 10
-      type     = "network-hdd"
-    }
-  }
+resource "openstack_compute_instance_v2" "quizbot_server" {
+  name        = var.server_name
+  image_name  = var.image_name
+  flavor_name = var.flavor_name
+  key_pair    = openstack_compute_keypair_v2.quizbot_keypair.name
 
-  # подключаем диск postgres
-  secondary_disk {
-    disk_id = yandex_compute_disk.postgres_data.id
-    mode    = "READ_WRITE"
-  }
+  security_groups = var.create_security_group ? [openstack_networking_secgroup_v2.quizbot_sg[0].name] : [var.security_group_name]
 
-  network_interface {
-    subnet_id          = var.subnet_id
-    nat                = true
-    security_group_ids = [var.security_group_id]
+  network {
+    uuid = var.network_id
   }
 
   metadata = {
     ssh-keys = "ubuntu:${var.ssh_public_key}"
   }
-  
-  # позволяет обновлять диск без уничтожения ВМ
-  allow_stopping_for_update = true
+}
 
+resource "openstack_compute_volume_attach_v2" "postgres_attach" {
+  instance_id = openstack_compute_instance_v2.quizbot_server.id
+  volume_id   = openstack_blockstorage_volume_v3.postgres_data.id
 }

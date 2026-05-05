@@ -76,15 +76,6 @@
       when: disk_check.stdout == ""
       tags: [disk]
 
-    - name: Create PostgreSQL data subdirectory
-      file:
-        path: "{{ postgres_disk_mount }}/pgdata"
-        state: directory
-        owner: "999"
-        group: "999"
-        mode: "0700"
-      tags: [disk, postgres]
-
     # Монтируем диск (или проверяем, что он уже смонтирован)
     - name: Mount disk to {{ postgres_disk_mount }}
       mount:
@@ -94,6 +85,15 @@
         state: mounted
         opts: defaults,nofail,noatime
       tags: [disk]
+
+    - name: Create PostgreSQL data subdirectory
+      file:
+        path: "{{ postgres_disk_mount }}/pgdata"
+        state: directory
+        owner: "999"
+        group: "999"
+        mode: "0700"
+      tags: [disk, postgres]
 
     # Устанавливаем права на директорию для PostgreSQL
     - name: Ensure directory is writable by docker group
