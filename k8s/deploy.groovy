@@ -1,8 +1,8 @@
 // Ответственность: деплой приложения в Kubernetes-кластер (Minikube)
 // Зависимости: 
 //   - успешный build (артефакты: docker_image.txt, docker_tag.txt)
-//   - настроенный k8s-kubeconfig credential в Jenkins
-//   - файл .env в credential env-file-quizbot
+//   - Secret file k8s-kubeconfig (kubeconfig) + env-file-quizbot (.env)
+//   - kubectl на агенте; withCredentials + KUBECONFIG (без плагина Kubernetes CLI)
 
 pipeline {
     agent {
@@ -64,9 +64,12 @@ pipeline {
 
         stage('Create Namespace') {
             steps {
-                withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
-                    sh """kubectl create namespace ${env.K8S_NAMESPACE} \\
-                        --dry-run=client -o yaml | kubectl apply -f -"""
+                withCredentials([file(credentialsId: 'k8s-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+                    sh """
+                        export KUBECONFIG="\$KUBECONFIG_FILE"
+                        kubectl create namespace ${env.K8S_NAMESPACE} \\
+                            --dry-run=client -o yaml | kubectl apply -f -
+                    """
                 }
             }
         }
@@ -74,26 +77,19 @@ pipeline {
         stage('Create/Update Kubernetes Secrets') {
             steps {
                 withCredentials([
-                    file(credentialsId: 'env-file-quizbot', variable: 'ENV_FILE_PATH')
+                    file(credentialsId: 'env-file-quizbot', variable: 'ENV_FILE_PATH'),
+                    file(credentialsId: 'k8s-kubeconfig', variable: 'KUBECONFIG_FILE')
                 ]) {
-                    withKubeConfig([
-                        credentialsId: 'k8s-kubeconfig',
-                        serverUrl: '',
-                        namespace: "${env.K8S_NAMESPACE}"
-                    ]) {
-                        script {
-                            echo "🔐 Creating/updating secrets from .env file..."
-                            
-                            // Создаём или обновляем Secret из .env
-                            sh """
-                                kubectl create secret generic quizbot-secrets \\
-                                    --from-env-file=${ENV_FILE_PATH} \\
-                                    --namespace=${env.K8S_NAMESPACE} \\
-                                    --dry-run=client -o yaml | kubectl apply -f -
-                            """
-                            
-                            echo "✅ Secrets applied"
-                        }
+                    script {
+                        echo "🔐 Creating/updating secrets from .env file..."
+                        sh """
+                            export KUBECONFIG="\$KUBECONFIG_FILE"
+                            kubectl create secret generic quizbot-secrets \\
+                                --from-env-file="\$ENV_FILE_PATH" \\
+                                --namespace=${env.K8S_NAMESPACE} \\
+                                --dry-run=client -o yaml | kubectl apply -f -
+                        """
+                        echo "✅ Secrets applied"
                     }
                 }
             }
@@ -128,25 +124,19 @@ pipeline {
 
         stage('Apply Kubernetes Resources') {
             steps {
-                withKubeConfig([
-                    credentialsId: 'k8s-kubeconfig',
-                    serverUrl: '',
-                    namespace: "${env.K8S_NAMESPACE}"
-                ]) {
+                withCredentials([file(credentialsId: 'k8s-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
                     script {
                         echo "🚀 Applying Kubernetes manifests..."
-                        
-                        // 1. deployment.yaml (содержит Namespace, PVC, Deployments)
-                        // 2. service.yaml (Services, зависят от Deployments)
                         sh """
+                            export KUBECONFIG="\$KUBECONFIG_FILE"
                             kubectl apply -f deployment.rendered.yaml
                             kubectl apply -f ${env.SERVICE_FILE}
                         """
-                        
-                        // Ждём, пока деплоймент обновится
                         echo "⏳ Waiting for rollout to complete..."
-                        sh "kubectl rollout status deployment/quizbot -n ${env.K8S_NAMESPACE} --timeout=${env.DEPLOY_TIMEOUT}"
-                        
+                        sh """
+                            export KUBECONFIG="\$KUBECONFIG_FILE"
+                            kubectl rollout status deployment/quizbot -n ${env.K8S_NAMESPACE} --timeout=${env.DEPLOY_TIMEOUT}
+                        """
                         echo "✅ Rollout completed"
                     }
                 }
@@ -154,10 +144,13 @@ pipeline {
             post {
                 failure {
                     echo "❌ Deployment failed! Debug info:"
-                    withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
-                        sh "kubectl describe deployment quizbot -n ${env.K8S_NAMESPACE} || true"
-                        sh "kubectl get pods -n ${env.K8S_NAMESPACE} -o wide || true"
-                        sh "kubectl logs -n ${env.K8S_NAMESPACE} -l app=quizbot --tail=50 || true"
+                    withCredentials([file(credentialsId: 'k8s-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+                        sh """
+                            export KUBECONFIG="\$KUBECONFIG_FILE"
+                            kubectl describe deployment quizbot -n ${env.K8S_NAMESPACE} || true
+                            kubectl get pods -n ${env.K8S_NAMESPACE} -o wide || true
+                            kubectl logs -n ${env.K8S_NAMESPACE} -l app=quizbot --tail=50 || true
+                        """
                     }
                 }
             }
@@ -165,32 +158,32 @@ pipeline {
 
         stage('Verify Deployment') {
             steps {
-                withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
+                withCredentials([file(credentialsId: 'k8s-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
                     sh """
+                        export KUBECONFIG="\$KUBECONFIG_FILE"
                         echo "📊 Pods:"
-                        kubectl get pods -n ${K8S_NAMESPACE} -o wide
+                        kubectl get pods -n ${env.K8S_NAMESPACE} -o wide
 
                         echo "🖥 Nodes:"
                         kubectl get nodes -o wide
 
                         echo "🌐 Services:"
-                        kubectl get svc -n ${K8S_NAMESPACE}
+                        kubectl get svc -n ${env.K8S_NAMESPACE}
 
                         echo "🔗 Starting port-forward..."
-
-                        kubectl port-forward -n ${K8S_NAMESPACE} \
+                        kubectl port-forward -n ${env.K8S_NAMESPACE} \\
                             svc/quizbot-service 9090:80 > pf.log 2>&1 &
-
                         PF_PID=\$!
 
                         echo "⏳ Waiting for service..."
-
-                        for i in {1..10}; do
-                        if curl -s http://localhost:9090/healthcheck; then
-                            echo "✅ Healthcheck OK"
-                            break
-                        fi
-                        sleep 2
+                        i=1
+                        while [ \$i -le 10 ]; do
+                            if curl -s http://localhost:9090/healthcheck; then
+                                echo "✅ Healthcheck OK"
+                                break
+                            fi
+                            i=\$((i + 1))
+                            sleep 2
                         done
 
                         echo "📄 Port-forward log:"
