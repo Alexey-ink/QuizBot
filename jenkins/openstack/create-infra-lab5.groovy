@@ -105,7 +105,7 @@ pipeline {
             steps {
                 withCredentials([
                     sshUserPrivateKey(
-                        credentialsId: 'emeshkin-bot-ssh',
+                        credentialsId: 'emeshkin-ssh',
                         keyFileVariable: 'SSH_KEY_PATH',
                         usernameVariable: 'SSH_USER'
                     )
