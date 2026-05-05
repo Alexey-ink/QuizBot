@@ -1,9 +1,10 @@
 pipeline {
-    agent { label 'emeshkin' }
+    agent none
 
     options {
         timeout(time: 90, unit: 'MINUTES')
         disableConcurrentBuilds()
+        skipDefaultCheckout(true)
     }
 
     parameters {
