@@ -39,7 +39,7 @@ pipeline {
                 script {
                     // Копируем артефакты из последнего успешного build
                     copyArtifacts(
-                        projectName: 'build',
+                        projectName: 'java-build',
                         selector: lastSuccessful(),
                         target: 'build-artifacts',
                         filter: 'docker_tag.txt,docker_image.txt',
