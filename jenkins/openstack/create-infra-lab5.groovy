@@ -130,7 +130,7 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: 'server_ip.txt,server_name.txt,volume_id.txt', allowEmptyArchive: false
-            cleanWs()
+            deleteDir()
         }
     }
 }
