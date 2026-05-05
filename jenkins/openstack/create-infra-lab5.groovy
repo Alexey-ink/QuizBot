@@ -1,0 +1,137 @@
+pipeline {
+    agent { label 'emeshkin' }
+
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    environment {
+        TF_IN_AUTOMATION = '1'
+        TF_INPUT = '0'
+        TF_DIR = 'infrastructure/terraform'
+        ANSIBLE_DIR = 'jenkins/ansible'
+        ANSIBLE_HOST_KEY_CHECKING = 'False'
+    }
+
+    parameters {
+        string(name: 'NETWORK_ID', defaultValue: '', description: 'OpenStack network UUID')
+        string(name: 'IMAGE_NAME', defaultValue: 'ubuntu-24.04', description: 'OpenStack image name')
+        string(name: 'FLAVOR_NAME', defaultValue: 'm1.small', description: 'OpenStack flavor name')
+        string(name: 'SERVER_NAME', defaultValue: 'emeshkin-bot-vm', description: 'VM name')
+        string(name: 'KEYPAIR_NAME', defaultValue: 'emeshkin-key', description: 'OpenStack keypair name')
+        string(name: 'VOLUME_SIZE_GB', defaultValue: '10', description: 'PostgreSQL data volume size')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Terraform Init/Validate') {
+            steps {
+                dir("${env.TF_DIR}") {
+                    sh 'terraform fmt -check -recursive || terraform fmt -recursive'
+                    sh 'terraform init -reconfigure'
+                    sh 'terraform validate'
+                }
+            }
+        }
+
+        stage('Terraform Plan/Apply') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'openstack-student-password', variable: 'OS_PASSWORD'),
+                    file(credentialsId: 'emeshkin-openrc', variable: 'OPENRC_FILE'),
+                    string(credentialsId: 'emeshkin-ssh-public-key', variable: 'SSH_PUBLIC_KEY')
+                ]) {
+                    dir("${env.TF_DIR}") {
+                        sh '''
+                            set -euo pipefail
+
+                            # Load all OS_* except password from openrc credential file
+                            while IFS= read -r line; do
+                              case "$line" in
+                                export\\ OS_PASSWORD=*|export\\ OS_PASSWORD_INPUT=*) continue ;;
+                                export\\ OS_*=*) eval "${line#export }" ;;
+                              esac
+                            done < "${OPENRC_FILE}"
+
+                            export OS_PASSWORD="${OS_PASSWORD}"
+                            export TF_VAR_auth_url="${OS_AUTH_URL%/}/v3"
+                            export TF_VAR_username="${OS_USERNAME}"
+                            export TF_VAR_password="${OS_PASSWORD}"
+                            export TF_VAR_project_name="${OS_PROJECT_NAME}"
+                            export TF_VAR_user_domain_name="${OS_USER_DOMAIN_NAME:-Default}"
+                            export TF_VAR_project_domain_name="${OS_PROJECT_DOMAIN_NAME:-Default}"
+                            export TF_VAR_region="${OS_REGION_NAME:-RegionOne}"
+
+                            export TF_VAR_network_id="${NETWORK_ID}"
+                            export TF_VAR_image_name="${IMAGE_NAME}"
+                            export TF_VAR_flavor_name="${FLAVOR_NAME}"
+                            export TF_VAR_server_name="${SERVER_NAME}"
+                            export TF_VAR_keypair_name="${KEYPAIR_NAME}"
+                            export TF_VAR_volume_size_gb="${VOLUME_SIZE_GB}"
+                            export TF_VAR_ssh_public_key="${SSH_PUBLIC_KEY}"
+
+                            terraform plan -out=tfplan
+                            terraform apply -auto-approve tfplan
+
+                            terraform output -raw server_ip > "${WORKSPACE}/server_ip.txt"
+                            terraform output -raw server_name > "${WORKSPACE}/server_name.txt"
+                            terraform output -raw postgres_volume_id > "${WORKSPACE}/volume_id.txt"
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Wait for SSH') {
+            steps {
+                script {
+                    def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
+                    retry(20) {
+                        sleep 10
+                        sh "nc -z -w 5 ${serverIP} 22"
+                    }
+                }
+            }
+        }
+
+        stage('Ansible Configure') {
+            steps {
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'emeshkin-bot-ssh',
+                        keyFileVariable: 'SSH_KEY_PATH',
+                        usernameVariable: 'SSH_USER'
+                    )
+                ]) {
+                    script {
+                        def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
+                        dir("${env.ANSIBLE_DIR}") {
+                            sh """
+                                set -euo pipefail
+                                chmod 600 "${SSH_KEY_PATH}"
+                                ansible-playbook -i inventory.yml playbook.yml \
+                                  --extra-vars "server_ip=${serverIP}" \
+                                  --extra-vars "ansible_ssh_private_key_file=${SSH_KEY_PATH}" \
+                                  --extra-vars "ansible_user=${SSH_USER}"
+                            """
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'server_ip.txt,server_name.txt,volume_id.txt', allowEmptyArchive: false
+            cleanWs()
+        }
+    }
+}
