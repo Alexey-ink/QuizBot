@@ -85,9 +85,22 @@ spec:
         envFrom:
         - secretRef:
             name: quizbot-secrets
+        # Пока startupProbe не успешен — liveness/readiness не убивают под (важно для cold start JVM+Spring+БД).
+        startupProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          periodSeconds: 10
+          failureThreshold: 36
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          periodSeconds: 5
+          failureThreshold: 2
         livenessProbe:
           httpGet:
             path: /healthcheck
             port: 8080
-          initialDelaySeconds: 20
-          periodSeconds: 10
+          periodSeconds: 15
+          failureThreshold: 3
