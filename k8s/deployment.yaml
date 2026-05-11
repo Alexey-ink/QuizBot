@@ -85,6 +85,27 @@ spec:
         envFrom:
         - secretRef:
             name: quizbot-secrets
+        env:
+        - name: HTTP_PROXY
+          value: ""
+        - name: http_proxy
+          value: ""
+        - name: HTTPS_PROXY
+          value: ""
+        - name: https_proxy
+          value: ""
+        - name: ALL_PROXY
+          value: ""
+        - name: all_proxy
+          value: ""
+        - name: SOCKS_PROXY
+          value: ""
+        - name: socks_proxy
+          value: ""
+        - name: NO_PROXY
+          value: "localhost,127.0.0.1,postgres,.svc,.svc.cluster.local,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+        - name: no_proxy
+          value: "localhost,127.0.0.1,postgres,.svc,.svc.cluster.local,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
         # Пока startupProbe не успешен — liveness/readiness не убивают под (важно для cold start JVM+Spring+БД).
         startupProbe:
           httpGet:
