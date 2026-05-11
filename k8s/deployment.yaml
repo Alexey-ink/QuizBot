@@ -109,14 +109,20 @@ spec:
         - name: no_proxy
           value: "localhost,127.0.0.1,postgres,.svc,.svc.cluster.local,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
         - name: JAVA_TOOL_OPTIONS
-          value: "-Djava.net.useSystemProxies=false -DsocksProxyHost= -DsocksProxyPort= -Dhttp.nonProxyHosts=postgres|*.svc.cluster.local|localhost|127.0.0.1|10.*|172.16.*|192.168.*"
+          value: "-Djava.net.useSystemProxies=false -DsocksProxyHost= -DsocksProxyPort= -Dhttp.nonProxyHosts=postgres|*.svc.cluster.local|localhost|127.0.0.1"
+        - name: _JAVA_OPTIONS
+          value: "-Djava.net.useSystemProxies=false -DsocksProxyHost= -DsocksProxyPort= -Dhttp.nonProxyHosts=postgres|*.svc.cluster.local|localhost|127.0.0.1"
+        - name: POSTGRES_URL
+          value: "jdbc:postgresql://postgres:5432/quizbot"
         # Пока startupProbe не успешен — liveness/readiness не убивают под (важно для cold start JVM+Spring+БД).
         startupProbe:
           httpGet:
             path: /healthcheck
             port: 8080
+          initialDelaySeconds: 45
           periodSeconds: 10
-          failureThreshold: 36
+          timeoutSeconds: 5
+          failureThreshold: 42
         readinessProbe:
           httpGet:
             path: /healthcheck

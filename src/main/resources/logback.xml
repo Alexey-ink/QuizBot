@@ -24,6 +24,8 @@
     </appender>
 
     <logger name="ru.spbstu" level="DEBUG"/>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.hibernate" level="WARN"/>
 
     <root level="WARN">
         <appender-ref ref="CONSOLE"/>
