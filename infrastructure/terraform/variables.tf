@@ -37,27 +37,20 @@ variable "region" {
   default     = "RegionOne"
 }
 
-variable "network_id" {
+variable "existing_server_id" {
   type        = string
-  description = "OpenStack network UUID where VM NIC will be created"
+  description = "Existing VM UUID to reuse (no new VM will be created)"
 }
 
-variable "image_name" {
+variable "existing_server_name" {
   type        = string
-  description = "OpenStack image name"
-  default     = "ubuntu-24.04"
-}
-
-variable "flavor_name" {
-  type        = string
-  description = "OpenStack flavor name"
-  default     = "m1.small"
-}
-
-variable "server_name" {
-  type        = string
-  description = "VM name"
+  description = "Existing VM name"
   default     = "emeshkin-bot-vm"
+}
+
+variable "existing_server_ip" {
+  type        = string
+  description = "Existing VM private IP"
 }
 
 variable "volume_name" {
@@ -70,27 +63,4 @@ variable "volume_size_gb" {
   type        = number
   description = "PostgreSQL data volume size in GiB"
   default     = 10
-}
-
-variable "keypair_name" {
-  type        = string
-  description = "Name of the keypair created in OpenStack"
-  default     = "emeshkin-key"
-}
-
-variable "ssh_public_key" {
-  type        = string
-  description = "Public SSH key contents"
-}
-
-variable "create_security_group" {
-  type        = bool
-  description = "If true, create SG with 22/8080 ingress. If false, use existing SG by name."
-  default     = true
-}
-
-variable "security_group_name" {
-  type        = string
-  description = "Existing SG name when create_security_group=false OR name for new SG"
-  default     = "emeshkin-sg"
 }

@@ -16,11 +16,9 @@ pipeline {
     }
 
     parameters {
-        string(name: 'NETWORK_ID', defaultValue: '', description: 'OpenStack network UUID')
-        string(name: 'IMAGE_NAME', defaultValue: 'ubuntu-24.04', description: 'OpenStack image name')
-        string(name: 'FLAVOR_NAME', defaultValue: 'm1.small', description: 'OpenStack flavor name')
-        string(name: 'SERVER_NAME', defaultValue: 'emeshkin-bot-vm', description: 'VM name')
-        string(name: 'KEYPAIR_NAME', defaultValue: 'emeshkin-key', description: 'OpenStack keypair name')
+        string(name: 'EXISTING_SERVER_ID', defaultValue: '', description: 'Existing VM UUID (required)')
+        string(name: 'EXISTING_SERVER_NAME', defaultValue: 'emeshkin-bot-vm', description: 'Existing VM name')
+        string(name: 'EXISTING_SERVER_IP', defaultValue: '192.168.24.227', description: 'Existing VM private IP')
         string(name: 'VOLUME_SIZE_GB', defaultValue: '10', description: 'PostgreSQL data volume size')
     }
 
@@ -45,8 +43,7 @@ pipeline {
             steps {
                 withCredentials([
                     string(credentialsId: 'openstack-student-password', variable: 'OS_PASSWORD'),
-                    file(credentialsId: 'emeshkin-openrc', variable: 'OPENRC_FILE'),
-                    string(credentialsId: 'emeshkin-ssh-public-key', variable: 'SSH_PUBLIC_KEY')
+                    file(credentialsId: 'emeshkin-openrc', variable: 'OPENRC_FILE')
                 ]) {
                     dir("${env.TF_DIR}") {
                         sh '''
@@ -69,13 +66,12 @@ pipeline {
                             export TF_VAR_project_domain_name="${OS_PROJECT_DOMAIN_NAME:-Default}"
                             export TF_VAR_region="${OS_REGION_NAME:-RegionOne}"
 
-                            export TF_VAR_network_id="${NETWORK_ID}"
-                            export TF_VAR_image_name="${IMAGE_NAME}"
-                            export TF_VAR_flavor_name="${FLAVOR_NAME}"
-                            export TF_VAR_server_name="${SERVER_NAME}"
-                            export TF_VAR_keypair_name="${KEYPAIR_NAME}"
+                            test -n "${EXISTING_SERVER_ID}"
+
+                            export TF_VAR_existing_server_id="${EXISTING_SERVER_ID}"
+                            export TF_VAR_existing_server_name="${EXISTING_SERVER_NAME}"
+                            export TF_VAR_existing_server_ip="${EXISTING_SERVER_IP}"
                             export TF_VAR_volume_size_gb="${VOLUME_SIZE_GB}"
-                            export TF_VAR_ssh_public_key="${SSH_PUBLIC_KEY}"
 
                             terraform plan -out=tfplan
                             terraform apply -auto-approve tfplan

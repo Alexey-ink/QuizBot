@@ -1,13 +1,10 @@
 output "server_ip" {
-  description = "Instance fixed IP"
-  value = coalesce(
-    openstack_compute_instance_v2.quizbot_server.access_ip_v4,
-    openstack_compute_instance_v2.quizbot_server.network[0].fixed_ip_v4
-  )
+  description = "Existing VM fixed IP"
+  value       = var.existing_server_ip
 }
 
 output "server_name" {
-  value = openstack_compute_instance_v2.quizbot_server.name
+  value = var.existing_server_name
 }
 
 output "postgres_volume_id" {
@@ -16,5 +13,5 @@ output "postgres_volume_id" {
 }
 
 output "ssh_command" {
-  value = "ssh ubuntu@${coalesce(openstack_compute_instance_v2.quizbot_server.access_ip_v4, openstack_compute_instance_v2.quizbot_server.network[0].fixed_ip_v4)}"
+  value = "ssh ubuntu@${var.existing_server_ip}"
 }
