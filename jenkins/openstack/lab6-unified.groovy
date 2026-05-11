@@ -12,11 +12,9 @@ pipeline {
         string(name: 'JOB_INFRA', defaultValue: 'lab5-create-infra', description: 'Infrastructure job name')
         string(name: 'JOB_DEPLOY', defaultValue: 'lab4-deploy', description: 'Deploy job name')
 
-        string(name: 'NETWORK_ID', defaultValue: '6a69f855-8a2d-4994-baf0-ed4feedd897b', description: 'OpenStack network UUID')
-        string(name: 'IMAGE_NAME', defaultValue: 'ubuntu-24.04', description: 'OpenStack image name')
-        string(name: 'FLAVOR_NAME', defaultValue: 'm1.small', description: 'OpenStack flavor name')
-        string(name: 'SERVER_NAME', defaultValue: 'emeshkin-bot-vm', description: 'VM name')
-        string(name: 'KEYPAIR_NAME', defaultValue: 'emeshkin-key', description: 'OpenStack keypair name')
+        string(name: 'EXISTING_SERVER_ID', defaultValue: '7303c7d8-7ea6-4da5-ae91-f5560b03d742', description: 'Existing VM UUID (required for lab5 Terraform reuse)')
+        string(name: 'EXISTING_SERVER_NAME', defaultValue: 'emeshkin-bot-vm', description: 'Existing VM name')
+        string(name: 'EXISTING_SERVER_IP', defaultValue: '192.168.24.227', description: 'Existing VM private IP')
         string(name: 'VOLUME_SIZE_GB', defaultValue: '10', description: 'PostgreSQL data volume size')
     }
 
@@ -38,11 +36,9 @@ pipeline {
                         wait: true,
                         propagate: true,
                         parameters: [
-                            string(name: 'NETWORK_ID', value: params.NETWORK_ID),
-                            string(name: 'IMAGE_NAME', value: params.IMAGE_NAME),
-                            string(name: 'FLAVOR_NAME', value: params.FLAVOR_NAME),
-                            string(name: 'SERVER_NAME', value: params.SERVER_NAME),
-                            string(name: 'KEYPAIR_NAME', value: params.KEYPAIR_NAME),
+                            string(name: 'EXISTING_SERVER_ID', value: params.EXISTING_SERVER_ID),
+                            string(name: 'EXISTING_SERVER_NAME', value: params.EXISTING_SERVER_NAME),
+                            string(name: 'EXISTING_SERVER_IP', value: params.EXISTING_SERVER_IP),
                             string(name: 'VOLUME_SIZE_GB', value: params.VOLUME_SIZE_GB)
                         ]
                     )
