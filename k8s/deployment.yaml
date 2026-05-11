@@ -67,6 +67,8 @@ metadata:
   namespace: quizbot
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: quizbot
@@ -106,6 +108,8 @@ spec:
           value: "localhost,127.0.0.1,postgres,.svc,.svc.cluster.local,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
         - name: no_proxy
           value: "localhost,127.0.0.1,postgres,.svc,.svc.cluster.local,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+        - name: JAVA_TOOL_OPTIONS
+          value: "-Djava.net.useSystemProxies=false -DsocksProxyHost= -DsocksProxyPort= -Dhttp.nonProxyHosts=postgres|*.svc.cluster.local|localhost|127.0.0.1|10.*|172.16.*|192.168.*"
         # Пока startupProbe не успешен — liveness/readiness не убивают под (важно для cold start JVM+Spring+БД).
         startupProbe:
           httpGet:
