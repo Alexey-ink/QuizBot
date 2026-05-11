@@ -1,45 +1,23 @@
 heat_template_version: 2015-10-15
 
 description: |
-  Базовая инфраструктура для QuizBot
+  Базовая инфраструктура для QuizBot (reuse existing VM)
 
 parameters: 
-  image_id:
+  existing_server_id:
     type: string
-    label: Image
-    default: "ubuntu-24.04"
-  
-  flavor_id:
+    label: Existing VM ID
+    description: ID already created VM (for example emeshkin-bot-vm)
+  existing_server_name:
     type: string
-    label: Flavor
-    default: "m1.small"
-  
-  key_name:
+    label: Existing VM name
+    default: "emeshkin-bot-vm"
+  existing_server_private_ip:
     type: string
-    label: SSH Key
-    default: "emeshkin-key"
-  
-  existing_subnet_id:
-    type: string
-    label: Existing Subnet ID
-    default: "87af7ae7-714d-4472-b19a-7a4ec8505165"
+    label: Existing VM private IP
+    default: "192.168.24.227"
 
 resources:
-  bot_security_group:
-    type: OS::Neutron::SecurityGroup
-    properties:
-      name: emeshkin-sg
-      description: SG for QuizBot
-      rules:
-        - protocol: tcp
-          port_range_min: 22
-          port_range_max: 22
-          remote_ip_prefix: 0.0.0.0/0
-        - protocol: tcp
-          port_range_min: 8080
-          port_range_max: 8080
-          remote_ip_prefix: 0.0.0.0/0
-
   postgres_volume:
     type: OS::Cinder::Volume
     deletion_policy: Delete
@@ -48,33 +26,21 @@ resources:
       size: 10
       description: PostgreSQL data volume
 
-  bot_server:
-    type: OS::Nova::Server
-    properties:
-      name: emeshkin-bot-vm
-      image: { get_param: image_id }
-      flavor: { get_param: flavor_id }
-      key_name: { get_param: key_name }
-      networks:
-        - subnet: { get_param: existing_subnet_id }
-      security_groups:
-        - { get_resource: bot_security_group }
-
   postgres_attach:
     type: OS::Cinder::VolumeAttachment
     properties:
-      instance_uuid: { get_resource: bot_server }
+      instance_uuid: { get_param: existing_server_id }
       volume_id: { get_resource: postgres_volume }
       mountpoint: /dev/vdb
 
 outputs:
   server_private_ip:
     description: "Private IP address"
-    value: { get_attr: [bot_server, first_address] }
+    value: { get_param: existing_server_private_ip }
   
   server_name:
     description: "Server name"
-    value: { get_attr: [bot_server, name] }
+    value: { get_param: existing_server_name }
   
   ssh_command:
     description: "SSH command (via bastion/VPN)"
@@ -82,7 +48,7 @@ outputs:
       str_replace:
         template: "ssh -i <key> ubuntu@{ip}"
         params: 
-          ip: { get_attr: [bot_server, first_address] }
+          ip: { get_param: existing_server_private_ip }
   
   console_url:
     description: "How to access console"
