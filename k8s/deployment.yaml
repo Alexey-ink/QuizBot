@@ -12,7 +12,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: standard  # Minikube сам создаст PV
+  storageClassName: {{ storage_class }}
   resources:
     requests:
       storage: 1Gi

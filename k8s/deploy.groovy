@@ -1,16 +1,21 @@
-// Ответственность: деплой приложения в Kubernetes-кластер (Minikube)
-// Зависимости: 
-//   - успешный build (артефакты: docker_image.txt, docker_tag.txt)
-//   - Secret file k8s-kubeconfig (kubeconfig) + env-file-quizbot (.env)
-//   - kubectl на агенте; withCredentials + KUBECONFIG (без плагина Kubernetes CLI)
+// ЛР7: деплой в общий Kubernetes (без OpenStack/Terraform).
+// Зависимости:
+//   - job сборки образа с артефактами docker_image.txt, docker_tag.txt
+//   - credentials: k8s-kubeconfig (kubeconfig), env-file-quizbot (.env)
+//   - kubectl на агенте; в job java-build-k8s → Permission to copy artifact на этот pipeline
 
 pipeline {
     agent {
         label 'emeshkin'
     }
 
+    parameters {
+        string(name: 'JOB_BUILD_K8S', defaultValue: 'java-build-k8s', description: 'Имя job, откуда copyArtifacts (docker_image.txt, docker_tag.txt)')
+        string(name: 'STORAGE_CLASS', defaultValue: 'standard', description: 'StorageClass для postgres PVC (Minikube: standard; уточни у админа кластера)')
+    }
+
     options {
-        timeout(time: 10, unit: 'MINUTES')
+        timeout(time: 20, unit: 'MINUTES')
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '10'))
     }
@@ -39,7 +44,7 @@ pipeline {
                 script {
                     // Копируем артефакты из последнего успешного build
                     copyArtifacts(
-                        projectName: 'java-build-k8s',
+                        projectName: params.JOB_BUILD_K8S,
                         selector: lastSuccessful(),
                         target: 'build-artifacts',
                         filter: 'docker_tag.txt,docker_image.txt',
@@ -56,7 +61,8 @@ pipeline {
             post {
                 failure {
                     echo "❌ Failed to retrieve build artifacts!"
-                    echo "🔍 Check that 'java-build-k8s' has successful runs with archived docker_image.txt and docker_tag.txt."
+                    echo "🔍 Check that job '${params.JOB_BUILD_K8S}' has successful runs with archived docker_image.txt and docker_tag.txt."
+                    echo "🔍 Jenkins: у job '${params.JOB_BUILD_K8S}' включи Permission to copy artifact для этого pipeline."
                     error("Artifact retrieval failed")
                 }
             }
@@ -103,13 +109,14 @@ pipeline {
         stage('Render Kubernetes Manifests') {
             steps {
                 script {
-                    echo "🔄 Rendering deployment.yaml with image info..."
+                    echo "🔄 Rendering deployment.yaml (image + storage class)..."
                     
                     // Читаем шаблон и заменяем плейсхолдеры
                     def deploymentTemplate = readFile(file: "${env.DEPLOYMENT_FILE}")
                     def renderedDeployment = deploymentTemplate
                         .replace('{{ docker_image }}', env.DOCKER_IMAGE)
                         .replace('{{ docker_tag }}', env.DOCKER_TAG)
+                        .replace('{{ storage_class }}', params.STORAGE_CLASS)
                     
                     // Пишем отрендеренный файл
                     writeFile(
