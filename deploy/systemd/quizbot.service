@@ -1,20 +1,18 @@
 [Unit]
 Description=QuizBot (Java)
-After=network-online.target postgresql.service
-Wants=network-online.target
+After=network.target
 
 [Service]
 Type=simple
 User=ubuntu
 Group=ubuntu
 WorkingDirectory=/opt/quizbot
-# Создай /opt/quizbot/quizbot.env (см. quizbot.env.example) или оставь пустым — тогда подхватятся только дефолты из application.properties
+# Минус: файл не обязателен — без quizbot.env подхватятся дефолты из application.properties
 EnvironmentFile=-/opt/quizbot/quizbot.env
 ExecStart=/usr/bin/java -jar /opt/quizbot/quizbot.jar
 Restart=on-failure
 RestartSec=5
 
-# Логи в journald
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=quizbot
