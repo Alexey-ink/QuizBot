@@ -105,13 +105,14 @@ spec:
         - name: socks_proxy
           value: ""
         - name: NO_PROXY
-          value: "localhost,127.0.0.1,postgres,.svc,.svc.cluster.local,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+          value: "localhost,127.0.0.1,postgres,.svc,.svc.cluster.local,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,api.telegram.org,.telegram.org"
         - name: no_proxy
-          value: "localhost,127.0.0.1,postgres,.svc,.svc.cluster.local,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+          value: "localhost,127.0.0.1,postgres,.svc,.svc.cluster.local,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,api.telegram.org,.telegram.org"
+        # Явно глушим прокси для JVM (иначе Telegram/HttpClient может уйти в SOCKS → Network unreachable в поде).
         - name: JAVA_TOOL_OPTIONS
-          value: "-Djava.net.useSystemProxies=false -DsocksProxyHost= -DsocksProxyPort= -Dhttp.nonProxyHosts=postgres|*.svc.cluster.local|localhost|127.0.0.1"
+          value: "-Djava.net.useSystemProxies=false -Djava.net.preferIPv4Stack=true -Djava.net.socksProxyHost= -Djava.net.socksProxyPort= -DsocksProxyHost= -DsocksProxyPort= -Dhttp.proxyHost= -Dhttp.proxyPort= -Dhttps.proxyHost= -Dhttps.proxyPort= -Dhttp.nonProxyHosts=postgres|*.svc.cluster.local|localhost|127.0.0.1|10.*|172.16.*|192.168.*|api.telegram.org|*.telegram.org"
         - name: _JAVA_OPTIONS
-          value: "-Djava.net.useSystemProxies=false -DsocksProxyHost= -DsocksProxyPort= -Dhttp.nonProxyHosts=postgres|*.svc.cluster.local|localhost|127.0.0.1"
+          value: "-Djava.net.useSystemProxies=false -Djava.net.preferIPv4Stack=true -Djava.net.socksProxyHost= -Djava.net.socksProxyPort= -DsocksProxyHost= -DsocksProxyPort= -Dhttp.proxyHost= -Dhttp.proxyPort= -Dhttps.proxyHost= -Dhttps.proxyPort= -Dhttp.nonProxyHosts=postgres|*.svc.cluster.local|localhost|127.0.0.1|10.*|172.16.*|192.168.*|api.telegram.org|*.telegram.org"
         - name: POSTGRES_URL
           value: "jdbc:postgresql://postgres:5432/quizbot"
         # Пока startupProbe не успешен — liveness/readiness не убивают под (важно для cold start JVM+Spring+БД).
