@@ -15,12 +15,18 @@ pipeline {
         REMOTE_APP_DIR = '/opt/quizbot'
         REMOTE_JAR_NAME = 'quizbot.jar'
         SYSTEMD_UNIT = 'quizbot.service'
+        SYSTEMD_UNIT_FILE = 'deploy/systemd/quizbot.service'
     }
 
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+                script {
+                    if (!fileExists("${env.SYSTEMD_UNIT_FILE}")) {
+                        error("❌ Не найден unit: ${env.SYSTEMD_UNIT_FILE}")
+                    }
+                }
             }
         }
 
@@ -86,7 +92,13 @@ pipeline {
                           "${VM_USER}@${VM_IP}" "sudo mkdir -p '${REMOTE_APP_DIR}' && sudo chown -R ${VM_USER}:${VM_USER} '${REMOTE_APP_DIR}'"
 
                         scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                          "${SYSTEMD_UNIT_FILE}" "${VM_USER}@${VM_IP}:/tmp/${SYSTEMD_UNIT}"
+
+                        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
                           "${LOCAL_JAR}" "${VM_USER}@${VM_IP}:${REMOTE_APP_DIR}/${REMOTE_JAR_NAME}"
+
+                        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                          "${VM_USER}@${VM_IP}" "sudo install -m 0644 /tmp/${SYSTEMD_UNIT} /etc/systemd/system/${SYSTEMD_UNIT} && sudo systemctl daemon-reload && sudo systemctl enable '${SYSTEMD_UNIT}'"
 
                         ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
                           "${VM_USER}@${VM_IP}" "sudo systemctl restart '${SYSTEMD_UNIT}' && sudo systemctl --no-pager --full status '${SYSTEMD_UNIT}' | head -n 40"

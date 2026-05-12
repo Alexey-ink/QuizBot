@@ -9,7 +9,7 @@ pipeline {
     parameters {
         string(name: 'JOB_CREATE_INFRA', defaultValue: 'openstack/create-infra', description: 'Jenkins job: Heat stack apply + stack_outputs.json')
         string(name: 'JOB_BUILD', defaultValue: 'openstack/build', description: 'Jenkins job: Gradle build + jar artifact')
-        string(name: 'JOB_DEPLOY', defaultValue: 'openstack/deploy', description: 'Jenkins job: copy jar + systemctl restart')
+        string(name: 'JOB_DEPLOY', defaultValue: 'openstack/deploy', description: 'ЛР3: копия quizbot.jar + deploy/systemd/quizbot.service, enable/restart quizbot')
         string(name: 'STACK_NAME', defaultValue: 'emeshkin-lab3-stack', description: 'Heat stack name for Lab 3')
         choice(name: 'HEAT_ACTION', choices: ['update', 'create', 'recreate'], description: 'Lab 3 infra mode: update existing stack or create/recreate')
         string(name: 'SERVER_NAME', defaultValue: 'emeshkin-bot-vm', description: 'Имя ВМ: reuse если есть, иначе создаётся (нужны IMAGE/FLAVOR/NETWORK/KEY)')
