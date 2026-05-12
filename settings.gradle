@@ -1,1 +1,6 @@
+plugins {
+    // Авто-скачивание JDK под toolchain (build.gradle: Java 23) — нужно для Jenkins без установленного JDK 23
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0'
+}
+
 rootProject.name = 'quiz-bot'
