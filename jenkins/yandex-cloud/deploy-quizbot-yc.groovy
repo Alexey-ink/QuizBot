@@ -111,10 +111,23 @@ pipeline {
                         ]) {
                             sh '''
                                 set -eu
-                                chmod 600 "${SSH_KEY_PATH}"
+                                KEYFIX="${WORKSPACE}/.ssh_key_for_yc_deploy"
+                                sed 's/\\r$//' < "${SSH_KEY_PATH}" > "${KEYFIX}"
+                                chmod 600 "${KEYFIX}"
+                                FIRST="$(head -1 "${KEYFIX}")"
+                                case "${FIRST}" in
+                                  "-----BEGIN OPENSSH PRIVATE KEY-----"|*"BEGIN"*"PRIVATE KEY"*) ;;
+                                  *)
+                                    echo "❌ В credential не приватный ключ. Первая строка: ${FIRST}" >&2
+                                    echo "   В Yandex при создании ВМ — да, только публичный (.pub)." >&2
+                                    echo "   В Jenkins → Private Key нужен файл id_ed25519 (BEGIN…END), не id_ed25519.pub." >&2
+                                    exit 1
+                                    ;;
+                                esac
+                                export SSH_KEY_PATH="${KEYFIX}"
                                 export TELEGRAM_BOT_TOKEN="$(tr -d "\\r" < "${WORKSPACE}/.telegram_token_for_yc_deploy" || true)"
                                 bash "${WORKSPACE}/jenkins/yandex-cloud/yc-deploy-quizbot-on-vm.sh"
-                                rm -f "${WORKSPACE}/.telegram_token_for_yc_deploy"
+                                rm -f "${WORKSPACE}/.telegram_token_for_yc_deploy" "${KEYFIX}"
                             '''
                         }
                     }
@@ -139,7 +152,7 @@ pipeline {
 
     post {
         always {
-            sh "rm -f '${env.WORKSPACE}/.telegram_token_for_yc_deploy' 2>/dev/null || true"
+            sh "rm -f '${env.WORKSPACE}/.telegram_token_for_yc_deploy' '${env.WORKSPACE}/.ssh_key_for_yc_deploy' 2>/dev/null || true"
         }
     }
 }
