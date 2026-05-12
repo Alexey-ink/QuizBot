@@ -18,6 +18,8 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import ru.spbstu.telegram.bot.BotCommandInitializer;
@@ -35,6 +37,9 @@ import java.util.Properties;
 @EnableJpaRepositories(basePackages = "ru.spbstu.repository")
 @PropertySource("classpath:application.properties")
 public class AppConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(AppConfig.class);
+
     @Autowired
     private AutowireCapableBeanFactory beanFactory;
 
@@ -85,11 +90,21 @@ public class AppConfig {
     }
 
     @Bean
-    public TelegramBotsApi telegramBotsApi(QuizBot bot, BotCommandInitializer botCommandInitializer) throws Exception {
+    public TelegramBotsApi telegramBotsApi(
+            QuizBot bot,
+            BotCommandInitializer botCommandInitializer,
+            @Value("${quizbot.telegram.register-on-startup:true}") boolean registerOnStartup
+    ) throws Exception {
         TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
-        api.registerBot(bot);
-
-        botCommandInitializer.setBotCommands(bot);
+        if (registerOnStartup) {
+            api.registerBot(bot);
+            botCommandInitializer.setBotCommands(bot);
+        } else {
+            log.warn(
+                    "Telegram long polling not started (quizbot.telegram.register-on-startup=false). "
+                            + "No calls to api.telegram.org at startup; HTTP and healthcheck still run."
+            );
+        }
         return api;
     }
 
