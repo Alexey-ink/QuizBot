@@ -16,9 +16,12 @@ pipeline {
     }
 
     parameters {
-        string(name: 'EXISTING_SERVER_ID', defaultValue: '', description: 'Existing VM UUID (required)')
-        string(name: 'EXISTING_SERVER_NAME', defaultValue: 'emeshkin-bot-vm', description: 'Existing VM name')
-        string(name: 'EXISTING_SERVER_IP', defaultValue: '192.168.24.227', description: 'Existing VM private IP')
+        string(name: 'SERVER_NAME', defaultValue: 'emeshkin-bot-vm', description: 'VM name: reuse if exists, otherwise create new')
+        string(name: 'IMAGE_NAME', defaultValue: '', description: 'OpenStack image name (used when creating new VM)')
+        string(name: 'FLAVOR_NAME', defaultValue: '', description: 'OpenStack flavor name (used when creating new VM)')
+        string(name: 'NETWORK_ID', defaultValue: '', description: 'OpenStack network UUID (used when creating new VM)')
+        string(name: 'KEY_PAIR', defaultValue: '', description: 'OpenStack keypair (used when creating new VM)')
+        string(name: 'SECURITY_GROUP', defaultValue: 'default', description: 'Security group (used when creating new VM)')
         string(name: 'VOLUME_SIZE_GB', defaultValue: '10', description: 'PostgreSQL data volume size')
     }
 
@@ -66,11 +69,34 @@ pipeline {
                             export TF_VAR_project_domain_name="${OS_PROJECT_DOMAIN_NAME:-Default}"
                             export TF_VAR_region="${OS_REGION_NAME:-RegionOne}"
 
-                            test -n "${EXISTING_SERVER_ID}"
+                            SERVER_NAME_TRIMMED="$(echo "${SERVER_NAME}" | xargs)"
+                            test -n "${SERVER_NAME_TRIMMED}"
 
-                            export TF_VAR_existing_server_id="${EXISTING_SERVER_ID}"
-                            export TF_VAR_existing_server_name="${EXISTING_SERVER_NAME}"
-                            export TF_VAR_existing_server_ip="${EXISTING_SERVER_IP}"
+                            EXISTING_ID="$(openstack server list --name "^${SERVER_NAME_TRIMMED}$" -f value -c ID | head -n 1 || true)"
+                            EXISTING_IP=""
+
+                            if [ -n "${EXISTING_ID}" ]; then
+                                echo "✅ Existing VM found: ${SERVER_NAME_TRIMMED} (${EXISTING_ID})"
+                                EXISTING_IP="$(openstack server show "${EXISTING_ID}" -f value -c addresses | sed -E 's/.*=([^, ]+).*/\1/' || true)"
+                                export TF_VAR_existing_server_id="${EXISTING_ID}"
+                                export TF_VAR_existing_server_name="${SERVER_NAME_TRIMMED}"
+                                export TF_VAR_existing_server_ip="${EXISTING_IP}"
+                            else
+                                echo "ℹ️ Existing VM not found, creating a new one: ${SERVER_NAME_TRIMMED}"
+                                test -n "${IMAGE_NAME}"
+                                test -n "${FLAVOR_NAME}"
+                                test -n "${NETWORK_ID}"
+                                test -n "${KEY_PAIR}"
+                                export TF_VAR_existing_server_id=""
+                                export TF_VAR_existing_server_name="${SERVER_NAME_TRIMMED}"
+                                export TF_VAR_existing_server_ip=""
+                                export TF_VAR_image_name="${IMAGE_NAME}"
+                                export TF_VAR_flavor_name="${FLAVOR_NAME}"
+                                export TF_VAR_network_id="${NETWORK_ID}"
+                                export TF_VAR_key_pair="${KEY_PAIR}"
+                                export TF_VAR_security_group="${SECURITY_GROUP}"
+                            fi
+
                             export TF_VAR_volume_size_gb="${VOLUME_SIZE_GB}"
 
                             terraform plan -out=tfplan

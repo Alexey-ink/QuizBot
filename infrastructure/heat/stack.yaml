@@ -1,21 +1,22 @@
 heat_template_version: 2015-10-15
 
 description: |
-  Базовая инфраструктура для QuizBot (reuse existing VM)
+  ЛР3: том Cinder + attach к ВМ. Jenkins перед Heat находит ВМ по имени или создаёт новую
+  и передаёт сюда existing_server_id / existing_server_private_ip.
 
-parameters: 
+parameters:
   existing_server_id:
     type: string
-    label: Existing VM ID
-    description: ID already created VM (for example emeshkin-bot-vm)
+    label: VM UUID (существующая или только что созданная)
+    description: OpenStack server UUID
   existing_server_name:
     type: string
-    label: Existing VM name
+    label: VM name
     default: "emeshkin-bot-vm"
   existing_server_private_ip:
     type: string
-    label: Existing VM private IP
-    default: "192.168.24.227"
+    label: VM private IPv4
+    description: Приватный IP ВМ (сеть из которой доступен SSH для деплоя)
 
 resources:
   postgres_volume:
@@ -52,4 +53,8 @@ outputs:
   
   console_url:
     description: "How to access console"
-    value: "OpenStack Dashboard → Compute → Instances → emeshkin-bot-vm → Console"
+    value:
+      str_replace:
+        template: "OpenStack Dashboard → Compute → Instances → {name} → Console"
+        params:
+          name: { get_param: existing_server_name }

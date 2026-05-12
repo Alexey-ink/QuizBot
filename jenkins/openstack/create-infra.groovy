@@ -2,7 +2,7 @@ pipeline {
     agent { label 'emeshkin' }
 
     options {
-        timeout(time: 20, unit: 'MINUTES')
+        timeout(time: 45, unit: 'MINUTES')
         timestamps()
         disableConcurrentBuilds()
     }
@@ -19,6 +19,12 @@ pipeline {
             choices: ['update', 'create', 'recreate'],
             description: 'update: openstack stack update; create: stack create (если нет); recreate: delete + create'
         )
+        string(name: 'SERVER_NAME', defaultValue: 'emeshkin-bot-vm', description: 'Имя ВМ: если уже есть — reuse; иначе создаётся новая (ниже параметры)')
+        string(name: 'IMAGE_NAME', defaultValue: '', description: 'Имя образа (только если ВМ создаём заново)')
+        string(name: 'FLAVOR_NAME', defaultValue: '', description: 'Имя flavor (только если ВМ создаём заново)')
+        string(name: 'NETWORK_ID', defaultValue: '', description: 'UUID сети --nic net-id=... (только если ВМ создаём заново)')
+        string(name: 'KEY_PAIR', defaultValue: '', description: 'Имя keypair в OpenStack (только если ВМ создаём заново)')
+        string(name: 'SECURITY_GROUP', defaultValue: 'default', description: 'Security group для новой ВМ')
     }
 
     stages {
@@ -41,6 +47,51 @@ pipeline {
                 sh '''
                     set +x
                     openstack token issue -f yaml | head -5
+                '''
+            }
+        }
+
+        stage('Resolve VM (reuse or create)') {
+            steps {
+                sh '''
+                    set -euo pipefail
+                    SERVER_NAME_TRIMMED="$(echo "${SERVER_NAME}" | xargs)"
+                    test -n "${SERVER_NAME_TRIMMED}"
+
+                    HEAT_ENV="${WORKSPACE}/heat-lab3-params.yaml"
+                    EXISTING_ID="$(openstack server list --name "^${SERVER_NAME_TRIMMED}$" -f value -c ID 2>/dev/null | head -n 1 || true)"
+
+                    if [ -n "${EXISTING_ID}" ]; then
+                      echo "✅ ЛР3: найдена существующая ВМ ${SERVER_NAME_TRIMMED} (${EXISTING_ID})"
+                      SERVER_ID="${EXISTING_ID}"
+                      SERVER_IP="$(openstack server show "${SERVER_ID}" -f value -c addresses | sed -E 's/.*=([^, ]+).*/\\1/' || true)"
+                      test -n "${SERVER_IP}"
+                    else
+                      echo "ℹ️ ЛР3: ВМ нет — создаём ${SERVER_NAME_TRIMMED}"
+                      test -n "${IMAGE_NAME}"
+                      test -n "${FLAVOR_NAME}"
+                      test -n "${NETWORK_ID}"
+                      test -n "${KEY_PAIR}"
+                      openstack server create "${SERVER_NAME_TRIMMED}" \
+                        --image "${IMAGE_NAME}" \
+                        --flavor "${FLAVOR_NAME}" \
+                        --nic "net-id=${NETWORK_ID}" \
+                        --key-name "${KEY_PAIR}" \
+                        ${SECURITY_GROUP:+--security-group "${SECURITY_GROUP}"} \
+                        --wait
+                      SERVER_ID="$(openstack server show "${SERVER_NAME_TRIMMED}" -f value -c id)"
+                      SERVER_IP="$(openstack server show "${SERVER_ID}" -f value -c addresses | sed -E 's/.*=([^, ]+).*/\\1/' || true)"
+                      test -n "${SERVER_IP}"
+                    fi
+
+                    cat > "${HEAT_ENV}" <<EOF
+parameters:
+  existing_server_id: "${SERVER_ID}"
+  existing_server_name: "${SERVER_NAME_TRIMMED}"
+  existing_server_private_ip: "${SERVER_IP}"
+EOF
+                    echo "📝 Heat environment:"
+                    sed 's/existing_server_id:.*/existing_server_id: ***/' "${HEAT_ENV}"
                 '''
             }
         }
@@ -80,18 +131,18 @@ pipeline {
                     if (params.HEAT_ACTION == 'create' || params.HEAT_ACTION == 'recreate') {
                         sh """
                             set -euo pipefail
-                            openstack stack create -t ${HEAT_TEMPLATE} --wait ${stack}
+                            openstack stack create -e "\${WORKSPACE}/heat-lab3-params.yaml" -t ${HEAT_TEMPLATE} --wait ${stack}
                         """
                     } else { // update
                         if (status == 'NOT_FOUND') {
                             sh """
                                 set -euo pipefail
-                                openstack stack create -t ${HEAT_TEMPLATE} --wait ${stack}
+                                openstack stack create -e "\${WORKSPACE}/heat-lab3-params.yaml" -t ${HEAT_TEMPLATE} --wait ${stack}
                             """
                         } else {
                             sh """
                                 set -euo pipefail
-                                openstack stack update -t ${HEAT_TEMPLATE} --wait ${stack}
+                                openstack stack update -e "\${WORKSPACE}/heat-lab3-params.yaml" -t ${HEAT_TEMPLATE} --wait ${stack}
                             """
                         }
                     }

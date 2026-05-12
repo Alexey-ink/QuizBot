@@ -12,9 +12,12 @@ pipeline {
         string(name: 'JOB_INFRA', defaultValue: 'lab5-create-infra', description: 'Infrastructure job name')
         string(name: 'JOB_DEPLOY', defaultValue: 'lab4-deploy', description: 'Deploy job name')
 
-        string(name: 'EXISTING_SERVER_ID', defaultValue: '7303c7d8-7ea6-4da5-ae91-f5560b03d742', description: 'Existing VM UUID (required for lab5 Terraform reuse)')
-        string(name: 'EXISTING_SERVER_NAME', defaultValue: 'emeshkin-bot-vm', description: 'Existing VM name')
-        string(name: 'EXISTING_SERVER_IP', defaultValue: '192.168.24.227', description: 'Existing VM private IP')
+        string(name: 'SERVER_NAME', defaultValue: 'emeshkin-bot-vm', description: 'VM name: reuse if exists, otherwise create new')
+        string(name: 'IMAGE_NAME', defaultValue: '', description: 'OpenStack image name (used when creating new VM)')
+        string(name: 'FLAVOR_NAME', defaultValue: '', description: 'OpenStack flavor name (used when creating new VM)')
+        string(name: 'NETWORK_ID', defaultValue: '', description: 'OpenStack network UUID (used when creating new VM)')
+        string(name: 'KEY_PAIR', defaultValue: '', description: 'OpenStack keypair (used when creating new VM)')
+        string(name: 'SECURITY_GROUP', defaultValue: 'default', description: 'Security group (used when creating new VM)')
         string(name: 'VOLUME_SIZE_GB', defaultValue: '10', description: 'PostgreSQL data volume size')
     }
 
@@ -36,9 +39,12 @@ pipeline {
                         wait: true,
                         propagate: true,
                         parameters: [
-                            string(name: 'EXISTING_SERVER_ID', value: params.EXISTING_SERVER_ID),
-                            string(name: 'EXISTING_SERVER_NAME', value: params.EXISTING_SERVER_NAME),
-                            string(name: 'EXISTING_SERVER_IP', value: params.EXISTING_SERVER_IP),
+                            string(name: 'SERVER_NAME', value: params.SERVER_NAME),
+                            string(name: 'IMAGE_NAME', value: params.IMAGE_NAME),
+                            string(name: 'FLAVOR_NAME', value: params.FLAVOR_NAME),
+                            string(name: 'NETWORK_ID', value: params.NETWORK_ID),
+                            string(name: 'KEY_PAIR', value: params.KEY_PAIR),
+                            string(name: 'SECURITY_GROUP', value: params.SECURITY_GROUP),
                             string(name: 'VOLUME_SIZE_GB', value: params.VOLUME_SIZE_GB)
                         ]
                     )

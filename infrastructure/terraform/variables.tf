@@ -39,18 +39,50 @@ variable "region" {
 
 variable "existing_server_id" {
   type        = string
-  description = "Existing VM UUID to reuse (no new VM will be created)"
+  description = "Existing VM UUID to reuse (if empty, Terraform will create a new VM)"
+  default     = ""
 }
 
 variable "existing_server_name" {
   type        = string
-  description = "Existing VM name"
+  description = "Existing VM name (also used as name for new VM)"
   default     = "emeshkin-bot-vm"
 }
 
 variable "existing_server_ip" {
   type        = string
-  description = "Existing VM private IP"
+  description = "Existing VM private IP (optional)"
+  default     = ""
+}
+
+variable "image_name" {
+  type        = string
+  description = "OpenStack image name for new VM creation"
+  default     = ""
+}
+
+variable "flavor_name" {
+  type        = string
+  description = "OpenStack flavor name for new VM creation"
+  default     = ""
+}
+
+variable "network_id" {
+  type        = string
+  description = "OpenStack network UUID for new VM creation"
+  default     = ""
+}
+
+variable "key_pair" {
+  type        = string
+  description = "OpenStack key pair name for new VM creation"
+  default     = ""
+}
+
+variable "security_group" {
+  type        = string
+  description = "OpenStack security group for new VM creation"
+  default     = "default"
 }
 
 variable "volume_name" {
