@@ -2,7 +2,7 @@ pipeline {
     agent { label 'emeshkin' }
 
     options {
-        timeout(time: 30, unit: 'MINUTES')
+        timeout(time: 45, unit: 'MINUTES')
         disableConcurrentBuilds()
     }
 
@@ -23,6 +23,14 @@ pipeline {
         string(name: 'KEY_PAIR', defaultValue: '', description: 'OpenStack keypair (used when creating new VM)')
         string(name: 'SECURITY_GROUP', defaultValue: 'default', description: 'Security group (used when creating new VM)')
         string(name: 'VOLUME_SIZE_GB', defaultValue: '10', description: 'PostgreSQL data volume size')
+        booleanParam(
+            name: 'DEPLOY_QUIZBOT',
+            defaultValue: true,
+            description: 'После Ansible: PostgreSQL + Temurin 23 + JAR + quizbot.service на ВМ (как ЛР3)'
+        )
+        string(name: 'DB_NAME', defaultValue: 'quizbot', description: 'Имя БД на ВМ (для quizbot.env)')
+        string(name: 'DB_USER', defaultValue: 'quizbot', description: 'Пользователь БД')
+        string(name: 'DB_PASS', defaultValue: 'quizbot_pass', description: 'Пароль БД (только для лабы)')
     }
 
     stages {
@@ -146,6 +154,40 @@ pipeline {
                                   --extra-vars "ansible_user=${SSH_USER}"
                             """
                         }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy QuizBot (как ЛР3)') {
+            when {
+                expression {
+                    def v = params.DEPLOY_QUIZBOT
+                    return v == null || v == true || v.toString().equalsIgnoreCase('true')
+                }
+            }
+            steps {
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'emeshkin-ssh',
+                        keyFileVariable: 'SSH_KEY_PATH',
+                        usernameVariable: 'SSH_USER'
+                    )
+                ]) {
+                    script {
+                        def vmIp = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
+                        sh """
+                            set -eu
+                            chmod 600 "\${SSH_KEY_PATH}"
+                            export WORKSPACE="\${WORKSPACE}"
+                            export VM_IP='${vmIp}'
+                            export SSH_KEY_PATH="\${SSH_KEY_PATH}"
+                            export SSH_USER="\${SSH_USER}"
+                            export DB_NAME='${params.DB_NAME}'
+                            export DB_USER='${params.DB_USER}'
+                            export DB_PASS='${params.DB_PASS}'
+                            bash "\${WORKSPACE}/jenkins/openstack/lab5-deploy-quizbot-on-vm.sh"
+                        """
                     }
                 }
             }
