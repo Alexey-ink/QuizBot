@@ -136,6 +136,9 @@ pipeline {
                         echo "🚀 Applying Kubernetes manifests..."
                         sh """
                             export KUBECONFIG="\$KUBECONFIG_FILE"
+                            # Если раньше в кластере были readiness/liveness с exec, а в манифесте — httpGet,
+                            # kubectl apply делает strategic merge и получается exec+httpGet → Invalid (more than 1 handler).
+                            kubectl delete deployment quizbot -n ${env.K8S_NAMESPACE} --ignore-not-found=true --wait=true --timeout=120s || true
                             kubectl apply -f deployment.rendered.yaml
                             kubectl apply -f ${env.SERVICE_FILE}
                         """
