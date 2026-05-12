@@ -18,6 +18,7 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -93,12 +94,19 @@ public class AppConfig {
     public TelegramBotsApi telegramBotsApi(
             QuizBot bot,
             BotCommandInitializer botCommandInitializer,
-            @Value("${quizbot.telegram.register-on-startup:true}") boolean registerOnStartup
+            @Value("${quizbot.telegram.register-on-startup:false}") boolean registerOnStartup
     ) throws Exception {
         TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
-        if (registerOnStartup) {
+        if (registerOnStartup
+                && StringUtils.hasText(bot.getBotToken())
+                && StringUtils.hasText(bot.getBotUsername())) {
             api.registerBot(bot);
             botCommandInitializer.setBotCommands(bot);
+        } else if (registerOnStartup) {
+            log.warn(
+                    "Telegram register-on-startup is enabled but TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_USERNAME is empty; "
+                            + "skipping registerBot so HTTP and healthcheck can start."
+            );
         } else {
             log.warn(
                     "Telegram long polling not started (quizbot.telegram.register-on-startup=false). "

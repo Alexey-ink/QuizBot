@@ -94,6 +94,7 @@ pipeline {
                             "DB_USER=${dbUser}",
                             "DB_PASS=${dbPass}",
                             "TELEGRAM_BOT_TOKEN=",
+                            "TELEGRAM_BOT_USERNAME=@tlgrm_quiz_bot",
                             "QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP=false",
                         ]) {
                             // sh ''' ломал редирект sed на агенте (пустой KEYFIX). Здесь GString + \\$ — путь к ключу только в shell.
