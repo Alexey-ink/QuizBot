@@ -52,70 +52,91 @@ pipeline {
 
         stage('Terraform Plan/Apply') {
             steps {
-                withCredentials([
-                    string(credentialsId: 'openstack-student-password', variable: 'OS_PASSWORD'),
-                    file(credentialsId: 'emeshkin-openrc', variable: 'OPENRC_FILE')
-                ]) {
-                    dir("${env.TF_DIR}") {
-                        sh '''
-                            set -eu
+                script {
+                    // Параметры из Jenkinsfile не всегда попадают в env shell при первом запуске / смешанной конфигурации job.
+                    def pServer = (params.SERVER_NAME ?: 'emeshkin-bot-vm').toString().trim()
+                    def pImage = (params.IMAGE_NAME ?: '').toString().trim()
+                    def pFlavor = (params.FLAVOR_NAME ?: '').toString().trim()
+                    def pNet = (params.NETWORK_ID ?: '').toString().trim()
+                    def pKey = (params.KEY_PAIR ?: '').toString().trim()
+                    def pSg = (params.SECURITY_GROUP ?: 'default').toString().trim()
+                    def pVol = (params.VOLUME_SIZE_GB ?: '10').toString().trim()
 
-                            # Load all OS_* except password from openrc credential file
-                            while IFS= read -r line; do
-                              case "$line" in
-                                export\\ OS_PASSWORD=*|export\\ OS_PASSWORD_INPUT=*) continue ;;
-                                export\\ OS_*=*) eval "${line#export }" ;;
-                              esac
-                            done < "${OPENRC_FILE}"
+                    withEnv([
+                        "SERVER_NAME=${pServer}",
+                        "IMAGE_NAME=${pImage}",
+                        "FLAVOR_NAME=${pFlavor}",
+                        "NETWORK_ID=${pNet}",
+                        "KEY_PAIR=${pKey}",
+                        "SECURITY_GROUP=${pSg}",
+                        "VOLUME_SIZE_GB=${pVol}",
+                    ]) {
+                        withCredentials([
+                            string(credentialsId: 'openstack-student-password', variable: 'OS_PASSWORD'),
+                            file(credentialsId: 'emeshkin-openrc', variable: 'OPENRC_FILE')
+                        ]) {
+                            dir("${env.TF_DIR}") {
+                                sh '''
+                                    set -eu
 
-                            export OS_PASSWORD="${OS_PASSWORD}"
-                            # openrc уже задаёт .../v3; не дублировать суффикс /v3
-                            _auth="${OS_AUTH_URL%/}"
-                            case "${_auth}" in */v3) export TF_VAR_auth_url="${_auth}";; *) export TF_VAR_auth_url="${_auth}/v3";; esac
-                            export TF_VAR_username="${OS_USERNAME}"
-                            export TF_VAR_password="${OS_PASSWORD}"
-                            export TF_VAR_project_name="${OS_PROJECT_NAME}"
-                            export TF_VAR_user_domain_name="${OS_USER_DOMAIN_NAME:-Default}"
-                            export TF_VAR_project_domain_name="${OS_PROJECT_DOMAIN_NAME:-Default}"
-                            export TF_VAR_region="${OS_REGION_NAME:-RegionOne}"
+                                    # Load all OS_* except password from openrc credential file
+                                    while IFS= read -r line; do
+                                      case "$line" in
+                                        export\\ OS_PASSWORD=*|export\\ OS_PASSWORD_INPUT=*) continue ;;
+                                        export\\ OS_*=*) eval "${line#export }" ;;
+                                      esac
+                                    done < "${OPENRC_FILE}"
 
-                            SERVER_NAME_TRIMMED="$(echo "${SERVER_NAME}" | xargs)"
-                            test -n "${SERVER_NAME_TRIMMED}"
+                                    export OS_PASSWORD="${OS_PASSWORD}"
+                                    # openrc уже задаёт .../v3; не дублировать суффикс /v3
+                                    _auth="${OS_AUTH_URL%/}"
+                                    case "${_auth}" in */v3) export TF_VAR_auth_url="${_auth}";; *) export TF_VAR_auth_url="${_auth}/v3";; esac
+                                    export TF_VAR_username="${OS_USERNAME}"
+                                    export TF_VAR_password="${OS_PASSWORD}"
+                                    export TF_VAR_project_name="${OS_PROJECT_NAME}"
+                                    export TF_VAR_user_domain_name="${OS_USER_DOMAIN_NAME:-Default}"
+                                    export TF_VAR_project_domain_name="${OS_PROJECT_DOMAIN_NAME:-Default}"
+                                    export TF_VAR_region="${OS_REGION_NAME:-RegionOne}"
 
-                            EXISTING_ID="$(openstack server list --name "^${SERVER_NAME_TRIMMED}$" -f value -c ID | head -n 1 || true)"
-                            EXISTING_IP=""
+                                    SERVER_NAME_TRIMMED="$(echo "${SERVER_NAME}" | xargs)"
+                                    test -n "${SERVER_NAME_TRIMMED}"
 
-                            if [ -n "${EXISTING_ID}" ]; then
-                                echo "✅ Existing VM found: ${SERVER_NAME_TRIMMED} (${EXISTING_ID})"
-                                EXISTING_IP="$(openstack server show "${EXISTING_ID}" -f json -c addresses | python3 -c 'import json,sys; d=json.load(sys.stdin).get("addresses",{}); ips=[ip for arr in d.values() for ip in arr if "." in ip]; print(ips[0] if ips else "")' || true)"
-                                export TF_VAR_existing_server_id="${EXISTING_ID}"
-                                export TF_VAR_existing_server_name="${SERVER_NAME_TRIMMED}"
-                                export TF_VAR_existing_server_ip="${EXISTING_IP}"
-                            else
-                                echo "ℹ️ Existing VM not found, creating a new one: ${SERVER_NAME_TRIMMED}"
-                                test -n "${IMAGE_NAME}"
-                                test -n "${FLAVOR_NAME}"
-                                test -n "${NETWORK_ID}"
-                                test -n "${KEY_PAIR}"
-                                export TF_VAR_existing_server_id=""
-                                export TF_VAR_existing_server_name="${SERVER_NAME_TRIMMED}"
-                                export TF_VAR_existing_server_ip=""
-                                export TF_VAR_image_name="${IMAGE_NAME}"
-                                export TF_VAR_flavor_name="${FLAVOR_NAME}"
-                                export TF_VAR_network_id="${NETWORK_ID}"
-                                export TF_VAR_key_pair="${KEY_PAIR}"
-                                export TF_VAR_security_group="${SECURITY_GROUP}"
-                            fi
+                                    EXISTING_ID="$(openstack server list --name "^${SERVER_NAME_TRIMMED}$" -f value -c ID | head -n 1 || true)"
+                                    EXISTING_IP=""
 
-                            export TF_VAR_volume_size_gb="${VOLUME_SIZE_GB}"
+                                    if [ -n "${EXISTING_ID}" ]; then
+                                        echo "✅ Existing VM found: ${SERVER_NAME_TRIMMED} (${EXISTING_ID})"
+                                        EXISTING_IP="$(openstack server show "${EXISTING_ID}" -f json -c addresses | python3 -c 'import json,sys; d=json.load(sys.stdin).get("addresses",{}); ips=[ip for arr in d.values() for ip in arr if "." in ip]; print(ips[0] if ips else "")' || true)"
+                                        export TF_VAR_existing_server_id="${EXISTING_ID}"
+                                        export TF_VAR_existing_server_name="${SERVER_NAME_TRIMMED}"
+                                        export TF_VAR_existing_server_ip="${EXISTING_IP}"
+                                    else
+                                        echo "ℹ️ Existing VM not found, creating a new one: ${SERVER_NAME_TRIMMED}"
+                                        test -n "${IMAGE_NAME}"
+                                        test -n "${FLAVOR_NAME}"
+                                        test -n "${NETWORK_ID}"
+                                        test -n "${KEY_PAIR}"
+                                        export TF_VAR_existing_server_id=""
+                                        export TF_VAR_existing_server_name="${SERVER_NAME_TRIMMED}"
+                                        export TF_VAR_existing_server_ip=""
+                                        export TF_VAR_image_name="${IMAGE_NAME}"
+                                        export TF_VAR_flavor_name="${FLAVOR_NAME}"
+                                        export TF_VAR_network_id="${NETWORK_ID}"
+                                        export TF_VAR_key_pair="${KEY_PAIR}"
+                                        export TF_VAR_security_group="${SECURITY_GROUP}"
+                                    fi
 
-                            terraform plan -out=tfplan
-                            terraform apply -auto-approve tfplan
+                                    export TF_VAR_volume_size_gb="${VOLUME_SIZE_GB}"
 
-                            terraform output -raw server_ip > "${WORKSPACE}/server_ip.txt"
-                            terraform output -raw server_name > "${WORKSPACE}/server_name.txt"
-                            terraform output -raw postgres_volume_id > "${WORKSPACE}/volume_id.txt"
-                        '''
+                                    terraform plan -out=tfplan
+                                    terraform apply -auto-approve tfplan
+
+                                    terraform output -raw server_ip > "${WORKSPACE}/server_ip.txt"
+                                    terraform output -raw server_name > "${WORKSPACE}/server_name.txt"
+                                    terraform output -raw postgres_volume_id > "${WORKSPACE}/volume_id.txt"
+                                '''
+                            }
+                        }
                     }
                 }
             }
