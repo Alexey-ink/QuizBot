@@ -7,8 +7,6 @@ Type=simple
 User=ubuntu
 Group=ubuntu
 WorkingDirectory=/opt/quizbot
-# Минус: файл не обязателен — без quizbot.env подхватятся дефолты из application.properties
-EnvironmentFile=-/opt/quizbot/quizbot.env
 ExecStart=/usr/bin/java -jar /opt/quizbot/quizbot.jar
 Restart=on-failure
 RestartSec=5
