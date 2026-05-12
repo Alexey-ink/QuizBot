@@ -77,7 +77,7 @@ pipeline {
 
                             if [ -n "${EXISTING_ID}" ]; then
                                 echo "✅ Existing VM found: ${SERVER_NAME_TRIMMED} (${EXISTING_ID})"
-                                EXISTING_IP="$(openstack server show "${EXISTING_ID}" -f value -c addresses | sed -E 's/.*=([^, ]+).*/\1/' || true)"
+                                EXISTING_IP="$(openstack server show "${EXISTING_ID}" -f json -c addresses | python3 -c 'import json,sys; d=json.load(sys.stdin).get("addresses",{}); ips=[ip for arr in d.values() for ip in arr if "." in ip]; print(ips[0] if ips else "")' || true)"
                                 export TF_VAR_existing_server_id="${EXISTING_ID}"
                                 export TF_VAR_existing_server_name="${SERVER_NAME_TRIMMED}"
                                 export TF_VAR_existing_server_ip="${EXISTING_IP}"

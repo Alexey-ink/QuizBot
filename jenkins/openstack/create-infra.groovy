@@ -64,7 +64,7 @@ pipeline {
                     if [ -n "${EXISTING_ID}" ]; then
                       echo "✅ ЛР3: найдена существующая ВМ ${SERVER_NAME_TRIMMED} (${EXISTING_ID})"
                       SERVER_ID="${EXISTING_ID}"
-                      SERVER_IP="$(openstack server show "${SERVER_ID}" -f value -c addresses | sed -E 's/.*=([^, ]+).*/\\1/' || true)"
+                      SERVER_IP="$(openstack server show "${SERVER_ID}" -f json -c addresses | python3 -c 'import json,sys; d=json.load(sys.stdin).get("addresses",{}); ips=[ip for arr in d.values() for ip in arr if "." in ip]; print(ips[0] if ips else "")' || true)"
                       test -n "${SERVER_IP}"
                     else
                       echo "ℹ️ ЛР3: ВМ нет — создаём ${SERVER_NAME_TRIMMED}"
@@ -80,7 +80,7 @@ pipeline {
                         ${SECURITY_GROUP:+--security-group "${SECURITY_GROUP}"} \
                         --wait
                       SERVER_ID="$(openstack server show "${SERVER_NAME_TRIMMED}" -f value -c id)"
-                      SERVER_IP="$(openstack server show "${SERVER_ID}" -f value -c addresses | sed -E 's/.*=([^, ]+).*/\\1/' || true)"
+                      SERVER_IP="$(openstack server show "${SERVER_ID}" -f json -c addresses | python3 -c 'import json,sys; d=json.load(sys.stdin).get("addresses",{}); ips=[ip for arr in d.values() for ip in arr if "." in ip]; print(ips[0] if ips else "")' || true)"
                       test -n "${SERVER_IP}"
                     fi
 
