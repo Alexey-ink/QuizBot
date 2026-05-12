@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # После Ansible (ЛР5): как ЛР3 — PostgreSQL + Java на ВМ, JAR + systemd quizbot.service.
-# Ожидает: WORKSPACE, VM_IP, SSH_KEY_PATH, SSH_USER; опционально DB_NAME, DB_USER, DB_PASS.
+# Ожидает: WORKSPACE, VM_IP, SSH_KEY_PATH, SSH_USER; опционально DB_*, QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP, TELEGRAM_BOT_TOKEN.
+# Без TELEGRAM_BOT_TOKEN register-on-startup принудительно false (как ЛР7 / k8s deployment.yaml).
 
 set -eu
 
@@ -12,6 +13,13 @@ SSH_USER="${SSH_USER:-ubuntu}"
 DB_NAME="${DB_NAME:-quizbot}"
 DB_USER="${DB_USER:-quizbot}"
 DB_PASS="${DB_PASS:-quizbot_pass}"
+QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP="${QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP:-false}"
+TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}"
+TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN//$'\r'/}"
+# Как в k8s/deployment.yaml (ЛР7): без токена не регистрируем бота в Telegram при старте.
+if [ -z "${TELEGRAM_BOT_TOKEN}" ]; then
+  QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP=false
+fi
 
 TARGET="${SSH_USER}@${VM_IP}"
 SSH=(ssh -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null)
@@ -31,7 +39,7 @@ sudo apt-get install -y \
 
 sudo install -d -m 0755 /etc/apt/keyrings
 wget -qO- https://packages.adoptium.net/artifactory/api/gpg/key/public \
-  | sudo gpg --dearmor -o /etc/apt/keyrings/adoptium.gpg
+  | sudo gpg --batch --no-tty --dearmor -o /etc/apt/keyrings/adoptium.gpg
 echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb \$(. /etc/os-release && echo \$VERSION_CODENAME) main" \
   | sudo tee /etc/apt/sources.list.d/adoptium.list >/dev/null
 
@@ -77,6 +85,8 @@ cat <<ENVEOF | sudo tee /opt/quizbot/quizbot.env >/dev/null
 POSTGRES_USER=${DB_USER}
 POSTGRES_PASSWORD=${DB_PASS}
 POSTGRES_URL=jdbc:postgresql://127.0.0.1:5432/${DB_NAME}
+QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP=${QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP}
+TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
 ENVEOF
 sudo chown root:root /opt/quizbot/quizbot.env
 sudo chmod 600 /opt/quizbot/quizbot.env

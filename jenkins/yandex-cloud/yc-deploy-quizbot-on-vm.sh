@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Деплой QuizBot на ВМ Yandex Cloud (аналог lab5-deploy-quizbot-on-vm.sh для OpenStack).
+# Без TELEGRAM_BOT_TOKEN в env register-on-startup принудительно false (как env в k8s/deployment.yaml, ЛР7).
 # В консоли YC SSH: ssh -l emeshkin <публичный_IP> → здесь SSH_USER=emeshkin по умолчанию.
 #
 # Запуск с машины, где есть репозиторий и ключ:
@@ -7,8 +8,8 @@
 #   export SSH_KEY_PATH=~/.ssh/id_ed25519
 #   export VM_IP=81.26.183.246
 #   export SSH_USER=emeshkin   # опционально
-#   export QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP=true   # если ВМ ходит в api.telegram.org
-#   export TELEGRAM_BOT_TOKEN=...   # попадёт в /opt/quizbot/quizbot.env на ВМ
+#   export QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP=true   # только вместе с непустым TELEGRAM_BOT_TOKEN
+#   export TELEGRAM_BOT_TOKEN=...   # как в ЛР7/k8s: если пусто — register-on-startup принудительно false
 #   bash jenkins/yandex-cloud/yc-deploy-quizbot-on-vm.sh
 #
 # JAR: quizbot-app-*.jar в $WORKSPACE/build/libs или где угодно под $WORKSPACE (например build-artifacts-jar/).
@@ -25,6 +26,11 @@ DB_USER="${DB_USER:-quizbot}"
 DB_PASS="${DB_PASS:-quizbot_pass}"
 QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP="${QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP:-false}"
 TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}"
+TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN//$'\r'/}"
+# Как в k8s/deployment.yaml (ЛР7): без токена registerBot не вызываем — иначе Spring падает до Jetty/healthcheck.
+if [ -z "${TELEGRAM_BOT_TOKEN}" ]; then
+  QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP=false
+fi
 
 TARGET="${SSH_USER}@${VM_IP}"
 SSH=(ssh -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null)
@@ -46,7 +52,7 @@ sudo apt-get install -y \
 
 sudo install -d -m 0755 /etc/apt/keyrings
 wget -qO- https://packages.adoptium.net/artifactory/api/gpg/key/public \
-  | sudo gpg --dearmor -o /etc/apt/keyrings/adoptium.gpg
+  | sudo gpg --batch --no-tty --dearmor -o /etc/apt/keyrings/adoptium.gpg
 echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb \$(. /etc/os-release && echo \$VERSION_CODENAME) main" \
   | sudo tee /etc/apt/sources.list.d/adoptium.list >/dev/null
 

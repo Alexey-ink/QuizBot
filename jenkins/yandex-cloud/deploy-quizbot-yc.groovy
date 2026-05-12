@@ -1,5 +1,5 @@
 // Деплой QuizBot на ВМ Yandex Cloud (отдельный job).
-// Скрипт: jenkins/yandex-cloud/yc-deploy-quizbot-on-vm.sh
+// Скрипт: jenkins/yandex-cloud/yc-deploy-quizbot-on-vm.sh (токен Telegram в job не задаём — только HTTP/healthcheck на ВМ).
 // Нужны: Jenkins credential «SSH Username with private key» (см. SSH_CREDENTIALS_ID), copyArtifacts из JOB_BUILD_JAR.
 
 pipeline {
@@ -35,16 +35,6 @@ pipeline {
         string(name: 'DB_NAME', defaultValue: 'quizbot', description: 'Имя БД')
         string(name: 'DB_USER', defaultValue: 'quizbot', description: 'Пользователь БД')
         string(name: 'DB_PASS', defaultValue: 'quizbot_pass', description: 'Пароль БД')
-        booleanParam(
-            name: 'QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP',
-            defaultValue: false,
-            description: 'true — registerBot при старте (нужен доступ к api.telegram.org)'
-        )
-        string(
-            name: 'TELEGRAM_BOT_TOKEN',
-            defaultValue: '',
-            description: 'Опционально. Для секрета лучше отдельный Jenkins credential и доработка pipeline.'
-        )
     }
 
     stages {
@@ -93,13 +83,9 @@ pipeline {
                     ]) {
                         def vmIp = (params.VM_IP ?: '81.26.183.246').toString().trim()
                         def sshUser = (params.SSH_USER ?: 'emeshkin').toString().trim()
-                        def qtr = (params.QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP == true) ? 'true' : 'false'
                         def dbName = (params.DB_NAME ?: 'quizbot').toString()
                         def dbUser = (params.DB_USER ?: 'quizbot').toString()
                         def dbPass = (params.DB_PASS ?: 'quizbot_pass').toString()
-                        def tok = (params.TELEGRAM_BOT_TOKEN ?: '').toString()
-
-                        writeFile encoding: 'UTF-8', file: "${env.WORKSPACE}/.telegram_token_for_yc_deploy", text: tok
 
                         withEnv([
                             "VM_IP=${vmIp}",
@@ -107,13 +93,13 @@ pipeline {
                             "DB_NAME=${dbName}",
                             "DB_USER=${dbUser}",
                             "DB_PASS=${dbPass}",
-                            "QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP=${qtr}",
+                            "TELEGRAM_BOT_TOKEN=",
+                            "QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP=false",
                         ]) {
                             // sh ''' ломал редирект sed на агенте (пустой KEYFIX). Здесь GString + \\$ — путь к ключу только в shell.
                             sh """
                                 set -eu
                                 KEYFIX='${env.WORKSPACE}/.ssh_key_for_yc_deploy'
-                                TOKFILE='${env.WORKSPACE}/.telegram_token_for_yc_deploy'
                                 SRC_BYTES=\$(wc -c <"\$SSH_KEY_PATH" | tr -d ' ')
                                 if [ "\${SRC_BYTES}" -eq 0 ]; then
                                     echo '❌ В credential пустой Private Key (0 байт). Открой SSH credential → вставь id_ed25519 целиком → Save.' >&2
@@ -129,13 +115,8 @@ pipeline {
                                     exit 1
                                 fi
                                 export SSH_KEY_PATH="\${KEYFIX}"
-                                if [ -s "\${TOKFILE}" ]; then
-                                    export TELEGRAM_BOT_TOKEN=\$(tr -d "\${CR}" < "\${TOKFILE}" || true)
-                                else
-                                    export TELEGRAM_BOT_TOKEN=''
-                                fi
                                 bash '${env.WORKSPACE}/jenkins/yandex-cloud/yc-deploy-quizbot-on-vm.sh'
-                                rm -f "\${TOKFILE}" "\${KEYFIX}"
+                                rm -f "\${KEYFIX}"
                             """
                         }
                     }
@@ -160,7 +141,7 @@ pipeline {
 
     post {
         always {
-            sh "rm -f '${env.WORKSPACE}/.telegram_token_for_yc_deploy' '${env.WORKSPACE}/.ssh_key_for_yc_deploy' 2>/dev/null || true"
+            sh "rm -f '${env.WORKSPACE}/.ssh_key_for_yc_deploy' 2>/dev/null || true"
         }
     }
 }
