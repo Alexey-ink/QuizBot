@@ -31,6 +31,11 @@ pipeline {
         string(name: 'DB_NAME', defaultValue: 'quizbot', description: 'Имя БД на ВМ (для quizbot.env)')
         string(name: 'DB_USER', defaultValue: 'quizbot', description: 'Пользователь БД')
         string(name: 'DB_PASS', defaultValue: 'quizbot_pass', description: 'Пароль БД (только для лабы)')
+        string(
+            name: 'JOB_BUILD_JAR',
+            defaultValue: 'java-build',
+            description: 'Jenkins job: откуда copyArtifacts quizbot-app-*.jar (как ЛР3; нужен Permission to copy artifact)'
+        )
     }
 
     stages {
@@ -176,6 +181,36 @@ pipeline {
                             """
                         }
                     }
+                }
+            }
+        }
+
+        stage('Copy JAR from build job') {
+            when {
+                expression {
+                    def v = params.DEPLOY_QUIZBOT
+                    return v == null || v == true || v.toString().equalsIgnoreCase('true')
+                }
+            }
+            steps {
+                script {
+                    def jobName = (params.JOB_BUILD_JAR ?: 'java-build').toString().trim()
+                    echo "📦 copyArtifacts from: ${jobName} → build-artifacts-jar/"
+                    copyArtifacts(
+                        projectName: jobName,
+                        selector: lastSuccessful(),
+                        target: 'build-artifacts-jar',
+                        filter: 'build/libs/quizbot-app-*.jar',
+                        fingerprintArtifacts: true
+                    )
+                    def found = sh(
+                        script: "find \"${env.WORKSPACE}/build-artifacts-jar\" -type f -name 'quizbot-app-*.jar' 2>/dev/null | head -1",
+                        returnStdout: true
+                    ).trim()
+                    if (!found) {
+                        error("❌ Нет quizbot-app-*.jar после copyArtifacts. Проверь: job «${jobName}» архивирует build/libs/quizbot-app-*.jar и у lab5 есть Permission to copy artifact.")
+                    }
+                    echo "✅ JAR: ${found}"
                 }
             }
         }

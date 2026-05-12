@@ -59,15 +59,9 @@ JAR="$(find "${WORKSPACE}/build/libs" -maxdepth 1 -type f -name 'quizbot-app-*.j
 if [ -z "${JAR}" ] || [ ! -f "${JAR}" ]; then
   JAR="$(find "${WORKSPACE}" -type f -name 'quizbot-app-*.jar' 2>/dev/null | head -n 1 || true)"
 fi
-if [ -z "${JAR}" ] || [ ! -f "${JAR}" ]; then
-  if [ -x "${WORKSPACE}/gradlew" ]; then
-    echo "JAR не найден — ./gradlew shadowJar ..."
-    (cd "${WORKSPACE}" && ./gradlew --no-daemon shadowJar)
-    JAR="$(find "${WORKSPACE}/build/libs" -maxdepth 1 -type f -name 'quizbot-app-*.jar' | head -n 1)"
-  fi
-fi
 test -f "${JAR}" || {
-  echo "Не найден quizbot-app-*.jar" >&2
+  echo "Не найден quizbot-app-*.jar в WORKSPACE (в т.ч. build-artifacts-jar/ после copyArtifacts из java-build)." >&2
+  echo "Собери JAR в job «java-build» и включи Permission to copy artifact для lab5-create-infra." >&2
   exit 1
 }
 
