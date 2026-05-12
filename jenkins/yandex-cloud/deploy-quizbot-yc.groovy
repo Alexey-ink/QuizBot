@@ -1,6 +1,6 @@
 // Деплой QuizBot на ВМ Yandex Cloud (отдельный job).
 // Скрипт: jenkins/yandex-cloud/yc-deploy-quizbot-on-vm.sh
-// Нужны: credential SSH (emeshkin-ssh), Permission to copy artifact из JOB_BUILD_JAR.
+// Нужны: Jenkins credential «SSH Username with private key» (см. SSH_CREDENTIALS_ID), copyArtifacts из JOB_BUILD_JAR.
 
 pipeline {
     agent { label 'emeshkin' }
@@ -21,6 +21,11 @@ pipeline {
             name: 'SSH_USER',
             defaultValue: 'emeshkin',
             description: 'Пользователь SSH (как в консоли YC: ssh -l …)'
+        )
+        string(
+            name: 'SSH_CREDENTIALS_ID',
+            defaultValue: 'emeshkin-ssh-yandex',
+            description: 'Jenkins credential ID: приватный ключ для SSH на ВМ (тот же, что в authorized_keys пользователя SSH_USER)'
         )
         string(
             name: 'JOB_BUILD_JAR',
@@ -75,14 +80,17 @@ pipeline {
 
         stage('Deploy to Yandex VM') {
             steps {
-                withCredentials([
-                    sshUserPrivateKey(
-                        credentialsId: 'emeshkin-ssh',
-                        keyFileVariable: 'SSH_KEY_PATH',
-                        usernameVariable: 'SSH_USER_FROM_CRED'
-                    )
-                ]) {
-                    script {
+                script {
+                    def credId = (params.SSH_CREDENTIALS_ID ?: 'emeshkin-ssh-yandex').toString().trim()
+                    echo "🔑 SSH credential для ВМ: ${credId}"
+
+                    withCredentials([
+                        sshUserPrivateKey(
+                            credentialsId: credId,
+                            keyFileVariable: 'SSH_KEY_PATH',
+                            usernameVariable: 'SSH_USER_FROM_CRED'
+                        )
+                    ]) {
                         def vmIp = (params.VM_IP ?: '81.26.183.246').toString().trim()
                         def sshUser = (params.SSH_USER ?: 'emeshkin').toString().trim()
                         def qtr = (params.QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP == true) ? 'true' : 'false'
@@ -93,7 +101,6 @@ pipeline {
 
                         writeFile encoding: 'UTF-8', file: "${env.WORKSPACE}/.telegram_token_for_yc_deploy", text: tok
 
-                        // SSH_USER из параметра (emeshkin для YC); ключ из credential emeshkin-ssh.
                         withEnv([
                             "VM_IP=${vmIp}",
                             "SSH_USER=${sshUser}",
@@ -105,7 +112,7 @@ pipeline {
                             sh '''
                                 set -eu
                                 chmod 600 "${SSH_KEY_PATH}"
-                                export TELEGRAM_BOT_TOKEN="$(tr -d '\r' < "${WORKSPACE}/.telegram_token_for_yc_deploy")"
+                                export TELEGRAM_BOT_TOKEN="$(tr -d "\\r" < "${WORKSPACE}/.telegram_token_for_yc_deploy" || true)"
                                 bash "${WORKSPACE}/jenkins/yandex-cloud/yc-deploy-quizbot-on-vm.sh"
                                 rm -f "${WORKSPACE}/.telegram_token_for_yc_deploy"
                             '''
