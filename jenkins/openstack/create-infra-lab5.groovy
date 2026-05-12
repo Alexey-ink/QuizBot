@@ -50,7 +50,7 @@ pipeline {
                 ]) {
                     dir("${env.TF_DIR}") {
                         sh '''
-                            set -euo
+                            set -eu
 
                             # Load all OS_* except password from openrc credential file
                             while IFS= read -r line; do
@@ -61,7 +61,9 @@ pipeline {
                             done < "${OPENRC_FILE}"
 
                             export OS_PASSWORD="${OS_PASSWORD}"
-                            export TF_VAR_auth_url="${OS_AUTH_URL%/}/v3"
+                            # openrc уже задаёт .../v3; не дублировать суффикс /v3
+                            _auth="${OS_AUTH_URL%/}"
+                            case "${_auth}" in */v3) export TF_VAR_auth_url="${_auth}";; *) export TF_VAR_auth_url="${_auth}/v3";; esac
                             export TF_VAR_username="${OS_USERNAME}"
                             export TF_VAR_password="${OS_PASSWORD}"
                             export TF_VAR_project_name="${OS_PROJECT_NAME}"
@@ -136,7 +138,7 @@ pipeline {
                         def serverIP = readFile(file: "${env.WORKSPACE}/server_ip.txt").trim()
                         dir("${env.ANSIBLE_DIR}") {
                             sh """
-                                set -euo
+                                set -eu
                                 chmod 600 "${SSH_KEY_PATH}"
                                 ansible-playbook -i inventory.yml playbook.yml \
                                   --extra-vars "server_ip=${serverIP}" \
