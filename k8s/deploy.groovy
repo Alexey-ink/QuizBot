@@ -23,7 +23,7 @@ pipeline {
     environment {
         K8S_NAMESPACE = 'quizbot'
         K8S_MANIFESTS_DIR = 'k8s'
-        DEPLOY_TIMEOUT = '100s'
+        DEPLOY_TIMEOUT = '240s'
         
         DEPLOYMENT_FILE = "${env.K8S_MANIFESTS_DIR}/deployment.yaml"
         SERVICE_FILE = "${env.K8S_MANIFESTS_DIR}/service.yaml"

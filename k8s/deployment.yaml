@@ -149,6 +149,9 @@ spec:
           value: "jdbc:postgresql://postgres:5432/quizbot"
         - name: QUIZBOT_TELEGRAM_REGISTER_ON_STARTUP
           value: "false"
+        # Перекрывает пустое значение из секрета: иначе Spring не конвертирует "" в Long (AdminInitializer).
+        - name: ADMIN_DEFAULT_TELEGRAM_ID
+          value: "0"
         # Пока startupProbe не успешен — liveness/readiness не убивают под (важно для cold start JVM+Spring+БД).
         startupProbe:
           httpGet:
